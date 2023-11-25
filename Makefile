@@ -1,42 +1,34 @@
-CXX			=	c++
-CXXFLAGS	=	-Wall -Werror -Wextra -std=c++98
-RM			=	rm -rf
-AR			=	ar rcs
-NAME		=	webserv
+CXX = c++
+CXXFLAGS = -Wall -Werror -Wextra -std=c++98 --pedantic-errors
+RM = rm -rf
+AR = ar rcs
+NAME = webserv
 
-INC			=	-I inc/
+INCLUDES = -I includes/
+SRCS_DIR = srcs/
+OBJS_DIR = objs/
 
-SRC_DIR		=	src/
-OBJ_DIR		=	objs/
+SRCS = $(wildcard $(SRCS_DIR)*.cpp)
+OBJS = $(addprefix $(OBJS_DIR), $(notdir $(SRCS:.cpp=.o)))
 
-BUILT_NAME	=	main.cpp
+all: $(NAME)
 
-OBJ_NAME	=	$(addprefix $(BUILT_DIR), $(BUILT_NAME:.c=.o))
-OBJ_NAME	+=	$(addprefix $(EXEC_DIR), $(EXEC_NAME:.c=.o))
-OBJ			=	$(addprefix $(OBJ_DIR), $(OBJ_NAME))
+$(NAME): $(OBJS)
+	$(CXX) -o $@ $^
 
-all: mkdir $(NAME)
-
-$(NAME): $(OBJ)
-	@$(CXX) -o $@ $^
-	@echo "##### $@ compiling finished! #####"
-
-$(OBJ_DIR)%.o: $(SRC_DIR)%.c
-	@$(CXX) $(CXXFLAGS) $(INC) -o $@ -c $^
-	@echo "##### Creating" [ $@ ] " #####"
-
-mkdir:
-	@mkdir -p $(OBJ_DIR)$(BUILT_DIR)
-	@echo "##### Creating obj directory #####"
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	@$(RM) $(OBJ_DIR)
-	@echo "##### Removed object files #####"
+	$(RM) $(OBJS_DIR)
 
 fclean: clean
-	@$(RM) $(NAME)
-	@echo "##### Removed binary files #####"
+	$(RM) $(NAME)
 
 re: fclean all
 
-.PHONY: all mkdir clean fclean re
+
+debug: CXXFLAGS += -g
+debug: re
+
+.PHONY: all mkdir clean fclean re debug
