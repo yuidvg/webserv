@@ -5,8 +5,8 @@ AR = ar rcs
 NAME = webserv
 
 INCLUDES = -I includes/
-SRCS_DIR = srcs/
-OBJS_DIR = objs/
+SRCS_DIR = src/
+OBJS_DIR = obj/
 
 SRCS = $(wildcard $(SRCS_DIR)*.cpp)
 OBJS = $(addprefix $(OBJS_DIR), $(notdir $(SRCS:.cpp=.o)))
