@@ -12,31 +12,35 @@ int wrap_socket()
 
 int wrap_bind(int w_addr,struct sockaddr_in a_addr)
 {
-    if (bind(w_addr, (const struct sockaddr *)&a_addr, sizeof(a_addr)) == -1) 
-    {
+	int res = bind(w_addr, (const struct sockaddr *)&a_addr, sizeof(a_addr));
+	if (res == -1)
+	{
 		printf("bind error\n");
 		close(w_addr);
 		exit(1);
 	}
-	return (0);
+	return (res);
 }
 
 int wrap_listen(int w_addr, int backlog)
 {
-    if (listen(w_addr,backlog) == -1)
-    {
+	int res = listen(w_addr, backlog);
+	if (res == -1)
+	{
 		printf("listen error\n");
 		close(w_addr);
 		exit(1);
 	}
-	return (0);
+	return (res);
 }
 
 int wrap_accept(int w_addr, struct sockaddr *addr, socklen_t *addrlen)
 {
-    if (accept(w_addr, NULL, NULL) == -1) {
-        printf("accept error\n");
+	int res = accept(w_addr, NULL, NULL);
+	if (res == -1)
+	{
+		printf("accept error\n");
         exit(1);
-    }
-    return (0);
+	}
+	return (res);
 }

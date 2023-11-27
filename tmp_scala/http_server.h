@@ -29,3 +29,4 @@ int wrap_socket(void);
 int wrap_bind(int w_addr, struct sockaddr_in a_addr);
 int wrap_listen(int w_addr, int backlog);
 int wrap_accept(int w_addr, struct sockaddr *addr, socklen_t *addrlen);
+ssize_t wrap_recv(int sock, void *request_message, size_t len, int flags);

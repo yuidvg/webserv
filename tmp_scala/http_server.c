@@ -26,20 +26,18 @@ unsigned int getFileSize(const char *path) {
     return size;
 }
 
-/*
- * リクエストメッセージを受信する
- * sock：接続済のソケット
- * request_message：リクエストメッセージを格納するバッファへのアドレス
- * buf_size：そのバッファのサイズ
- * 戻り値：受信したデータサイズ（バイト長）
- */
-int recvRequestMessage(int sock, char *request_message, unsigned int buf_size) {
-    int recv_size;
-    
-    recv_size = recv(sock, request_message, buf_size, 0);
-
-    return recv_size;
-}
+// /*
+//  * リクエストメッセージを受信する
+//  * sock：接続済のソケット
+//  * request_message：リクエストメッセージを格納するバッファへのアドレス
+//  * buf_size：そのバッファのサイズ
+//  * 戻り値：受信したデータサイズ（バイト長）
+//  */
+// int recvRequestMessage(int sock, char *request_message, unsigned int buf_size) {
+//     int recv_size;
+//     recv_size = recv(sock, request_message, buf_size, 0);
+//     return recv_size;
+// }
 
 /*
  * リクエストメッセージを解析する（今回はリクエスト行のみ）
@@ -193,17 +191,8 @@ int httpServer(int sock) {
     while (1) {
 
         /* リクエストメッセージを受信 */
-        request_size = recvRequestMessage(sock, request_message, SIZE);
-        if (request_size == -1) {
-            printf("recvRequestMessage error\n");
-            break;
-        }
-
-        if (request_size == 0) {
-            /* 受信サイズが0の場合は相手が接続閉じていると判断 */
-            printf("connection ended\n");
-            break;
-        }
+        // request_size = recvRequestMessage(sock, request_message, SIZE);
+		request_size = wrap_recv(sock, request_message, SIZE, 0);
 
         /* 受信した文字列を表示 */
         showMessage(request_message, request_size);
