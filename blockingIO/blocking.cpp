@@ -26,7 +26,7 @@ int main()
 
 		std::cout << "Waiting for data..." << std::endl;
 
-		// データが入力されるまで、待つ。
+		// pipefd[0]がブロッキングモードの為、データが入力されるまで、待つ。
 		byteRead = read(pipefd[0], buffer, sizeof(buffer));
 		if (byteRead > 0)
 		{
