@@ -39,11 +39,11 @@ int main()
 		fd_set readfds;
 		FD_ZERO(&readfds);
 		FD_SET(pipefd[0], &readfds);
-		// struct timeval tv;
-		// tv.tv_sec = 3;
-		// tv.tv_usec = 0;
+		struct timeval tv;
+		tv.tv_sec = 3;
+		tv.tv_usec = 0;
 
-		int result = select(pipefd[0] + 1, &readfds, NULL, NULL, NULL);
+		int result = select(pipefd[0] + 1, &readfds, NULL, NULL, &tv);
 		if (result > 0 && FD_ISSET(pipefd[0], &readfds))
 		{
 			char buffer[1024];
