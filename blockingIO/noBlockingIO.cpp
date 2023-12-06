@@ -26,32 +26,41 @@ int main()
 		if (pid == 0)
 		{
 			sleep(3);
-			write(pipefd[1], message[i], strlen(message[i]) + 1);
+			std::string msg_with_newline = std::string(message[i]) + "\n";
+			write(pipefd[1], msg_with_newline.c_str(), msg_with_newline.size());
 			close(pipefd[0]);
 			close(pipefd[1]);
 			exit(0);
 		}
 	}
 
+	std::string buf;
 	while (true)
 	{
 		// 親プロセス
 		fd_set readfds;
 		FD_ZERO(&readfds);
 		FD_SET(pipefd[0], &readfds);
-		struct timeval tv;
-		tv.tv_sec = 3;
-		tv.tv_usec = 0;
 
-		int result = select(pipefd[0] + 1, &readfds, NULL, NULL, &tv);
+		int result = select(pipefd[0] + 1, &readfds, NULL, NULL, NULL);
 		if (result > 0 && FD_ISSET(pipefd[0], &readfds))
 		{
 			char buffer[1024];
 			ssize_t bytesRead = read(pipefd[0], buffer, sizeof(buffer));
+			std::cout << "読み込んだバイト数: " << bytesRead << std::endl;
 			if (bytesRead > 0)
 			{
 				buffer[bytesRead] = '\0';
-				std::cout << "Received: " << buffer << std::endl;
+				buf += buffer;
+
+				// 改行文字でメッセージを分割
+				size_t pos;
+				while ((pos = buf.find("\n")) != std::string::npos)
+				{
+					std::string msg = buf.substr(0, pos);
+					std::cout << "Received: " << msg << std::endl;
+					buf.erase(0, pos + 1);
+				}
 			}
 			else
 			{
