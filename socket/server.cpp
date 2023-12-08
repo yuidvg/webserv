@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <fcntl.h>
 #include <iostream>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -13,9 +14,9 @@
 #define TRUE 1
 #define FALSE 0
 
-int main(int argc, char *argv[])
+int main(void)
 {
-	int i, len, rc, on = 1;
+	int i, len, rc;
 	int listen_sd, max_sd, new_sd;
 	int desc_ready, end_server = FALSE;
 	int close_conn;
@@ -36,25 +37,22 @@ int main(int argc, char *argv[])
 	}
 
 	/*************************************************************/
-	/* Allow socket descriptor to be reuseable                   */
-	/*************************************************************/
-	rc = setsockopt(listen_sd, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on));
-	if (rc < 0)
-	{
-		perror("setsockopt() failed");
-		close(listen_sd);
-		exit(-1);
-	}
-
-	/*************************************************************/
 	/* Set socket to be nonblocking. All of the sockets for      */
 	/* the incoming connections will also be nonblocking since   */
 	/* they will inherit that state from the listening socket.   */
 	/*************************************************************/
-	rc = ioctl(listen_sd, FIONBIO, (char *)&on);
+	int flags = fcntl(listen_sd, F_GETFL, 0);
+	if (flags < 0)
+	{
+		perror("fcntl() failed");
+		close(listen_sd);
+		exit(-1);
+	}
+	flags |= O_NONBLOCK;
+	rc = fcntl(listen_sd, F_SETFL, flags);
 	if (rc < 0)
 	{
-		perror("ioctl() failed");
+		perror("fcntl() failed");
 		close(listen_sd);
 		exit(-1);
 	}
@@ -77,7 +75,7 @@ int main(int argc, char *argv[])
 	/*************************************************************/
 	/* Set the listen back log                                   */
 	/*************************************************************/
-	rc = listen(listen_sd, 32);
+	rc = listen(listen_sd, 5);
 	if (rc < 0)
 	{
 		perror("listen() failed");
@@ -103,7 +101,7 @@ int main(int argc, char *argv[])
 	/* Loop waiting for incoming connects or for incoming data   */
 	/* on any of the connected sockets.                          */
 	/*************************************************************/
-	do
+	while (end_server == FALSE)
 	{
 		/**********************************************************/
 		/* Copy the master fd_set over to the working fd_set.     */
@@ -116,19 +114,12 @@ int main(int argc, char *argv[])
 		printf("Waiting on select()...\n");
 		rc = select(max_sd + 1, &working_set, NULL, NULL, &timeout);
 
-		/**********************************************************/
-		/* Check to see if the select call failed.                */
-		/**********************************************************/
 		if (rc < 0)
 		{
 			perror("  select() failed");
 			break;
 		}
-
-		/**********************************************************/
-		/* Check to see if the 3 minute time out expired.         */
-		/**********************************************************/
-		if (rc == 0)
+		else if (rc == 0)
 		{
 			printf("  select() timed out.  End program.\n");
 			break;
@@ -166,7 +157,7 @@ int main(int argc, char *argv[])
 					/* queued up on the listening socket before we   */
 					/* loop back and call select again.              */
 					/*************************************************/
-					do
+					while (new_sd != -1)
 					{
 						/**********************************************/
 						/* Accept each incoming connection.  If       */
@@ -199,7 +190,7 @@ int main(int argc, char *argv[])
 						/* Loop back up and accept another incoming   */
 						/* connection                                 */
 						/**********************************************/
-					} while (new_sd != -1);
+					}
 				}
 
 				/****************************************************/
@@ -214,7 +205,7 @@ int main(int argc, char *argv[])
 					/* Receive all incoming data on this socket      */
 					/* before we loop back and call select again.    */
 					/*************************************************/
-					do
+					while (TRUE)
 					{
 						/**********************************************/
 						/* Receive data on this connection until the  */
@@ -260,8 +251,7 @@ int main(int argc, char *argv[])
 							close_conn = TRUE;
 							break;
 						}
-
-					} while (TRUE);
+					}
 
 					/*************************************************/
 					/* If the close_conn flag was turned on, we need */
@@ -272,7 +262,7 @@ int main(int argc, char *argv[])
 					/* based on the bits that are still turned on in */
 					/* the master set.                               */
 					/*************************************************/
-					if (close_conn)
+					if (close_conn == TRUE)
 					{
 						close(i);
 						FD_CLR(i, &master_set);
@@ -285,8 +275,7 @@ int main(int argc, char *argv[])
 				} /* End of existing connection is readable */
 			}	  /* End of if (FD_ISSET(i, &working_set)) */
 		}		  /* End of loop through selectable descriptors */
-
-	} while (end_server == FALSE);
+	}
 
 	/*************************************************************/
 	/* Clean up all of the sockets that are open                 */

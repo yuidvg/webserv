@@ -41,6 +41,11 @@ int main()
 	// レスポンスの受信
 	char buffer[1024] = {0};
 	int valread = read(sock, buffer, 1024);
+	if (valread < 0)
+	{
+		std::cerr << "Read error" << std::endl;
+		return -1;
+	}
 	std::cout << "Server: " << buffer << std::endl;
 
 	// ソケットのクローズ
