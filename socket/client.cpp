@@ -1,8 +1,4 @@
-#include <arpa/inet.h>
-#include <cstring>
-#include <iostream>
-#include <sys/socket.h>
-#include <unistd.h>
+#include "socket.hpp"
 
 int main()
 {
@@ -33,21 +29,23 @@ int main()
 		return -1;
 	}
 
-	// メッセージの送信
-	std::string message = "Hello Server!";
-	send(sock, message.c_str(), message.length(), 0);
-	std::cout << "Message sent" << std::endl;
-
-	// レスポンスの受信
-	char buffer[1024] = {0};
-	int valread = read(sock, buffer, 1024);
-	if (valread < 0)
+	while (TRUE)
 	{
-		std::cerr << "Read error" << std::endl;
-		return -1;
-	}
-	std::cout << "Server: " << buffer << std::endl;
+		// メッセージの送信
+		std::string message = "Hello Server!";
+		send(sock, message.c_str(), message.length(), 0);
+		std::cout << "Message sent" << std::endl;
 
+		// レスポンスの受信
+		char buffer[1024] = {0};
+		int valread = read(sock, buffer, 1024);
+		if (valread < 0)
+		{
+			std::cerr << "Read error" << std::endl;
+			return -1;
+		}
+		std::cout << "Server: " << buffer << std::endl;
+	}
 	// ソケットのクローズ
 	close(sock);
 
