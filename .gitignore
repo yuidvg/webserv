@@ -8,3 +8,4 @@ client
 webserv
 src/Makefile
 obj
+*.txt
