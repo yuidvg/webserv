@@ -4,28 +4,32 @@
 # include <cstring>
 # include <unistd.h>
 # include <iostream>
+# include <map>
 
-class HTTPPARSER
+class HTTPParser
 {
 	private:
-		std::string	_requestline;
-		std::string	_method;
-		std::string	_version;
-		std::string	_header;
-		std::string	_body;
+		enum State
+		{
+			REQUESTLINE,
+			HEADER,
+			BODY,
+			DONE
+		};
+		State								_state;
+		std::string							_method;
+		std::string							_url;
+		std::map<std::string, std::string>	_header;
+		std::string							_body;
+		int									_error_code;
 
 	public:
-		HTTPPARSER(char *request);
-		HTTPPARSER(const HTTPPARSER &src);
-		HTTPPARSER	&operator=(const HTTPPARSER &src);
-		~HTTPPARSER(void);
+		HTTPParser(const std::string &request);
+		HTTPParser(const HTTPParser &src);
+		HTTPParser	&operator=(const HTTPParser &rhs);
+		~HTTPParser(void);
 
-		std::string	getRequestline(void) const;
-		// std::string	getMethod(void) const;
-		std::string	getHeader(void) const;
-		std::string	getBody(void) const;
-
-		void	parseHTTPRequest(char *request);
+		void	parse(const std::string &data);
 };
 
 #endif
