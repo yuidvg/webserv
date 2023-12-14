@@ -4,3 +4,7 @@
 *.out
 *.DS_Store
 .sample
+client
+webserv
+src/Makefile
+obj
