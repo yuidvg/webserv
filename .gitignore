@@ -6,6 +6,7 @@
 .sample
 client
 webserv
-src/Makefile
+srcs/Makefile
+srcs/*/main.cpp
 obj
 *.txt
