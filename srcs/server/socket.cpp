@@ -1,6 +1,6 @@
-#include "../include/socket.hpp"
+#include "socket.hpp"
 
-int main(void)
+int server(void)
 {
 	int i, len, rc;
 	int listen_sd;
@@ -38,7 +38,7 @@ int main(void)
 	addr.sin6_family = AF_INET6;
 	addr.sin6_addr = in6addr_any;
 	addr.sin6_port = htons(SERVER_PORT);
-	rc = bind(listen_sd, (struct sockaddr*)&addr, sizeof(addr));
+	rc = bind(listen_sd, (struct sockaddr *)&addr, sizeof(addr));
 	if (rc < 0)
 	{
 		std::cout << RED << "bind() failed" << strerror(errno) << NORMAL << std::endl;
