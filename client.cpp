@@ -1,4 +1,4 @@
-#include "socket.hpp"
+#include "include/socket.hpp"
 
 int main()
 {
@@ -23,7 +23,7 @@ int main()
 	}
 
 	// サーバーへの接続
-	if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+	if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0)
 	{
 		std::cerr << "Connection failed" << std::endl;
 		return -1;
@@ -37,7 +37,7 @@ int main()
 		std::cout << "Message sent" << std::endl;
 
 		// レスポンスの受信
-		char buffer[1024] = {0};
+		char buffer[1024] = { 0 };
 		int valread = read(sock, buffer, 1024);
 		if (valread < 0)
 		{
