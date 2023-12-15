@@ -1,5 +1,61 @@
 #include "parse_config.hpp"
 
+// std::string の場合の特殊化
+std::string PullWord(std::istringstream &iss, int num)
+{
+    std::cout << "stringの場合のPullWord" << std::endl;
+    std::vector<std::string> words;
+    std::string word;
+    while (iss >> word)
+    {
+        words.push_back(word);
+    }
+
+    if (words.size() >= num)
+    {
+        std::string num_word = words[num];
+        // 末尾の ';' を削除
+        if (num_word.back() == ';')
+        {
+            num_word.pop_back();
+        }
+        std::cout << "返すword: " << num_word << std::endl;
+        return num_word;
+    }
+    else
+    {
+        std::cout << "指定したインデックスが大きすぎます" << std::endl;
+        return "";
+    }
+}
+
+// 一般的なテンプレート関数
+template <typename T>
+T PullWord(std::istringstream &iss, int num)
+{
+    (void)num;
+    std::cout << "一般的なテンプレート関数" << std::endl;
+    std::vector<T> words;
+    T word;
+    while (iss >> word)
+    {
+        words.push_back(word);
+    }
+
+    if (words.size() >= num)
+    {
+        T num_word = words[0];
+        // std::cout << "words[" << num << "]" << words[num] << std::endl;
+        // std::cout << "words[" << "0" << "]" << words[0] << std::endl;
+        std::cout << "返すword: " << num_word << std::endl;
+        return num_word;
+    }
+    else
+    {
+        std::cout << "指定したインデックスが大きすぎます" << std::endl;
+        return T();
+    }
+}
 // configファイルを解析してWebServerオブジェクトを構築する関数
 WebServer ParseConfig(const std::string &filename)
 {
@@ -22,8 +78,9 @@ WebServer ParseConfig(const std::string &filename)
         std::istringstream iss(line);
         std::string key;
         iss >> key;
-        // printf("key: %s\n", key.c_str());
-        printf("iss: %s\n", iss.str().c_str());
+
+        std::cout << "key: " << key << std::endl;
+        std::cout << "iss: " << iss.str() << std::endl;
         if (key == "server")
         {
             if (in_location)
@@ -37,7 +94,9 @@ WebServer ParseConfig(const std::string &filename)
         }
         else if (key == "listen")
         {
-            iss >> current_server.port;
+            // std::cout << PullWord<int>(iss, 1) << std::endl;
+            current_server.port = PullWord<int>(iss, 1);
+            // std::cout <<current_server.port << std::endl;
         }
         else if (key == "location")
         {
