@@ -1,282 +1,221 @@
 #include "parse_config.hpp"
 
-// std::string の場合の特殊化
-std::string PullWord(std::istringstream &iss, int num)
-{
-    std::cout << "stringの場合のPullWord" << std::endl;
-    std::vector<std::string> words;
-    std::string word;
-    while (iss >> word)
-    {
-        words.push_back(word);
-    }
 
-    if (words.size() >= num)
-    {
-        std::string num_word = words[num];
-        // 末尾の ';' を削除
-        if (num_word.back() == ';')
-        {
-            num_word.pop_back();
-        }
-        std::cout << "返すword: " << num_word << std::endl;
-        return num_word;
-    }
-    else
-    {
-        std::cout << "指定したインデックスが大きすぎます" << std::endl;
-        return "";
-    }
+
+Config::~Config()
+{
+	std::cout << "delete config object" << std::endl;
 }
 
 // 一般的なテンプレート関数
 template <typename T>
-T PullWord(std::istringstream &iss, int num)
+T Config::PullWord(std::istringstream& iss, int num)
 {
-    (void)num;
-    std::cout << "一般的なテンプレート関数" << std::endl;
-    std::vector<T> words;
-    T word;
-    while (iss >> word)
-    {
-        words.push_back(word);
-    }
+	(void)num;
+	std::vector<T> words;
+	T word;
+	//TODO: ↓単語の区切りの規則を理解する
+	while (iss >> word)
+	{
+		words.push_back(word);
+	}
 
-    if (words.size() >= num)
-    {
-        T num_word = words[0];
-        // std::cout << "words[" << num << "]" << words[num] << std::endl;
-        // std::cout << "words[" << "0" << "]" << words[0] << std::endl;
-        std::cout << "返すword: " << num_word << std::endl;
-        return num_word;
-    }
-    else
-    {
-        std::cout << "指定したインデックスが大きすぎます" << std::endl;
-        return T();
-    }
-}
-// configファイルを解析してWebServerオブジェクトを構築する関数
-WebServer ParseConfig(const std::string &filename)
-{
-    WebServer web_server;
-    std::ifstream config_file(filename.c_str());
-    std::string line;
-
-    if (!config_file.is_open())
-    {
-        std::cerr << "Failed to open file: " << filename << std::endl;
-        return web_server; // 空のWebServerを返す
-    }
-
-    Server current_server;
-    Location current_location;
-    bool in_location = false;
-
-    while (std::getline(config_file, line))
-    {
-        std::istringstream iss(line);
-        std::string key;
-        iss >> key;
-
-        std::cout << "key: " << key << std::endl;
-        std::cout << "iss: " << iss.str() << std::endl;
-        if (key == "server")
-        {
-            if (in_location)
-            {
-                current_server.locations.push_back(current_location);
-                current_location = Location();
-                in_location = false;
-            }
-            web_server.servers.push_back(current_server);
-            current_server = Server();
-        }
-        else if (key == "listen")
-        {
-            // std::cout << PullWord<int>(iss, 1) << std::endl;
-            current_server.port = PullWord<int>(iss, 1);
-            // std::cout <<current_server.port << std::endl;
-        }
-        else if (key == "location")
-        {
-            if (in_location)
-            {
-                current_server.locations.push_back(current_location);
-            }
-            iss >> current_location.path;
-            in_location = true;
-            current_location = Location();
-        }
-        else if (key == "allow_method")
-        {
-            std::string method;
-            iss >> method;
-            current_location.allow_method.push_back(method);
-        }
-        else if (key == "root")
-        {
-            iss >> current_location.root;
-        }
-        else if (key == "index")
-        {
-            std::string index_file;
-            iss >> index_file;
-            current_location.index.push_back(index_file);
-        }
-        else if (key == "server_name")
-        {
-            iss >> current_server.server_name;
-        }
-        else if (key == "autoindex")
-        {
-            std::string value;
-            iss >> value;
-            current_location.autoindex = (value == "on");
-        }
-        else if (key == "error_page")
-        {
-            int error_code;
-            std::string error_page_path;
-            iss >> error_code >> error_page_path;
-            if (in_location)
-            {
-                current_location.error_page[error_code] = error_page_path;
-            }
-            else
-            {
-                current_server.error_page[error_code] = error_page_path;
-            }
-        }
-        else if (key == "client_max_body_size")
-        {
-            size_t size;
-            iss >> size;
-            if (in_location)
-            {
-                current_location.client_max_body_size = size;
-            }
-            else
-            {
-                current_server.client_max_body_size = size;
-            }
-        }
-        else if (key == "cgi_path")
-        {
-            iss >> current_location.cgi_path;
-        }
-        else if (key == "upload_path")
-        {
-            iss >> current_location.upload_path;
-        }
-        else if (key == "redirect")
-        {
-            iss >> current_location.redirect;
-        }
-    }
-
-    if (in_location)
-    {
-        current_server.locations.push_back(current_location);
-    }
-
-    return web_server;
+	if (words.size() >= num)
+	{
+		T num_word = words[0];
+		// std::cout << "返すword: " << num_word << std::endl;
+		return num_word;
+	}
+	else
+	{
+		std::cout << "指定したインデックスが大きすぎます" << std::endl;
+		return T();
+	}
 }
 
-void printLocation(const Location &location)
-{
-    std::cout << "Location Path: " << location.path << std::endl;
-    std::cout << "Root: " << location.root << std::endl;
-    std::cout << "Autoindex: " << (location.autoindex ? "on" : "off") << std::endl;
-    std::cout << "Index: ";
-    for (size_t i = 0; i < location.index.size(); ++i)
-    {
-        std::cout << location.index[i] << (i < location.index.size() - 1 ? ", " : "");
-    }
-    std::cout << "\nMax Body Size: " << location.client_max_body_size << std::endl;
-
-    // Error Pages
-    std::cout << "Error Pages: ";
-    for (std::map<int, std::string>::const_iterator it = location.error_page.begin();
-         it != location.error_page.end(); ++it)
-    {
-        std::cout << it->first << " => " << it->second << ", ";
-    }
-    std::cout << std::endl;
-
-    // Allow Methods
-    std::cout << "Allowed Methods: ";
-    for (size_t i = 0; i < location.allow_method.size(); ++i)
-    {
-        std::cout << location.allow_method[i] << (i < location.allow_method.size() - 1 ? ", " : "");
-    }
-    std::cout << std::endl;
-
-    // CGI Path
-    std::cout << "CGI Path: " << location.cgi_path << std::endl;
-
-    // Upload Path
-    std::cout << "Upload Path: " << location.upload_path << std::endl;
-
-    // Redirect URL
-    std::cout << "Redirect URL: " << location.redirect << std::endl;
+// Configクラスのコンストラクタ
+Config::Config(const std::string& config_path) {
+	ParseConfig(config_path);
 }
 
-void printServer(const Server &server)
+// ロケーションブロックの設定を解析
+void Config::ParseLocation(std::ifstream& config_file, Location& location)
 {
-    std::cout << "Server Name: " << server.server_name << std::endl;
-    std::cout << "Host: " << server.host << std::endl;
-    std::cout << "IP Address: " << server.ip_addr << std::endl;
-    std::cout << "Port: " << server.port << std::endl;
+	std::string line;
+	while (std::getline(config_file, line)) {
+		std::istringstream iss(line);
+		std::string key;
+		iss >> key;
 
-    // Error Pages
-    std::cout << "Server Error Pages: ";
-    for (std::map<int, std::string>::const_iterator it = server.error_page.begin();
-         it != server.error_page.end(); ++it)
-    {
-        std::cout << it->first << " => " << it->second << ", ";
-    }
-    std::cout << std::endl;
+		// 各ディレクティブに対する処理を記述
+		// 例: "root" ディレクティブ
+		if (key == "root") {
+			location.root = PullWord<std::string>(iss, 1);
+			// その他の処理...
+		}
 
-    // Max Body Size
-    std::cout << "Server Max Body Size: " << server.client_max_body_size << std::endl;
-
-    // Autoindex
-    std::cout << "Server Autoindex: " << (server.autoindex ? "on" : "off") << std::endl;
-
-    // Default Index
-    std::cout << "Server Default Index: ";
-    for (size_t i = 0; i < server.index.size(); ++i)
-    {
-        std::cout << server.index[i] << (i < server.index.size() - 1 ? ", " : "");
-    }
-    std::cout << std::endl;
-
-    // Locations
-    for (size_t i = 0; i < server.locations.size(); ++i)
-    {
-        std::cout << "Location #" << (i + 1) << std::endl;
-        printLocation(server.locations[i]);
-    }
+		// locationブロックの終了
+		if (key == "}") {
+			break;
+		}
+	}
 }
 
-int main(int argc, char **argv)
+// サーバーブロックの設定を解析
+void Config::ParseServer(std::ifstream& config_file, Server& server)
 {
-    if (argc < 2)
-    {
-        std::cerr << "config filewを指定してください" << std::endl;
-        return 1;
-    }
+	std::string line;
+	while (std::getline(config_file, line)) {
+		std::istringstream iss(line);
+		std::string key;
+		iss >> key;
 
-    std::string config_file = argv[1];
-    WebServer web_server = ParseConfig(config_file);
+		// 各ディレクティブに対する処理を記述
+		// 例: "listen" ディレクティブ
+		if (key == "listen") {
+			server.port = PullWord<int>(iss, 1);
+			// その他の処理...
+		}
 
-    // debug
-    for (size_t i = 0; i < web_server.servers.size(); ++i)
-    {
-        std::cout << "Server #" << (i + 1) << std::endl;
-        printServer(web_server.servers[i]);
-    }
+		// locationブロックの処理
+		if (key == "location") {
+			Location location;
+			location.path = PullWord<std::string>(iss, 1);
+			ParseLocation(config_file, location);
+			server.locations.push_back(location);
+		}
 
-    return 0;
+		// serverブロックの終了
+		if (key == "}") {
+			break;
+		}
+	}
+}
+
+
+// 設定ファイルを解析するメイン関数
+void Config::ParseConfig(const std::string& config_path)
+{
+	std::ifstream config_file(config_path.c_str());
+	std::string line;
+	if (!config_file.is_open()) {
+		std::cerr << "Failed to open file: " << config_path << std::endl;
+		return;
+	}
+
+	while (std::getline(config_file, line)) {
+		std::istringstream iss(line);
+		std::string key;
+		iss >> key;
+
+		if (key == "server") {
+			Server server;
+			ParseServer(config_file, server);
+			webserver.servers.push_back(server);
+		}
+	}
+}
+
+
+void Config::PrintLocation(const Location& location)
+{
+	std::cout << "\x1b[33m";
+	std::cout << "Location Path: " << location.path << std::endl;
+	std::cout << "Root: " << location.root << std::endl;
+	std::cout << "Autoindex: " << (location.autoindex ? "on" : "off") << std::endl;
+	std::cout << "Index: ";
+	for (size_t i = 0; i < location.index.size(); ++i)
+	{
+		std::cout << location.index[i] << (i < location.index.size() - 1 ? ", " : "");
+	}
+	std::cout << "\nMax Body Size: " << location.client_max_body_size << std::endl;
+
+	// Error Pages
+	std::cout << "Error Pages: ";
+	for (std::map<int, std::string>::const_iterator it = location.error_page.begin();
+		it != location.error_page.end(); ++it)
+	{
+		std::cout << it->first << " => " << it->second << ", ";
+	}
+	std::cout << std::endl;
+
+	// Allow Methods
+	std::cout << "Allowed Methods: ";
+	for (size_t i = 0; i < location.allow_method.size(); ++i)
+	{
+		std::cout << location.allow_method[i] << (i < location.allow_method.size() - 1 ? ", " : "");
+	}
+	std::cout << std::endl;
+
+	// CGI Path
+	std::cout << "CGI Path: " << location.cgi_path << std::endl;
+
+	// Upload Path
+	std::cout << "Upload Path: " << location.upload_path << std::endl;
+
+	// Redirect URL
+	std::cout << "Redirect URL: " << location.redirect << std::endl;
+	std::cout << "\x1b[0m";
+}
+
+void Config::PrintServer(const Server& server)
+{
+	std::cout << "\x1b[32m";
+	std::cout << "Server Name: " << server.server_name << std::endl;
+	std::cout << "Host: " << server.host << std::endl;
+	std::cout << "IP Address: " << server.ip_addr << std::endl;
+	std::cout << "Port: " << server.port << std::endl;
+
+	// Error Pages
+	std::cout << "Server Error Pages: ";
+	for (std::map<int, std::string>::const_iterator it = server.error_page.begin();
+		it != server.error_page.end(); ++it)
+	{
+		std::cout << it->first << " => " << it->second << ", ";
+	}
+	std::cout << std::endl;
+
+	// Max Body Size
+	std::cout << "Server Max Body Size: " << server.client_max_body_size << std::endl;
+
+	// Autoindex
+	std::cout << "Server Autoindex: " << (server.autoindex ? "on" : "off") << std::endl;
+
+	// Default Index
+	std::cout << "Server Default Index: ";
+	for (size_t i = 0; i < server.index.size(); ++i)
+	{
+		std::cout << server.index[i] << (i < server.index.size() - 1 ? ", " : "");
+	}
+	std::cout << std::endl;
+
+	// Locations
+	for (size_t i = 0; i < server.locations.size(); ++i)
+	{
+		std::cout << "Location #" << (i + 1) << std::endl;
+		PrintLocation(server.locations[i]);
+	}
+	std::cout << "\x1b[0m";
+}
+
+int main(int argc, char** argv)
+{
+	if (argc < 2)
+	{
+		std::cerr << "config fileを指定してください" << std::endl;
+		return 1;
+	}
+
+
+	std::string config_path = argv[1];
+	Config config(config_path);
+	std::cout << "server size = " << config.webserver.servers.size() << std::endl;
+	// debug
+	for (size_t i = 0; i < config.webserver.servers.size(); ++i)
+	{
+		std::cout << "Server #" << (i + 1) << std::endl;
+		config.PrintServer(config.webserver.servers[i]);
+	}
+
+	return 0;
 }
