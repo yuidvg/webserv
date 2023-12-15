@@ -7,6 +7,34 @@ Config::~Config()
 	std::cout << "delete config object" << std::endl;
 }
 
+void Config::InitializeServer(Server& server) {
+	server.server_name = "";
+	server.host = "";
+	server.ip_addr = 0;
+	server.port = 0;
+	server.root = "";
+	server.error_page.clear();
+	server.client_max_body_size = 0;
+	server.autoindex = false;
+	server.index.clear();
+	server.locations.clear();
+}
+
+void Config::InitializeLocation(Location& location) {
+	location.path = "";
+	location.root = "";
+	location.autoindex = false;
+	location.index.clear();
+	location.client_max_body_size = 0;
+	location.error_page.clear();
+	location.allow_method.clear();
+	location.cgi_path = "";
+	location.upload_path = "";
+	location.redirect = "";
+}
+
+
+
 // 一般的なテンプレート関数
 template <typename T>
 T Config::PullWord(std::istringstream& iss, int num)
@@ -41,6 +69,7 @@ Config::Config(const std::string& config_path) {
 // ロケーションブロックの設定を解析
 void Config::ParseLocation(std::ifstream& config_file, Location& location)
 {
+	InitializeLocation(location);
 	std::string line;
 	while (std::getline(config_file, line)) {
 		std::istringstream iss(line);
@@ -64,6 +93,7 @@ void Config::ParseLocation(std::ifstream& config_file, Location& location)
 // サーバーブロックの設定を解析
 void Config::ParseServer(std::ifstream& config_file, Server& server)
 {
+	InitializeServer(server);
 	std::string line;
 	while (std::getline(config_file, line)) {
 		std::istringstream iss(line);

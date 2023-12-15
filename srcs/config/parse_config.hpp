@@ -57,6 +57,9 @@ private:
 	void ParseServer(std::ifstream& config_file, Server& server);
 	void ParseLocation(std::ifstream& config_file, Location& location);
 	void ParseConfig(const std::string& config_path);
+	void InitializeServer(Server& server);
+	void InitializeLocation(Location& location);
+
 public:
 	Config(const std::string& config_path);
 	~Config();
