@@ -9,14 +9,14 @@
 class HTTPParser
 {
 	private:
-		enum State
+		enum state
 		{
-			REQUESTLINE,
-			HEADER,
-			BODY,
-			DONE
+			e_request_line,
+			e_header,
+			e_body,
+			e_done
 		};
-		State								_state;
+		state								_state;
 		std::string							_method;
 		std::string							_url;
 		std::map<std::string, std::string>	_header;
@@ -29,7 +29,7 @@ class HTTPParser
 		HTTPParser	&operator=(const HTTPParser &rhs);
 		~HTTPParser(void);
 
-		void	parse(const std::string &data);
+		void	executeParse(std::string &data);
 };
 
 #endif
