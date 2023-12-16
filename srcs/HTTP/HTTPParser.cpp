@@ -36,20 +36,16 @@ std::string	HTTPParser::getVersion(void) const
 	return (_version);
 }
 
-static std::string	getRequestLine(std::string &data)
+void	HTTPParser::parseRequestLine(std::string &data)
 {
 	std::string		request_line;
-	size_t			pos;
+	std::cout << "[data]\n" << data << std::endl; // debug
+	request_line = getLine(data);
+	std::cout << "request_line: " << request_line << std::endl; // debug
 
-	pos = data.find("\n");
-	if (pos == std::string::npos)
-	{
-		std::cout << "here" << std::endl; // debug
-		return (request_line);
-	}
-	request_line = data.substr(0, pos);
-	data.erase(0, pos + 1);
-	return (request_line);
+	/* メソッドとターゲット、バージョンを格納する(error処理も) */
+	std::istringstream	iss(request_line);
+	iss >> _method >> _url >> _version;
 }
 
 // static std::string	getHeader(std::string &data)
@@ -73,17 +69,11 @@ void	HTTPParser::executeParse(std::string &data)
 {
 	std::string		request_line;
 
-	std::cout << "[data]\n" << data << std::endl; // debug
-	request_line = getRequestLine(data);
-	std::cout << "request_line: " << request_line << std::endl; // debug
-	/* メソッドとターゲット、バージョンを格納する(error処理も) */
-	std::istringstream	iss(request_line);
-	iss >> _method >> _url >> _version;
+	parseRequestLine(data);
 
 
 	/* ヘッダーを格納する(error処理も) */
 	std::cout << "[data]\n" << data << std::endl; // debug
-
 
 	/* ボディを格納する(error処理も) */
 	std::cout << "[data] \n" << data << std::endl; // debug
