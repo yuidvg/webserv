@@ -81,7 +81,38 @@ int	HTTPParser::parseHeader(std::string &data)
 		}
 
 		/* _headerに格納する */
-		std::cout << "line: " << line << std::endl; // debug
+		std::string			key, value;
+		std::istringstream	iss(line);
+		std::getline(iss, key, ':');
+		std::getline(iss, value);
+		value = value.substr(1); // 先頭の空白を削除
+		_header[key] = value;
+
+		std::cout << "[key]: " << key << ", [value]: " << _header[key] << std::endl; // debug
+	}
+	return (SUCCESS);
+}
+
+int	HTTPParser::parseBody(std::string &data)
+{
+	std::string		line;
+
+	std::cout << "====parseBody====" << std::endl; // debug
+	/* ボディを格納する(error処理も) */
+	std::cout << "[data]\n" << data << std::endl; // debug
+	while (true)
+	{
+		line = getLine(data);
+		if (line.empty())
+			break ;
+		if (line[0] == ' ')
+		{
+			_error_code = 400;
+			return (FAILURE);
+		}
+
+		/* _bodyに格納する */
+		_body += line + "\n";
 	}
 	return (SUCCESS);
 }
@@ -96,8 +127,8 @@ void	HTTPParser::executeParse(std::string &data)
 
 	if (parseHeader(data) == FAILURE)
 		return;
+
 	/* ボディを格納する(error処理も) */
-	// parseBody(data);
-	std::cout << "errorなし!!" << std::endl; // debug
-	std::cout << "[data] \n" << data << std::endl; // debug
+	if (parseBody(data) == FAILURE)
+		return;
 }
