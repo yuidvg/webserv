@@ -7,7 +7,10 @@
 # include <sstream>
 # include <map>
 
-# include "utils/utils.hpp"
+# include "utils.hpp"
+
+# define SUCCESS 0
+# define FAILURE 1
 
 class HTTPParser
 {
@@ -94,9 +97,10 @@ class HTTPParser
 		std::string							_url;
 		std::map<std::string, std::string>	_header;
 		std::string							_body;
-		// int									_error_code;
+		int									_error_code;
 
-		void	parseRequestLine(std::string &data);
+		int	parseRequestLine(std::string &data);
+		int	parseHeader(std::string &data);
 
 	public:
 		HTTPParser(std::string &request);

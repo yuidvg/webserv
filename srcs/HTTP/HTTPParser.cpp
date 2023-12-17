@@ -36,45 +36,68 @@ std::string	HTTPParser::getVersion(void) const
 	return (_version);
 }
 
-void	HTTPParser::parseRequestLine(std::string &data)
+int	HTTPParser::parseRequestLine(std::string &data)
 {
-	std::string		request_line;
+	std::string	request_line;
+
+	std::cout << "====parseRequestLine====" << std::endl; // debug
 	std::cout << "[data]\n" << data << std::endl; // debug
 	request_line = getLine(data);
 	std::cout << "request_line: " << request_line << std::endl; // debug
 
-	/* メソッドとターゲット、バージョンを格納する(error処理も) */
+	while (request_line.empty())
+		request_line = getLine(data);
+
+	/* メソッドとターゲット、バージョンを格納する */
+	if (countWord(request_line) != 3)
+	{
+		_error_code = 400;
+		return (FAILURE);
+	}
 	std::istringstream	iss(request_line);
 	iss >> _method >> _url >> _version;
+
+	/* error処理する */
+
+	return (SUCCESS);
 }
 
-// static std::string	getHeader(std::string &data)
-// {
-// 	std::string		line;
-// 	size_t			pos;
+int	HTTPParser::parseHeader(std::string &data)
+{
+	std::string		line;
 
-// 	std::istringstream	iss(data);
-// 	while (std::getline(iss, line))
-// 	{
-// 		if (strlen(line.c_str()) == 0)
-// 			break ;
-// 		/* _headerに格納していく */
-		
-// 		/* dataからlineを削除していく */
-// 	}
-// 	return (header);
-// }
+	std::cout << "====parseHeader====" << std::endl; // debug
+	/* ヘッダーを格納する(error処理も) */
+	std::cout << "[data]\n" << data << std::endl; // debug
+	while (true)
+	{
+		line = getLine(data);
+		if (line.empty())
+			break ;
+		if (line[0] == ' ')
+		{
+			_error_code = 400;
+			return (FAILURE);
+		}
+
+		/* _headerに格納する */
+		std::cout << "line: " << line << std::endl; // debug
+	}
+	return (SUCCESS);
+}
 
 void	HTTPParser::executeParse(std::string &data)
 {
 	std::string		request_line;
 
-	parseRequestLine(data);
+	_error_code = 300;
+	if (parseRequestLine(data) == FAILURE)
+		return;
 
-
-	/* ヘッダーを格納する(error処理も) */
-	std::cout << "[data]\n" << data << std::endl; // debug
-
+	if (parseHeader(data) == FAILURE)
+		return;
 	/* ボディを格納する(error処理も) */
+	// parseBody(data);
+	std::cout << "errorなし!!" << std::endl; // debug
 	std::cout << "[data] \n" << data << std::endl; // debug
 }

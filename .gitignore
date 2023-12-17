@@ -10,3 +10,4 @@ srcs/Makefile
 srcs/*/main.cpp
 obj
 *.txt
+client
