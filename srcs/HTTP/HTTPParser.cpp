@@ -83,7 +83,7 @@ int	HTTPParser::parseHeader(std::string &data)
 		/* _headerに格納する */
 		std::string			key, value;
 		std::istringstream	iss(line);
-		std::getline(iss, key, ':');
+		std::getline(iss, key, ':'); // keyの最後に空白がある時のERROR処理を追加する必要あり
 		std::getline(iss, value);
 		value = value.substr(1); // 先頭の空白を削除
 		_header[key] = value;
