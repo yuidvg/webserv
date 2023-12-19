@@ -141,23 +141,23 @@ int	HTTPParser::parseBody(std::string &data)
 	std::cout << "====parseBody====" << std::endl; // debug
 	/* ボディを格納する(error処理も) */
 	std::cout << "[data]\n" << data << std::endl; // debug
-	// if (_header["Content-Length"] == "" || _header["Transfer-Encoding"] == "")
-	// {
-	// 	std::cout << "bodyなし" << std::endl; // debug
-	// 	return (SUCCESS);
-	// }
+	if (_header.find("Content-Length") == _header.end() || _header.find("Transfer-Encoding") != _header.end())
+	{
+		std::cout << "bodyなし" << std::endl; // debug
+		return (SUCCESS);
+	}
 	std::cout << "test: " << _header["Content-Length"] << std::endl; // debug
 	while (true)
 	{
 		line = getLine(data);
 		if (line.empty())
 			break ;
-		std::cout << stoi(_header["Content-Length"]) << std::endl; // debug
-		// if (line.length() > stoi(_header["Content-Length"]))
-		// {
-		// 	_error_code = 414;
-		// 	return (FAILURE);
-		// }
+		unsigned long content_length = std::stoul(_header["Content-Length"]); // try-catchでエラー処理を追加する必要あり?
+		if (line.length() > content_length)
+		{
+			_error_code = 414;
+			return (FAILURE);
+		}
 		if (line[0] == ' ')
 		{
 			_error_code = 400;
