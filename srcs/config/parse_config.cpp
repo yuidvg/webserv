@@ -73,6 +73,7 @@ void Config::PrintServer(const Server &server)
     // Locations
     for (size_t i = 0; i < server.locations.size(); ++i)
     {
+        std::cout << "\x1b[0m";
         std::cout << "Location #" << (i + 1) << std::endl;
         PrintLocation(server.locations[i]);
     }
@@ -120,11 +121,8 @@ void Config::InitializeLocation(Location &location)
 template <typename T>
 T Config::PullWord(std::istringstream &iss, size_t num)
 {
-    // (void)num;
     std::vector<T> words;
     T word;
-    /* c++標準ストリームの場合、この演算子>>はデフォルトで空白によって区切られたトークンを読み取ります。
-    各単語や数値は空白によって分割され、それぞれがword変数に格納されます。 */
     while (iss >> word)
     {
         words.push_back(word);
@@ -132,13 +130,17 @@ T Config::PullWord(std::istringstream &iss, size_t num)
 
     if (words.size() >= num)
     {
-        T num_word = words[0];
+        T num_word = words[num - 1];
         // std::cout << "返すword: " << num_word << std::endl;
         return num_word;
     }
+    else if (num == 0)
+    {
+        return T();
+    }
     else
     {
-        std::cout << "指定したインデックスが大きすぎます" << std::endl;
+        std::cout << "指定したインデックスが大きすぎます " << word << std::endl;
         return T();
     }
 }
@@ -147,25 +149,64 @@ T Config::PullWord(std::istringstream &iss, size_t num)
 void Config::ParseLocation(std::ifstream &config_file, Location &location)
 {
     InitializeLocation(location);
-    std::string line;
-    while (std::getline(config_file, line))
+    std::string tmp_line;
+    while (std::getline(config_file, tmp_line))
     {
+        std::istringstream tmp_iss(tmp_line);
+        std::string line;
+        std::getline(tmp_iss, line, ';');
         std::istringstream iss(line);
         std::string key;
         iss >> key;
 
         // 各ディレクティブに対する処理を記述
-        // 例: "root" ディレクティブ
         if (key == "root")
         {
             location.root = PullWord<std::string>(iss, 1);
-            // その他の処理...
         }
-
-        // locationブロックの終了
-        if (key == "}")
+        else if (key == "autoindex")
         {
-            break;
+            std::string autoindex_value = PullWord<std::string>(iss, 1);
+            location.autoindex = (autoindex_value == "on");
+        }
+        else if (key == "index")
+        {
+            location.index.push_back(PullWord<std::string>(iss, 1));
+        }
+        else if (key == "client_max_body_size")
+        {
+            location.client_max_body_size = PullWord<size_t>(iss, 1);
+        }
+        else if (key == "error_page")
+        {
+            int error_code = PullWord<int>(iss, 1);
+            std::string error_page_path = PullWord<std::string>(iss, 2);
+            location.error_page[error_code] = error_page_path;
+        }
+        else if (key == "allow_method")
+        {
+            // 許可されるHTTPメソッドをvectorに追加
+            std::string method;
+            while (iss >> method)
+            {
+                location.allow_method.push_back(method);
+            }
+        }
+        else if (key == "cgi_path")
+        {
+            location.cgi_path = PullWord<std::string>(iss, 1);
+        }
+        else if (key == "upload_path")
+        {
+            location.upload_path = PullWord<std::string>(iss, 1);
+        }
+        else if (key == "redirect")
+        {
+            location.redirect = PullWord<std::string>(iss, 1);
+        }
+        else if (key == "}")
+        {
+            break; // locationブロックの終了
         }
     }
 }
@@ -186,19 +227,39 @@ void Config::ParseServer(std::ifstream &config_file, Server &server)
         {
             server.server_name = PullWord<std::string>(iss, 1);
         }
-        if (key == "listen")
+        else if (key == "listen")
         {
             server.port = PullWord<int>(iss, 1);
-            // その他の処理...
         }
-
-        // locationブロックの処理
-        if (key == "location")
+        else if (key == "location")
         {
             Location location;
             location.path = PullWord<std::string>(iss, 1);
             ParseLocation(config_file, location);
             server.locations.push_back(location);
+        }
+        else if (key == "root")
+        {
+            server.root = PullWord<std::string>(iss, 1);
+        }
+        else if (key == "error_page")
+        {
+            int error_code = PullWord<int>(iss, 1);
+            std::string error_page_path = PullWord<std::string>(iss, 2);
+            server.error_page[error_code] = error_page_path;
+        }
+        else if (key == "client_max_body_size")
+        {
+            server.client_max_body_size = PullWord<size_t>(iss, 1);
+        }
+        else if (key == "autoindex")
+        {
+            std::string autoindex_value = PullWord<std::string>(iss, 1);
+            server.autoindex = (autoindex_value == "on");
+        }
+        else if (key == "index")
+        {
+            server.index.push_back(PullWord<std::string>(iss, 1));
         }
 
         // serverブロックの終了
