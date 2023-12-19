@@ -28,9 +28,7 @@ struct Location
 // サーバーコンテキストの設定
 struct Server
 {
-	std::string server_name;			   // [server_name]サーバー名
-	std::string host;					   // [server_name]ホスト名
-	int ip_addr;						   // [server_name]IPアドレス
+	std::string server_name;			   // サーバー名
 	size_t port;						   // ポート番号
 	std::vector<Location> locations;	   // ロケーションの設定
 	std::string root;					   // サーバー全体のルートディレクトリ

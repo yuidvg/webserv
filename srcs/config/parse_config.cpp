@@ -45,8 +45,6 @@ void Config::PrintServer(const Server &server)
 {
     std::cout << "\x1b[32m";
     std::cout << "Server Name: " << server.server_name << std::endl;
-    std::cout << "Host: " << server.host << std::endl;
-    std::cout << "IP Address: " << server.ip_addr << std::endl;
     std::cout << "Port: " << server.port << std::endl;
 
     // Error Pages
@@ -95,8 +93,6 @@ Config::~Config()
 void Config::InitializeServer(Server &server)
 {
     server.server_name = "";
-    server.host = "";
-    server.ip_addr = 0;
     server.port = 0;
     server.root = "";
     server.error_page.clear();
@@ -186,7 +182,10 @@ void Config::ParseServer(std::ifstream &config_file, Server &server)
         iss >> key;
 
         // 各ディレクティブに対する処理を記述
-        // 例: "listen" ディレクティブ
+        if (key == "server_name")
+        {
+            server.server_name = PullWord<std::string>(iss, 1);
+        }
         if (key == "listen")
         {
             server.port = PullWord<int>(iss, 1);
