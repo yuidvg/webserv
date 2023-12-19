@@ -12,9 +12,12 @@
 # define SUCCESS 0
 # define FAILURE 1
 
+
 class HTTPParser
 {
 	private:
+		static const int					MAX_LEN = 8192;
+
 		std::string							_method;
 		std::string							_version;
 		std::string							_url;
@@ -22,9 +25,15 @@ class HTTPParser
 		std::string							_body;
 		int									_error_code;
 
-		int	parseRequestLine(std::string &data);
-		int	parseHeader(std::string &data);
-		int	parseBody(std::string &data);
+		int		parseRequestLine(std::string &data);
+		int		parseHeader(std::string &data);
+		int		parseBody(std::string &data);
+
+		bool	checkMethod(void);
+		bool	checkVersion(void);
+		bool	checkTarget(void);
+
+		bool	isLineTooLong(const std::string &line);
 
 	public:
 		HTTPParser(std::string &request);

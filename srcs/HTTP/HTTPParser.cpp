@@ -41,34 +41,19 @@ int			HTTPParser::getErrorCode(void) const
 	return (_error_code);
 }
 
-int	HTTPParser::parseRequestLine(std::string &data)
+bool	HTTPParser::isLineTooLong(const std::string &line)
 {
-	std::string	request_line;
-
-	std::cout << "====parseRequestLine====" << std::endl; // debug
-	std::cout << "[data]\n" << data << std::endl; // debug
-	request_line = getLine(data);
-	std::cout << "request_line: " << request_line << std::endl; // debug
-
-	while (request_line.empty())
-		request_line = getLine(data);
-
-	if (request_line.length() > 8192)
+	if (line.length() > MAX_LEN)
 	{
 		_error_code = 414;
-		return (FAILURE);
+		return (true);
 	}
-	/* メソッドとターゲット、バージョンを格納する */
-	if (countWord(request_line) != 3)
-	{
-		_error_code = 400;
-		return (FAILURE);
-	}
-	std::istringstream	iss(request_line);
-	iss >> _method >> _url >> _version;
+	return (false);
+}
 
-	/* method error処理(checkMethod関数など作成する) */
-	std::string	allowed_methods[] = {"GET", "POST", "DELETE"}; // configから取得する
+bool	HTTPParser::checkMethod(void)
+{
+	std::string	allowed_methods[] = {"GET", "POST", "DELETE"}; // 本来はconfigから取得する
 	for (int i = 0; i < 3; i++)
 	{
 		if (_method == allowed_methods[i])
@@ -76,23 +61,61 @@ int	HTTPParser::parseRequestLine(std::string &data)
 		if (i == 2)
 		{
 			_error_code = 405;
-			return (FAILURE);
+			return (false);
 		}
 	}
+	return (true);
+}
 
-	/* target error処理 */
-	// if (_url.find(':')) // connectは対応しない
-	// {
-	// 	_error_code = 400;
-	// 	return (FAILURE);
-	// }
+bool	HTTPParser::checkTarget(void)
+{
+	if (_url.find(':') != std::string::npos) // connectは対応しない
+	{
+		_error_code = 400;
+		return (false);
+	}
+	return (true);
+}
 
-	/* version error処理 */
+bool	HTTPParser::checkVersion(void)
+{
 	if (_version != "HTTP/1.1")
 	{
 		_error_code = 505;
+		return (false);
+	}
+	return (true);
+}
+
+int	HTTPParser::parseRequestLine(std::string &data)
+{
+	std::string	request_line;
+
+	std::cout << "====parseRequestLine====" << std::endl; // debug
+
+	request_line = getLine(data);
+	std::cout << "request_line: " << request_line << std::endl; // debug
+
+	while (request_line.empty())
+		request_line = getLine(data);
+	if (isLineTooLong(request_line) == true)
+		return (FAILURE);
+
+	/* メソッドとターゲット、バージョンを格納 */
+	std::istringstream	iss(request_line);
+	if (!(iss >> _method >> _url >> _version) || !iss.eof()) // 3つに分けて格納する
+	{
+		_error_code = 400;
 		return (FAILURE);
 	}
+
+	/* エラーチェック */
+	if (checkMethod() == false)
+		return (FAILURE);
+	if (checkTarget() == false)
+		return (FAILURE);
+	if (checkVersion() == false)
+		return (FAILURE);
 
 	return (SUCCESS);
 }
@@ -102,18 +125,14 @@ int	HTTPParser::parseHeader(std::string &data)
 	std::string		line;
 
 	std::cout << "====parseHeader====" << std::endl; // debug
-	/* ヘッダーを格納する(error処理も) */
-	std::cout << "[data]\n" << data << std::endl; // debug
+
 	while (true)
 	{
-		line = getLine(data);
+		line = getLine(data); // getlineでもいいかも？
 		if (line.empty())
 			break ;
-		if (line.length() > 8192)
-		{
-			_error_code = 414;
+		if (isLineTooLong(line) == true)
 			return (FAILURE);
-		}
 		// 空白で始まる行は不正として扱う
 		if (std::isspace(line[0]))
 		{
@@ -139,8 +158,7 @@ int	HTTPParser::parseBody(std::string &data)
 	std::string		line;
 
 	std::cout << "====parseBody====" << std::endl; // debug
-	/* ボディを格納する(error処理も) */
-	std::cout << "[data]\n" << data << std::endl; // debug
+
 	if (_header.find("Content-Length") == _header.end() || _header.find("Transfer-Encoding") != _header.end())
 	{
 		std::cout << "bodyなし" << std::endl; // debug
@@ -152,8 +170,8 @@ int	HTTPParser::parseBody(std::string &data)
 		line = getLine(data);
 		if (line.empty())
 			break ;
-		unsigned long content_length = std::stoul(_header["Content-Length"]); // try-catchでエラー処理を追加する必要あり?
-		if (line.length() > content_length)
+		unsigned long	content_length = std::stoul(_header["Content-Length"]); // try-catchでエラー処理を追加する必要あり?
+		if (line.length() != content_length)
 		{
 			_error_code = 414;
 			return (FAILURE);
@@ -181,7 +199,6 @@ void	HTTPParser::executeParse(std::string &data)
 	if (parseHeader(data) == FAILURE)
 		return;
 
-	/* ボディを格納する(error処理も) */
 	if (parseBody(data) == FAILURE)
 		return;
 }
