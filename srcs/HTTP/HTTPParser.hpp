@@ -35,6 +35,7 @@ class HTTPParser
 		std::string	getMethod(void) const;
 		std::string	getTarget(void) const;
 		std::string	getVersion(void) const;
+		int			getErrorCode(void) const;
 
 		void	executeParse(std::string &data);
 };
