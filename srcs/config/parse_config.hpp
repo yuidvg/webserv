@@ -22,15 +22,13 @@ struct Location
 	std::vector<std::string> allow_method; // 許可されるHTTPメソッド（GET, POST, DELETE）
 	std::string cgi_path;				   // CGIスクリプトのパス
 	std::string upload_path;			   // アップロードパス
-	std::string redirect;				   // リダイレクト先のURL
+	std::map<int, std::string> redirect;				   // リダイレクト先のURL
 };
 
 // サーバーコンテキストの設定
 struct Server
 {
-	std::string server_name;			   // [server_name]サーバー名
-	std::string host;					   // [server_name]ホスト名
-	int ip_addr;						   // [server_name]IPアドレス
+	std::string server_name;			   // サーバー名
 	size_t port;						   // ポート番号
 	std::vector<Location> locations;	   // ロケーションの設定
 	std::string root;					   // サーバー全体のルートディレクトリ
@@ -51,18 +49,18 @@ class Config
 private:
 	Config();
 	template <typename T>
-	T PullWord(std::istringstream &iss, size_t num);
-	void ParseServer(std::ifstream &config_file, Server &server);
-	void ParseLocation(std::ifstream &config_file, Location &location);
-	void ParseConfig(const char *config_path);
-	void InitializeServer(Server &server);
-	void InitializeLocation(Location &location);
+	T PullWord(std::istringstream& iss);
+	void ParseServer(std::ifstream& config_file, Server& server);
+	void ParseLocation(std::ifstream& config_file, Location& location);
+	void ParseConfig(const char* config_path);
+	void InitializeServer(Server& server);
+	void InitializeLocation(Location& location);
 
 public:
-	Config(const char *config_path);
+	Config(const char* config_path);
 	~Config();
-	void PrintLocation(const Location &location);
-	void PrintServer(const Server &server);
+	void PrintLocation(const Location& location);
+	void PrintServer(const Server& server);
 	WebServer webserver;
 };
 
