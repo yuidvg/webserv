@@ -10,6 +10,11 @@
 #include <string>
 #include <vector>
 
+#define RED "\x1b[31m"
+#define GREEN "\x1b[32m"
+#define YELLO "\x1b[33m"
+#define NORMAL "\x1b[0m"
+
 // ルートコンテキストの設定
 struct Location
 {

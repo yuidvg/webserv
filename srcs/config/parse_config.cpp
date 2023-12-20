@@ -124,7 +124,8 @@ T Config::PullWord(std::istringstream& iss)
 	}
 	else
 	{
-		std::cout << "\x1b[31mwordが取得できませんでした\x1b[0m" << std::endl;
+		// std::cout << "\x1b[31mwordが取得できませんでした\x1b[0m" << std::endl;
+		throw("\x1b[31mconfig:wordが取得できませんでした\x1b[0m");
 		return T();
 	}
 
@@ -195,6 +196,19 @@ void Config::ParseLocation(std::ifstream& config_file, Location& location)
 		{
 			break; // locationブロックの終了
 		}
+		else if (key.empty() || key == "\t" || key == "\n")
+		{
+			continue;
+		}
+		else
+		{
+			std::string next_line;
+			std::getline(config_file, next_line);
+			std::cout << RED << "次の行: " << next_line << std::endl;
+			std::getline(config_file, next_line);
+			std::cout << RED << "次の行: " << next_line << std::endl;
+			throw("不正なディレクティブ");
+		}
 	}
 }
 
@@ -256,11 +270,20 @@ void Config::ParseServer(std::ifstream& config_file, Server& server)
 		{
 			break;
 		}
-		// else
-		// {
-		// 	std::cout << "\x1b[31m不正なディレクティブです\x1b[0m" << std::endl;
-		// 	return;
-		// }
+		else if (key.empty() || key == "\t" || key == "\n")
+		{
+			continue;
+		}
+		else
+		{
+			std::string next_line;
+			std::getline(config_file, next_line);
+			std::cout << RED << "次の行: " << next_line << std::endl;
+			std::getline(config_file, next_line);
+			std::cout << RED << "次の行: " << next_line << std::endl;
+			throw("不正なディレクティブ");
+			break;
+		}
 	}
 }
 
@@ -299,13 +322,21 @@ int main(int argc, char** argv)
 	}
 
 	const char* config_path = argv[1];
-	Config config(config_path);
-	std::cout << "server size = " << config.webserver.servers.size() << std::endl;
-	// debug
-	for (size_t i = 0; i < config.webserver.servers.size(); ++i)
+	try
 	{
-		std::cout << "Server #" << (i + 1) << std::endl;
-		config.PrintServer(config.webserver.servers[i]);
+		Config config(config_path);
+		std::cout << "server size = " << config.webserver.servers.size() << std::endl;
+		// debug
+		for (size_t i = 0; i < config.webserver.servers.size(); ++i)
+		{
+			std::cout << "Server #" << (i + 1) << std::endl;
+			config.PrintServer(config.webserver.servers[i]);
+		}
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+		return 1;
 	}
 
 	return 0;
