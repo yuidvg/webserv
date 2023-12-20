@@ -233,10 +233,8 @@ void Config::ParseServer(std::ifstream& config_file, Server& server)
 		std::istringstream iss(line);
 		std::string key;
 		iss >> key;
-
 		try
 		{
-
 			// 各ディレクティブに対する処理を記述
 			if (key == "server_name")
 			{
@@ -251,8 +249,14 @@ void Config::ParseServer(std::ifstream& config_file, Server& server)
 				Location location;
 				InitializeLocation(location);
 				location.path = PullWord<std::string>(iss);
+				if (PullWord<std::string>(iss) != "{")
+					throw(std::runtime_error("Config: locationブロックの開始が不正です"));
 				ParseLocation(config_file, location);
 				server.locations.push_back(location);
+				if (config_file.eof())
+				{
+					throw(std::runtime_error("Config: サーバーブロックが終了していない"));
+				}
 			}
 			else if (key == "root")
 			{
@@ -280,6 +284,10 @@ void Config::ParseServer(std::ifstream& config_file, Server& server)
 			else if (key == "}")
 			{
 				break;
+			}
+			else if (config_file.eof())
+			{
+				throw(std::runtime_error("Config: サーバーブロックが終了していない"));
 			}
 			else if (key.empty() || key == "\t" || key == "\n")
 			{
