@@ -49,18 +49,18 @@ class Config
 private:
 	Config();
 	template <typename T>
-	T PullWord(std::istringstream &iss, size_t num);
-	void ParseServer(std::ifstream &config_file, Server &server);
-	void ParseLocation(std::ifstream &config_file, Location &location);
-	void ParseConfig(const char *config_path);
-	void InitializeServer(Server &server);
-	void InitializeLocation(Location &location);
+	T PullWord(std::istringstream& iss);
+	void ParseServer(std::ifstream& config_file, Server& server);
+	void ParseLocation(std::ifstream& config_file, Location& location);
+	void ParseConfig(const char* config_path);
+	void InitializeServer(Server& server);
+	void InitializeLocation(Location& location);
 
 public:
-	Config(const char *config_path);
+	Config(const char* config_path);
 	~Config();
-	void PrintLocation(const Location &location);
-	void PrintServer(const Server &server);
+	void PrintLocation(const Location& location);
+	void PrintServer(const Server& server);
 	WebServer webserver;
 };
 
