@@ -16,7 +16,7 @@ struct Location
 	std::string path;					   // locationで指定されたパス
 	std::string root;					   // ルートディレクトリ
 	bool autoindex;						   // ディレクトリリスティングの有効/無効
-	std::vector<std::string> index;		   // デフォルトファイル名
+	std::string index;		   // デフォルトファイル名
 	size_t client_max_body_size;		   // リクエストボディの最大サイズ
 	std::map<int, std::string> error_page; // エラーページの設定
 	std::vector<std::string> allow_method; // 許可されるHTTPメソッド（GET, POST, DELETE）
@@ -35,7 +35,7 @@ struct Server
 	std::map<int, std::string> error_page; // エラーページの設定
 	size_t client_max_body_size;		   // サーバー全体のリクエストボディ最大サイズ
 	bool autoindex;						   // ディレクトリリスティングの有効/無効
-	std::vector<std::string> index;		   // デフォルトファイル名
+	std::string index;		   // デフォルトファイル名
 };
 
 // 複数のサーバーを管理する

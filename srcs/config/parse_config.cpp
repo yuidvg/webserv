@@ -6,12 +6,8 @@ void Config::PrintLocation(const Location& location)
 	std::cout << "Location Path: " << location.path << std::endl;
 	std::cout << "Root: " << location.root << std::endl;
 	std::cout << "Autoindex: " << (location.autoindex ? "on" : "off") << std::endl;
-	std::cout << "Index: ";
-	for (size_t i = 0; i < location.index.size(); ++i)
-	{
-		std::cout << location.index[i] << (i < location.index.size() - 1 ? ", " : "");
-	}
-	std::cout << "\nMax Body Size: " << location.client_max_body_size << std::endl;
+	std::cout << "Index: " << location.index << std::endl;
+	std::cout << "Max Body Size: " << location.client_max_body_size << std::endl;
 
 	// Error Pages
 	std::cout << "Error Pages: ";
@@ -68,13 +64,7 @@ void Config::PrintServer(const Server& server)
 	// Autoindex
 	std::cout << "Server Autoindex: " << (server.autoindex ? "on" : "off") << std::endl;
 
-	// Default Index
-	std::cout << "Server Default Index: ";
-	for (size_t i = 0; i < server.index.size(); ++i)
-	{
-		std::cout << server.index[i] << (i < server.index.size() - 1 ? ", " : "");
-	}
-	std::cout << std::endl;
+	std::cout << "Index: " << server.index << std::endl;
 
 	// Locations
 	for (size_t i = 0; i < server.locations.size(); ++i)
@@ -100,12 +90,12 @@ Config::~Config()
 void Config::InitializeServer(Server& server)
 {
 	server.server_name = "";
-	server.port = 0;
+	server.port = 80;
 	server.root = "";
 	server.error_page.clear();
-	server.client_max_body_size = 0;
+	server.client_max_body_size = 1048576;//1MB
 	server.autoindex = false;
-	server.index.clear();
+	server.index = "index.html";
 	server.locations.clear();
 }
 
@@ -114,7 +104,7 @@ void Config::InitializeLocation(Location& location)
 	location.path = "";
 	location.root = "";
 	location.autoindex = false;
-	location.index.clear();
+	location.index = "index.html";
 	location.client_max_body_size = 0;
 	location.error_page.clear();
 	location.allow_method.clear();
@@ -166,7 +156,7 @@ void Config::ParseLocation(std::ifstream& config_file, Location& location)
 		}
 		else if (key == "index")
 		{
-			location.index.push_back(PullWord<std::string>(iss));
+			location.index = PullWord<std::string>(iss);
 		}
 		else if (key == "client_max_body_size")
 		{
@@ -260,7 +250,7 @@ void Config::ParseServer(std::ifstream& config_file, Server& server)
 		}
 		else if (key == "index")
 		{
-			server.index.push_back(PullWord<std::string>(iss));
+			server.index = PullWord<std::string>(iss);
 		}
 		else if (key == "}")
 		{
