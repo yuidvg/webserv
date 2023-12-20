@@ -254,11 +254,15 @@ void Config::ParseServer(std::ifstream& config_file, Server& server)
 		{
 			server.index.push_back(PullWord<std::string>(iss));
 		}
-
-		if (key == "}")
+		else if (key == "}")
 		{
 			break;
 		}
+		// else
+		// {
+		// 	std::cout << "\x1b[31m不正なディレクティブです\x1b[0m" << std::endl;
+		// 	return;
+		// }
 	}
 }
 
