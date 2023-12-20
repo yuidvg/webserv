@@ -37,7 +37,13 @@ void Config::PrintLocation(const Location& location)
 	std::cout << "Upload Path: " << location.upload_path << std::endl;
 
 	// Redirect URL
-	std::cout << "Redirect URL: " << location.redirect << std::endl;
+	std::cout << "Redirect URL: ";
+	for (std::map<int, std::string>::const_iterator it = location.redirect.begin();
+		it != location.redirect.end(); ++it)
+	{
+		std::cout << it->first << " => " << it->second << ", ";
+	}
+	std::cout << std::endl;
 	std::cout << "\x1b[0m";
 }
 
@@ -114,7 +120,7 @@ void Config::InitializeLocation(Location& location)
 	location.allow_method.clear();
 	location.cgi_path = "";
 	location.upload_path = "";
-	location.redirect = "";
+	location.redirect.clear();
 }
 
 // 一般的なテンプレート関数
@@ -189,9 +195,11 @@ void Config::ParseLocation(std::ifstream& config_file, Location& location)
 		{
 			location.upload_path = PullWord<std::string>(iss);
 		}
-		else if (key == "redirect")
+		else if (key == "return")
 		{
-			location.redirect = PullWord<std::string>(iss);
+			int status_code = PullWord<int>(iss);  // ステータスコードを取得
+			std::string redirect_url = PullWord<std::string>(iss);  // リダイレクトURLを取得
+			location.redirect[status_code] = redirect_url;  // マップに追加
 		}
 		else if (key == "}")
 		{

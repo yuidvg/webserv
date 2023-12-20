@@ -22,7 +22,7 @@ struct Location
 	std::vector<std::string> allow_method; // 許可されるHTTPメソッド（GET, POST, DELETE）
 	std::string cgi_path;				   // CGIスクリプトのパス
 	std::string upload_path;			   // アップロードパス
-	std::string redirect;				   // リダイレクト先のURL
+	std::map<int, std::string> redirect;				   // リダイレクト先のURL
 };
 
 // サーバーコンテキストの設定
