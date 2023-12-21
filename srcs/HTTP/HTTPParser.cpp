@@ -1,47 +1,6 @@
 #include "HTTPParser.hpp"
 
-HTTPParser::HTTPParser(std::string &request)
-{
-	executeParse(request);
-}
-
-HTTPParser::HTTPParser(const HTTPParser &src)
-{
-	(*this) = src;
-}
-
-HTTPParser	&HTTPParser::operator=(const HTTPParser &rhs)
-{
-	if (this != &rhs)
-	{
-		// copy
-	}
-	return (*this);
-}
-
-HTTPParser::~HTTPParser(void) {}
-
-std::string	HTTPParser::getMethod(void) const
-{
-	return (_method);
-}
-
-std::string	HTTPParser::getTarget(void) const
-{
-	return (_url);
-}
-
-std::string	HTTPParser::getVersion(void) const
-{
-	return (_version);
-}
-
-int			HTTPParser::getErrorCode(void) const
-{
-	return (_error_code);
-}
-
-bool	HTTPParser::isLineTooLong(const std::string &line)
+bool	isLineTooLong(const std::string &line)
 {
 	if (line.length() > MAX_LEN)
 	{
@@ -51,7 +10,7 @@ bool	HTTPParser::isLineTooLong(const std::string &line)
 	return (false);
 }
 
-bool	HTTPParser::checkMethod(void)
+bool	checkMethod(void)
 {
 	std::string	allowed_methods[] = {"GET", "POST", "DELETE"}; // 本来はconfigから取得する？
 	for (int i = 0; i < 3; i++)
@@ -67,9 +26,9 @@ bool	HTTPParser::checkMethod(void)
 	return (true);
 }
 
-bool	HTTPParser::checkTarget(void)
+bool	checkTarget(void)
 {
-	if (_url.find(':') != std::string::npos) // connectは対応しない
+	if (_url.find(':') != std::string::npos && _url.find('*') != std::string::npos) // CONNECT, OPTIONSは非対応
 	{
 		_error_code = HTTP_STATUS_BAD_REQUEST; // 400
 		return (false);
@@ -77,7 +36,7 @@ bool	HTTPParser::checkTarget(void)
 	return (true);
 }
 
-bool	HTTPParser::checkVersion(void)
+bool	checkVersion(void)
 {
 	if (_version != "HTTP/1.1")
 	{
@@ -87,7 +46,7 @@ bool	HTTPParser::checkVersion(void)
 	return (true);
 }
 
-int	HTTPParser::parseHTTPRequestLine(std::string &data)
+int	parseHTTPRequestLine(std::string &data)
 {
 	std::string			request_line;
 
@@ -121,7 +80,7 @@ int	HTTPParser::parseHTTPRequestLine(std::string &data)
 	return (SUCCESS);
 }
 
-int	HTTPParser::parseHTTPHeader(std::string &data)
+int	parseHTTPHeader(std::string &data)
 {
 	std::string			line;
 
@@ -145,8 +104,7 @@ int	HTTPParser::parseHTTPHeader(std::string &data)
 
 		std::getline(iss, key, ':');
 		std::getline(iss, value);
-		if (std::isspace(value[0]))
-			value.erase(0, 1); // 先頭の空白を削除
+		trim(value); // valueの前後の空白を削除する
 
 		if (key.empty() || std::isspace(*(key.end() - 1)) || value.empty())
 		{
@@ -165,42 +123,46 @@ int	HTTPParser::parseHTTPHeader(std::string &data)
 	return (SUCCESS);
 }
 
-// int	HTTPParser::parseHTTPBody(std::string &data)
-// {
-// 	std::string			line;
+int	parseHTTPBody(std::string &data)
+{
+	std::string			line;
+	std::istringstream	iss(data);
 
-// 	std::cout << "====parseBody====" << std::endl; // debug
+	std::cout << "====parseBody====" << std::endl; // debug
 
-// 	if (_header.find("Content-Length") == _header.end() || _header.find("Transfer-Encoding") != _header.end())
-// 	{
-// 		std::cout << "bodyなし" << std::endl; // debug
-// 		return (SUCCESS);
-// 	}
-// 	std::cout << "test: " << _header["Content-Length"] << std::endl; // debug
-// 	while (true)
-// 	{
-// 		customGetLine(data, line);
-// 		if (line.empty())
-// 			break ;
-// 		unsigned long	content_length = std::stoul(_header["Content-Length"]); // try-catchでエラー処理を追加する必要あり?
-// 		if (line.length() != content_length)
-// 		{
-// 			_error_code = 414;
-// 			return (FAILURE);
-// 		}
-// 		if (line[0] == ' ')
-// 		{
-// 			_error_code = HTTP_STATUS_BAD_REQUEST; // 400
-// 			return (FAILURE);
-// 		}
+	if (data.empty())
+		std::cout << "dataなし!!" << std::endl; // debug
+	else
+		std::cout << "data: " << data << std::endl; // debug
 
-// 		/* _bodyに格納する */
-// 		_body += line + "\n";
-// 	}
-// 	return (SUCCESS);
-// }
+	if (_header["Content-Length"].empty() || _header["Transfer-Encoding"].empty())
+	{
+		_error_code = HTTP_STATUS_BAD_REQUEST; // 400
+		return (FAILURE);
+	}
 
-void	HTTPParser::executeParse(std::string &data)
+	if (!_header["Content-Length"].empty() && (stoi(_header["Content-Length"]) > MAX_LEN))
+	{
+		_error_code = 413;
+		return (FAILURE);
+	}
+
+	while (customGetLine(data, line))
+	{
+		if (line.empty())
+			break ;
+		if (isLineTooLong(line) == true)
+			return (FAILURE);
+		if (std::isspace(line[0]))
+		{
+			_error_code = HTTP_STATUS_BAD_REQUEST; // 400
+			return (FAILURE);
+		}
+	}
+	return (SUCCESS);
+}
+
+void	executeParse(std::string &data)
 {
 	std::string		request_line;
 
@@ -211,6 +173,6 @@ void	HTTPParser::executeParse(std::string &data)
 	if (parseHTTPHeader(data) == FAILURE)
 		return;
 
-	// if (parseHTTPBody(data) == FAILURE)
-	// 	return;
+	if (parseHTTPBody(data) == FAILURE)
+		return;
 }

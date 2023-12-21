@@ -15,41 +15,31 @@
 # define HTTP_STATUS_BAD_REQUEST 400
 # define HTTP_STATUS_REQUEST_URI_TOO_LONG 414
 
-
-class HTTPParser
+struct ParsedRequest
 {
-	private:
-		static const int					MAX_LEN = 8192;
-
-		std::string							_method;
-		std::string							_version;
-		std::string							_url;
-		std::map<std::string, std::string>	_header;
-		std::string							_body;
-		int									_error_code;
-
-		int		parseHTTPRequestLine(std::string &data);
-		int		parseHTTPHeader(std::string &data);
-		int		parseHTTPBody(std::string &data);
-
-		bool	checkMethod(void);
-		bool	checkVersion(void);
-		bool	checkTarget(void);
-
-		bool	isLineTooLong(const std::string &line);
-
-	public:
-		HTTPParser(std::string &request);
-		HTTPParser(const HTTPParser &src);
-		HTTPParser	&operator=(const HTTPParser &rhs);
-		~HTTPParser(void);
-
-		std::string	getMethod(void) const;
-		std::string	getTarget(void) const;
-		std::string	getVersion(void) const;
-		int			getErrorCode(void) const;
-
-		void	executeParse(std::string &data);
+	const std::string							method;
+	const std::string							version;
+	const std::string							url;
+	const std::map<std::string, std::string>	header;
+	const std::string							body;
 };
+
+// 成功したら構造体、失敗したらエラーコードを返すresultを作成する
+template <typename T, typename E>
+struct Result
+{
+	Result(T const &ok) : t(tag::ok)
+	{
+		;
+	}
+};
+
+bool	isLineTooLong(const std::string &line);
+bool	checkMethod(void);
+bool	checkVersion(void);
+bool	checkTarget(void);
+Result	parseHTTPHeader(std::string &httpRequest);
+Result	parseHTTPBody(std::string &httpRequest);
+Result	parseHTTPRequestLine(std::string &httpRequest);
 
 #endif

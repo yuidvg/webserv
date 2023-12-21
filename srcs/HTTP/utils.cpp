@@ -9,13 +9,19 @@ bool	customGetLine(std::string &data, std::string &line)
 	{
 		read_length = line.length();
 		if (data[line.length()] != '\n')
-		{
-			std::cout << "異常" << std::endl; // debug
 			return (false);
-		}
 		read_length++;
 		data.erase(0, read_length);
 		return (true);
 	}
 	return (false);
+}
+
+std::string	&trim(std::string &str)
+{
+	while (std::isspace(str[0]))
+		str.erase(0, 1);
+	while (std::isspace(str[str.length() - 1]))
+		str.erase(str.length() - 1, 1);
+	return (str);
 }
