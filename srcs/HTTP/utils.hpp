@@ -5,6 +5,6 @@
 # include <sstream>
 # include <iostream>
 
-std::string		getLine(std::string &data);
+bool	customGetLine(std::string &data, std::string &line);
 
 #endif

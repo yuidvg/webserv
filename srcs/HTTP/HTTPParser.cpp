@@ -45,7 +45,7 @@ bool	HTTPParser::isLineTooLong(const std::string &line)
 {
 	if (line.length() > MAX_LEN)
 	{
-		_error_code = 414;
+		_error_code = HTTP_STATUS_REQUEST_URI_TOO_LONG; // 414
 		return (true);
 	}
 	return (false);
@@ -53,7 +53,7 @@ bool	HTTPParser::isLineTooLong(const std::string &line)
 
 bool	HTTPParser::checkMethod(void)
 {
-	std::string	allowed_methods[] = {"GET", "POST", "DELETE"}; // 本来はconfigから取得する
+	std::string	allowed_methods[] = {"GET", "POST", "DELETE"}; // 本来はconfigから取得する？
 	for (int i = 0; i < 3; i++)
 	{
 		if (_method == allowed_methods[i])
@@ -71,7 +71,7 @@ bool	HTTPParser::checkTarget(void)
 {
 	if (_url.find(':') != std::string::npos) // connectは対応しない
 	{
-		_error_code = 400;
+		_error_code = HTTP_STATUS_BAD_REQUEST; // 400
 		return (false);
 	}
 	return (true);
@@ -87,118 +87,130 @@ bool	HTTPParser::checkVersion(void)
 	return (true);
 }
 
-int	HTTPParser::parseRequestLine(std::string &data)
+int	HTTPParser::parseHTTPRequestLine(std::string &data)
 {
-	std::string	request_line;
+	std::string			request_line;
 
 	std::cout << "====parseRequestLine====" << std::endl; // debug
 
-	request_line = getLine(data);
-	std::cout << "request_line: " << request_line << std::endl; // debug
+	while (customGetLine(data, request_line) && request_line.empty())
+		; // 空行を読み飛ばす
 
-	while (request_line.empty())
-		request_line = getLine(data);
+	// 有効なリクエストラインがない場合
+	if (request_line.empty())
+	{
+		_error_code = HTTP_STATUS_BAD_REQUEST; // 400
+		return (FAILURE);
+	}
 	if (isLineTooLong(request_line) == true)
 		return (FAILURE);
 
-	/* メソッドとターゲット、バージョンを格納 */
-	std::istringstream	iss(request_line);
-	if (!(iss >> _method >> _url >> _version) || !iss.eof()) // 3つに分けて格納する
+	std::cout << "request_line: " << request_line << std::endl; // debug
+
+	std::istringstream	line(request_line);
+	if (!(line >> _method >> _url >> _version) || !line.eof()) // メソッドとターゲット、バージョンに分けて格納する
 	{
-		_error_code = 400;
+		_error_code = HTTP_STATUS_BAD_REQUEST; // 400
 		return (FAILURE);
 	}
 
 	/* エラーチェック */
-	if (checkMethod() == false)
-		return (FAILURE);
-	if (checkTarget() == false)
-		return (FAILURE);
-	if (checkVersion() == false)
+	if (checkMethod() == false || checkTarget() == false || checkVersion() == false)
 		return (FAILURE);
 
 	return (SUCCESS);
 }
 
-int	HTTPParser::parseHeader(std::string &data)
+int	HTTPParser::parseHTTPHeader(std::string &data)
 {
-	std::string		line;
+	std::string			line;
 
 	std::cout << "====parseHeader====" << std::endl; // debug
 
-	while (true)
+	while (customGetLine(data, line))
 	{
-		line = getLine(data); // getlineでもいいかも？
 		if (line.empty())
 			break ;
 		if (isLineTooLong(line) == true)
 			return (FAILURE);
-		// 空白で始まる行は不正として扱う
 		if (std::isspace(line[0]))
 		{
-			_error_code = 400;
+			_error_code = HTTP_STATUS_BAD_REQUEST; // 400
 			return (FAILURE);
 		}
 
-		/* _headerに格納する */
+		// ヘッダーの解析
 		std::string			key, value;
 		std::istringstream	iss(line);
-		std::getline(iss, key, ':'); // keyの最後に空白がある時のERROR処理を追加する必要あり
+
+		std::getline(iss, key, ':');
 		std::getline(iss, value);
-		value = value.substr(1); // 先頭の空白を削除
+		if (std::isspace(value[0]))
+			value.erase(0, 1); // 先頭の空白を削除
+
+		if (key.empty() || std::isspace(*(key.end() - 1)) || value.empty())
+		{
+			_error_code = HTTP_STATUS_BAD_REQUEST; // 400
+			return (FAILURE);
+		}
 
 		_header[key] = value;
 		std::cout << "[key]: " << key << ", [value]: " << _header[key] << std::endl; // debug
 	}
-	return (SUCCESS);
-}
-
-int	HTTPParser::parseBody(std::string &data)
-{
-	std::string		line;
-
-	std::cout << "====parseBody====" << std::endl; // debug
-
-	if (_header.find("Content-Length") == _header.end() || _header.find("Transfer-Encoding") != _header.end())
+	if (!line.empty() || _header.empty())
 	{
-		std::cout << "bodyなし" << std::endl; // debug
-		return (SUCCESS);
-	}
-	std::cout << "test: " << _header["Content-Length"] << std::endl; // debug
-	while (true)
-	{
-		line = getLine(data);
-		if (line.empty())
-			break ;
-		unsigned long	content_length = std::stoul(_header["Content-Length"]); // try-catchでエラー処理を追加する必要あり?
-		if (line.length() != content_length)
-		{
-			_error_code = 414;
-			return (FAILURE);
-		}
-		if (line[0] == ' ')
-		{
-			_error_code = 400;
-			return (FAILURE);
-		}
-
-		/* _bodyに格納する */
-		_body += line + "\n";
+		_error_code = HTTP_STATUS_BAD_REQUEST; // 400
+		return (FAILURE);
 	}
 	return (SUCCESS);
 }
+
+// int	HTTPParser::parseHTTPBody(std::string &data)
+// {
+// 	std::string			line;
+
+// 	std::cout << "====parseBody====" << std::endl; // debug
+
+// 	if (_header.find("Content-Length") == _header.end() || _header.find("Transfer-Encoding") != _header.end())
+// 	{
+// 		std::cout << "bodyなし" << std::endl; // debug
+// 		return (SUCCESS);
+// 	}
+// 	std::cout << "test: " << _header["Content-Length"] << std::endl; // debug
+// 	while (true)
+// 	{
+// 		customGetLine(data, line);
+// 		if (line.empty())
+// 			break ;
+// 		unsigned long	content_length = std::stoul(_header["Content-Length"]); // try-catchでエラー処理を追加する必要あり?
+// 		if (line.length() != content_length)
+// 		{
+// 			_error_code = 414;
+// 			return (FAILURE);
+// 		}
+// 		if (line[0] == ' ')
+// 		{
+// 			_error_code = HTTP_STATUS_BAD_REQUEST; // 400
+// 			return (FAILURE);
+// 		}
+
+// 		/* _bodyに格納する */
+// 		_body += line + "\n";
+// 	}
+// 	return (SUCCESS);
+// }
 
 void	HTTPParser::executeParse(std::string &data)
 {
 	std::string		request_line;
 
 	_error_code = 200;
-	if (parseRequestLine(data) == FAILURE)
+	if (parseHTTPRequestLine(data) == FAILURE)
 		return;
 
-	if (parseHeader(data) == FAILURE)
+	if (parseHTTPHeader(data) == FAILURE)
 		return;
 
-	if (parseBody(data) == FAILURE)
-		return;
+	// if (parseHTTPBody(data) == FAILURE)
+	// 	return;
 }

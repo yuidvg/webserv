@@ -12,6 +12,9 @@
 # define SUCCESS 0
 # define FAILURE 1
 
+# define HTTP_STATUS_BAD_REQUEST 400
+# define HTTP_STATUS_REQUEST_URI_TOO_LONG 414
+
 
 class HTTPParser
 {
@@ -25,9 +28,9 @@ class HTTPParser
 		std::string							_body;
 		int									_error_code;
 
-		int		parseRequestLine(std::string &data);
-		int		parseHeader(std::string &data);
-		int		parseBody(std::string &data);
+		int		parseHTTPRequestLine(std::string &data);
+		int		parseHTTPHeader(std::string &data);
+		int		parseHTTPBody(std::string &data);
 
 		bool	checkMethod(void);
 		bool	checkVersion(void);

@@ -1,18 +1,21 @@
 #include "utils.hpp"
 
-std::string	getLine(std::string &data)
+bool	customGetLine(std::string &data, std::string &line)
 {
-	std::string		line;
-	size_t			pos;
+	std::istringstream	iss(data);
+	size_t				read_length;
 
-	pos = data.find("\n");
-	if (pos == std::string::npos)
+	if (std::getline(iss, line))
 	{
-		line = data;
-		data.clear();
-		return (line);
+		read_length = line.length();
+		if (data[line.length()] != '\n')
+		{
+			std::cout << "異常" << std::endl; // debug
+			return (false);
+		}
+		read_length++;
+		data.erase(0, read_length);
+		return (true);
 	}
-	line = data.substr(0, pos);
-	data.erase(0, pos + 1);
-	return (line);
+	return (false);
 }
