@@ -332,6 +332,8 @@ void Config::ParseConfig(const char* config_path)
 		if (key == "server")
 		{
 			Server server;
+			if (PullWord<std::string>(iss) != "{")
+				throw(std::runtime_error("Config: locationブロックの開始が不正です"));
 			ParseServer(config_file, server);
 			webserver.servers.push_back(server);
 		}
