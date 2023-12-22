@@ -46,7 +46,7 @@ bool	checkVersion(void)
 	return (true);
 }
 
-int	parseHTTPRequestLine(std::string &data)
+ParseResult	parseHTTPRequestLine(std::string &data)
 {
 	std::string			request_line;
 
@@ -80,7 +80,7 @@ int	parseHTTPRequestLine(std::string &data)
 	return (SUCCESS);
 }
 
-int	parseHTTPHeader(std::string &data)
+ParseResult	parseHTTPHeader(std::string &data)
 {
 	std::string			line;
 
@@ -123,7 +123,7 @@ int	parseHTTPHeader(std::string &data)
 	return (SUCCESS);
 }
 
-int	parseHTTPBody(std::string &data)
+ParseResult	parseHTTPBody(std::string &data)
 {
 	std::string			line;
 	std::istringstream	iss(data);

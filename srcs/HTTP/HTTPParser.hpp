@@ -8,9 +8,12 @@
 # include <map>
 
 # include "utils.hpp"
+# include "Result.hpp"
 
 # define SUCCESS 0
 # define FAILURE 1
+
+# define MAX_LEN 8192
 
 # define HTTP_STATUS_BAD_REQUEST 400
 # define HTTP_STATUS_REQUEST_URI_TOO_LONG 414
@@ -24,22 +27,14 @@ struct ParsedRequest
 	const std::string							body;
 };
 
-// 成功したら構造体、失敗したらエラーコードを返すresultを作成する
-template <typename T, typename E>
-struct Result
-{
-	Result(T const &ok) : t(tag::ok)
-	{
-		;
-	}
-};
+typedef Result<ParsedRequest, int> ParseResult;
 
-bool	isLineTooLong(const std::string &line);
-bool	checkMethod(void);
-bool	checkVersion(void);
-bool	checkTarget(void);
-Result	parseHTTPHeader(std::string &httpRequest);
-Result	parseHTTPBody(std::string &httpRequest);
-Result	parseHTTPRequestLine(std::string &httpRequest);
+bool		isLineTooLong(const std::string &line);
+bool		checkMethod(void);
+bool		checkVersion(void);
+bool		checkTarget(void);
+ParseResult	parseHTTPHeader(std::string &httpRequest);
+ParseResult	parseHTTPBody(std::string &httpRequest);
+ParseResult	parseHTTPRequestLine(std::string &httpRequest);
 
 #endif
