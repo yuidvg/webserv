@@ -21,8 +21,8 @@
 struct ParsedRequest
 {
 	const std::string							method;
+	const std::string							uri;
 	const std::string							version;
-	const std::string							url;
 	const std::map<std::string, std::string>	header;
 	const std::string							body;
 };
@@ -33,8 +33,8 @@ bool		isLineTooLong(const std::string &line);
 bool		checkMethod(void);
 bool		checkVersion(void);
 bool		checkTarget(void);
+ParseResult	parseHTTPRequestLine(std::string &httpRequest);
 ParseResult	parseHTTPHeader(std::string &httpRequest);
 ParseResult	parseHTTPBody(std::string &httpRequest);
-ParseResult	parseHTTPRequestLine(std::string &httpRequest);
 
 #endif
