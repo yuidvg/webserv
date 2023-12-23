@@ -32,8 +32,20 @@ struct ParsedRequest
 			: method(m), uri(u), version(v), header(h), body(b) {}
 };
 
-typedef Result<ParsedRequest, int> ParseResult;
+struct RequestLine
+{
+	std::string	method;
+	std::string	uri;
+	std::string	version;
+};
 
-ParseResult	parseHTTPRequest(std::string &httpRequest);
+typedef Result<ParsedRequest, int>						ParseResult;
+typedef Result<RequestLine, int>						ParseRequestLineResult;
+typedef Result<std::map<std::string, std::string>, int>	ParseHeaderResult;
+typedef Result<std::string, int>						ParseBodyResult;
+
+ParseRequestLineResult	parseHTTPRequestLine(std::string &httpRequest);
+ParseHeaderResult		parseHTTPHeaders(std::string &httpRequest);
+ParseBodyResult			parseHTTPBody(std::string &httpRequest, std::map<std::string, std::string> &header);
 
 #endif
