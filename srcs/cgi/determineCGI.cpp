@@ -3,6 +3,8 @@
 
 bool shouldUseCGI(const ParsedRequest request, ServerConfig config)
 {
-	
+	if (request.uri.find() != std::string::npos)
+		return true;
+
 }
 
