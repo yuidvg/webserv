@@ -32,12 +32,6 @@ struct ParsedRequest
 
 typedef Result<ParsedRequest, int> ParseResult;
 
-bool		isLineTooLong(const std::string &line);
-bool		checkMethod(void);
-bool		checkVersion(void);
-bool		checkTarget(void);
-ParseResult	parseHTTPRequestLine(std::string &httpRequest);
-ParseResult	parseHTTPHeader(std::string &httpRequest);
-ParseResult	parseHTTPBody(std::string &httpRequest);
+ParseResult	parseHTTPRequest(std::string &httpRequest);
 
 #endif
