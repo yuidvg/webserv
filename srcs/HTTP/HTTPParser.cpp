@@ -65,7 +65,7 @@ ParseResult	parseHTTPRequest(std::string &httpRequest)
 		return (ParseResult::Err(HTTP_STATUS_BAD_REQUEST)); // 400
 
 	/* エラーチェック */
-	int	error_code = 200;
+	int	error_code = HTTP_STATUS_OK; // 200
 	if (checkMethod(method, error_code) == false || checkTarget(uri, error_code) == false || checkVersion(version, error_code) == false)
 		return (ParseResult::Err(error_code));
 
@@ -111,8 +111,8 @@ ParseResult	parseHTTPRequest(std::string &httpRequest)
 	if ((header["Content-Length"].empty() || header["Transfer-Encoding"].empty()) && !httpRequest.empty())
 		return (ParseResult::Err(HTTP_STATUS_BAD_REQUEST)); // 400
 
-	if (!header["Content-Length"].empty() && (stoi(header["Content-Length"]) > MAX_LEN))
-		return (ParseResult::Err(413));
+	if (!header["Content-Length"].empty() && (stoi(header["Content-Length"]) > MAX_LEN)) // 数字が入ってるか確認すべき
+		return (ParseResult::Err(HTTP_STATUS_CONTENT_TOO_LARGE));
 
 	while (customGetLine(httpRequest, line))
 	{
