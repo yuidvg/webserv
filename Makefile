@@ -6,15 +6,14 @@ NAME = webserv
 CLIENT_NAME = client
 
 INCLUDES = -I includes/
-SRCS_DIR = src/
+SRCS_DIR = srcs/
 OBJS_DIR = obj/
 
-# srcディレクトリのソースファイル
-SRCS = $(wildcard $(SRCS_DIR)*.cpp)
-# srcディレクトリ外のclient.cpp
+# srcsディレクトリのサブディレクトリ内のすべての.cppファイル
+SRCS = $(wildcard $(SRCS_DIR)*/*.cpp $(SRCS_DIR)*.cpp)
 CLIENT_SRCS = client.cpp
-# オブジェクトファイルのパス変換
-OBJS = $(SRCS:$(SRCS_DIR)%.cpp=$(OBJS_DIR)%.o)
+# オブジェクトファイルをobj/ディレクトリに格納
+OBJS = $(patsubst $(SRCS_DIR)%,$(OBJS_DIR)%,$(SRCS:.cpp=.o))
 CLIENT_OBJS = $(CLIENT_SRCS:.cpp=.o)
 
 all: $(OBJS_DIR) $(NAME) $(CLIENT_NAME)
@@ -27,6 +26,7 @@ $(CLIENT_NAME): $(CLIENT_OBJS)
 
 # オブジェクトファイルの生成ルール
 $(OBJS_DIR)%.o: $(SRCS_DIR)%.cpp
+	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # client.cppのオブジェクトファイル生成
@@ -49,3 +49,4 @@ debug: CXXFLAGS += -g
 debug: re
 
 .PHONY: all clean fclean re debug
+

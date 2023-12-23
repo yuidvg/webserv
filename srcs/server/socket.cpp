@@ -34,7 +34,28 @@ int server(void)
         close(listen_sd);
         exit(-1);
     }
-
+    addr.sin6_family = AF_INET6;
+    addr.sin6_addr = in6addr_any;
+    addr.sin6_port = htons(SERVER_PORT);
+    rc = bind(listen_sd, (struct sockaddr *)&addr, sizeof(addr));
+    if (rc < 0)
+    {
+        std::cout << RED << "bind() failed" << strerror(errno) << NORMAL << std::endl;
+        close(listen_sd);
+        exit(-1);
+    }
+    rc = listen(listen_sd, 5);
+    if (rc < 0)
+    {
+        std::cout << RED << "listen() failed" << strerror(errno) << NORMAL << std::endl;
+        close(listen_sd);
+        exit(-1);
+    }
+    FD_ZERO(&master_set);
+    max_sd = listen_sd;
+    /*listen_sdをmaster_setに追加します。 */
+    // listen_sd = 常に新しい接続要求を受け入れる(リスニングソケット)
+    FD_SET(listen_sd, &master_set);
     addr.sin6_family = AF_INET6;
     addr.sin6_addr = in6addr_any;
     addr.sin6_port = htons(SERVER_PORT);
