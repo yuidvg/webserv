@@ -47,5 +47,6 @@ typedef Result<std::string, int>						ParseBodyResult;
 ParseRequestLineResult	parseHTTPRequestLine(std::string &httpRequest);
 ParseHeaderResult		parseHTTPHeaders(std::string &httpRequest);
 ParseBodyResult			parseHTTPBody(std::string &httpRequest, std::map<std::string, std::string> &header);
+ParseResult				parseHTTPRequest(std::string &httpRequest);
 
 #endif

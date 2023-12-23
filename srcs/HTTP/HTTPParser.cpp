@@ -143,3 +143,21 @@ ParseBodyResult	parseHTTPBody(std::string &httpRequest, std::map<std::string, st
 
 	return (ParseBodyResult::Ok(httpRequest));
 }
+
+ParseResult	parseHTTPRequest(std::string &httpRequest)
+{
+	ParseRequestLineResult	result1 = parseHTTPRequestLine(httpRequest);
+	if (!result1.ok())
+		return (ParseResult::Err(result1.unwrapErr()));
+	ParseHeaderResult		result2 = parseHTTPHeaders(httpRequest);
+	if (!result2.ok())
+		return (ParseResult::Err(result2.unwrapErr()));
+	std::map<std::string, std::string>	header = result2.unwrap();
+	ParseBodyResult			result3 = parseHTTPBody(httpRequest, header);
+	if (!result3.ok())
+		return (ParseResult::Err(result3.unwrapErr()));
+
+	RequestLine requestLine = result1.unwrap();
+	ParsedRequest result(requestLine.method, requestLine.uri, requestLine.version, result2.unwrap(), result3.unwrap());
+	return (ParseResult::Ok(result));
+}
