@@ -3,10 +3,7 @@
 bool	isLineTooLong(const std::string &line)
 {
 	if (line.length() > MAX_LEN)
-	{
-		error_code = HTTP_STATUS_REQUEST_URI_TOO_LONG; // 414
 		return (true);
-	}
 	return (false);
 }
 
@@ -49,6 +46,7 @@ bool	checkVersion(void)
 ParseResult	parseHTTPRequestLine(std::string &httpRequest)
 {
 	std::string	request_line;
+	std::string	method, uri, version;
 
 	std::cout << "====parseRequestLine====" << std::endl; // debug
 
@@ -57,21 +55,15 @@ ParseResult	parseHTTPRequestLine(std::string &httpRequest)
 
 	// 有効なリクエストラインがない場合
 	if (request_line.empty())
-	{
-		error_code = HTTP_STATUS_BAD_REQUEST; // 400
-		return (FAILURE);
-	}
+		return (ParseResult::Err(HTTP_STATUS_BAD_REQUEST)); // 400
 	if (isLineTooLong(request_line) == true)
-		return (FAILURE);
+		return (ParsedResult::Err(HTTP_STATUS_REQUEST_URI_TOO_LONG)); // 414
 
 	std::cout << "request_line: " << request_line << std::endl; // debug
 
 	std::istringstream	line(request_line);
 	if (!(line >> method >> uri >> version) || !line.eof()) // メソッドとターゲット、バージョンに分けて格納する
-	{
-		error_code = HTTP_STATUS_BAD_REQUEST; // 400
-		return (FAILURE);
-	}
+		return (ParseResult::Err(HTTP_STATUS_BAD_REQUEST)); // 400
 
 	/* エラーチェック */
 	if (checkMethod() == false || checkTarget() == false || checkVersion() == false)
