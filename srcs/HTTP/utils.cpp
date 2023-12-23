@@ -25,3 +25,9 @@ std::string	&trim(std::string &str)
 		str.erase(str.length() - 1, 1);
 	return (str);
 }
+
+std::string	toLower(std::string str)
+{
+	std::transform(&str[0], &str[0] + str.size(), &str[0], ::tolower);
+	return (str);
+}

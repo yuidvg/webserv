@@ -7,5 +7,6 @@
 
 bool		customGetLine(std::string &data, std::string &line);
 std::string	&trim(std::string &str);
+std::string	toLower(std::string str);
 
 #endif

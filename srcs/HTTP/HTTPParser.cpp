@@ -99,8 +99,8 @@ ParseHeaderResult	parseHTTPHeaders(std::string &httpRequest)
 		if (key.empty() || std::isspace(*(key.end() - 1)) || value.empty())
 			return (ParseHeaderResult::Err(HTTP_STATUS_BAD_REQUEST)); // 400
 
-		header[key] = value;
-		std::cout << "[key]: " << key << ", [value]: " << header[key] << std::endl; // debug
+		header[toLower(key)] = value;
+		std::cout << "[key]: " << key << ", [value]: " << header[toLower(key)] << std::endl; // debug
 	}
 	if (!line.empty() || header.empty())
 		return (ParseHeaderResult::Err(HTTP_STATUS_BAD_REQUEST)); // 400
@@ -118,10 +118,17 @@ ParseBodyResult	parseHTTPBody(std::string &httpRequest, std::map<std::string, st
 	else
 		std::cout << "httpRequest: " << httpRequest << std::endl; // debug
 
-	if ((header["Content-Length"].empty() || header["Transfer-Encoding"].empty()) && !httpRequest.empty()) // headerのキーは大文字小文字を区別しない
-		return (ParseBodyResult::Err(HTTP_STATUS_BAD_REQUEST)); // 400
+	if (!httpRequest.empty())
+	{
+		bool	has_content_length = header.find(toLower("Content-Length")) != header.end();
+		bool	has_transfer_encoding = header.find(toLower("Transfer-Encoding")) != header.end();
+		if (has_content_length && has_transfer_encoding)
+			return (ParseBodyResult::Err(HTTP_STATUS_BAD_REQUEST)); // 400
+		if (!has_content_length && !has_transfer_encoding)
+			return (ParseBodyResult::Err(HTTP_STATUS_BAD_REQUEST)); // 400
+	}
 
-	if (!header["Content-Length"].empty() && (stoi(header["Content-Length"]) > MAX_LEN)) // 数字が入ってるか確認すべき
+	if (!header[toLower("Content-Length")].empty() && (stoi(header[toLower("Content-Length")]) > MAX_LEN)) // 数字が入ってるか確認すべき
 		return (ParseBodyResult::Err(HTTP_STATUS_CONTENT_TOO_LARGE));
 
 	while (customGetLine(httpRequest, line))
