@@ -9,10 +9,8 @@ INCLUDES = -I includes/
 SRCS_DIR = srcs/
 OBJS_DIR = obj/
 
-# srcsディレクトリのサブディレクトリ内のすべての.cppファイル
 SRCS = $(wildcard $(SRCS_DIR)*/*.cpp $(SRCS_DIR)*.cpp)
 CLIENT_SRCS = client.cpp
-# オブジェクトファイルをobj/ディレクトリに格納
 OBJS = $(patsubst $(SRCS_DIR)%,$(OBJS_DIR)%,$(SRCS:.cpp=.o))
 CLIENT_OBJS = $(CLIENT_SRCS:.cpp=.o)
 
