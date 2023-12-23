@@ -25,6 +25,9 @@ struct ParsedRequest
 	const std::string							version;
 	const std::map<std::string, std::string>	header;
 	const std::string							body;
+
+	ParsedRequest(const std::string &m, const std::string &u, const std::string &v, const std::map<std::string, std::string> &h, const std::string &b) 
+			: method(m), uri(u), version(v), header(h), body(b) {}
 };
 
 typedef Result<ParsedRequest, int> ParseResult;

@@ -7,12 +7,12 @@ bool	isLineTooLong(const std::string &line)
 	return (false);
 }
 
-bool	checkMethod(void)
+bool	checkMethod(std::string method, int &error_code)
 {
 	std::string	allowed_methods[] = {"GET", "POST", "DELETE"}; // 本来はconfigから取得する？
 	for (int i = 0; i < 3; i++)
 	{
-		if (_method == allowed_methods[i])
+		if (method == allowed_methods[i])
 			break ;
 		if (i == 2)
 		{
@@ -23,9 +23,9 @@ bool	checkMethod(void)
 	return (true);
 }
 
-bool	checkTarget(void)
+bool	checkTarget(std::string uri, int &error_code)
 {
-	if (_url.find(':') != std::string::npos && _url.find('*') != std::string::npos) // CONNECT, OPTIONSは非対応
+	if (uri.find(':') != std::string::npos && uri.find('*') != std::string::npos) // CONNECT, OPTIONSは非対応
 	{
 		error_code = HTTP_STATUS_BAD_REQUEST; // 400
 		return (false);
@@ -33,9 +33,9 @@ bool	checkTarget(void)
 	return (true);
 }
 
-bool	checkVersion(void)
+bool	checkVersion(std::string version, int &error_code)
 {
-	if (_version != "HTTP/1.1")
+	if (version != "HTTP/1.1")
 	{
 		error_code = 505;
 		return (false);
@@ -45,8 +45,8 @@ bool	checkVersion(void)
 
 ParseResult	parseHTTPRequestLine(std::string &httpRequest)
 {
-	std::string	request_line;
-	std::string	method, uri, version;
+	std::string		request_line;
+	std::string		method, uri, version;
 
 	std::cout << "====parseRequestLine====" << std::endl; // debug
 
@@ -57,7 +57,7 @@ ParseResult	parseHTTPRequestLine(std::string &httpRequest)
 	if (request_line.empty())
 		return (ParseResult::Err(HTTP_STATUS_BAD_REQUEST)); // 400
 	if (isLineTooLong(request_line) == true)
-		return (ParsedResult::Err(HTTP_STATUS_REQUEST_URI_TOO_LONG)); // 414
+		return (ParseResult::Err(HTTP_STATUS_REQUEST_URI_TOO_LONG)); // 414
 
 	std::cout << "request_line: " << request_line << std::endl; // debug
 
@@ -66,10 +66,13 @@ ParseResult	parseHTTPRequestLine(std::string &httpRequest)
 		return (ParseResult::Err(HTTP_STATUS_BAD_REQUEST)); // 400
 
 	/* エラーチェック */
-	if (checkMethod() == false || checkTarget() == false || checkVersion() == false)
-		return (FAILURE);
+	int	error_code = 200;
+	if (checkMethod(method, error_code) == false || checkTarget(uri, error_code) == false || checkVersion(version, error_code) == false)
+		return (ParseResult::Err(error_code));
 
-	return (SUCCESS);
+	ParsedRequest	parsed_data(method, uri, version, std::map<std::string, std::string>(), "");
+
+	return (ParseResult::Ok(parsed_data));
 }
 
 // ParseResult	parseHTTPHeader(std::string &httpRequest)
