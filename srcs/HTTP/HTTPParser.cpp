@@ -126,7 +126,7 @@ ParseBodyResult	parseHTTPBody(std::string &httpRequest, std::map<std::string, st
 	{
 		if (line.empty())
 			break ;
-		if (isLineTooLong(line) == true)
+		if (!header[toLower("Content-Length")].empty() && (httpRequest.length() != header[toLower("Content-Length")].length()))
 			return (ParseBodyResult::Err(HTTP_STATUS_REQUEST_URI_TOO_LONG));
 		if (std::isspace(line[0]))
 			return (ParseBodyResult::Err(HTTP_STATUS_BAD_REQUEST));
