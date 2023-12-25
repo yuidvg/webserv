@@ -83,6 +83,15 @@ private:
 	T PullWord(std::istringstream &iss);
 	void ParseServer(std::ifstream &config_file, Server &server);
 	void ParseLocation(std::ifstream &config_file, Location &location);
+	// Directive
+	// Server Location
+	void HandleErrorPageDirective(std::istringstream &iss, std::map<int, std::string> &error_page);
+	// Location
+	void HandleAllowMethodDirective(std::istringstream &iss, std::vector<std::string> &allow_method);
+	void HandleRedirectDirective(std::istringstream &iss, std::map<int, std::string> &redirect);
+	// Server
+	void HandleLocationDirective(std::istringstream &iss, std::ifstream &config_file, Server &server);
+
 	void ParseConfig(const char *config_path);
 	WebServer webserver;
 

@@ -117,14 +117,58 @@ T Config::PullWord(std::istringstream &iss)
 	return word;
 }
 
+void Config::HandleErrorPageDirective(std::istringstream &iss, std::map<int, std::string> &error_page)
+{
+	int error_code; // ステータスコードを取得
+	if (!(iss >> error_code))
+		throw(std::runtime_error("Config: returnの引数が不正です"));
+	std::string error_page_path;
+	if (!(iss >> error_page_path))
+		throw(std::runtime_error("Config: returnの引数が不正です"));
+	error_page[error_code] = error_page_path;
+
+	std::string tmp_str;
+	if (iss >> tmp_str)
+		throw(std::runtime_error("Config: returnの引数が多いです"));
+}
+
+void Config::HandleAllowMethodDirective(std::istringstream &iss, std::vector<std::string> &allow_method)
+{
+	// 許可されるHTTPメソッドをvectorに追加
+	std::string method;
+	int i = 0;
+	while (iss >> method)
+	{
+		if (method != "GET" && method != "POST" && method != "DELETE")
+			throw(std::runtime_error("Config: 許可されないHTTPメソッドが指定されています"));
+		allow_method.push_back(method);
+		i++;
+	}
+	if (i > 3)
+		throw(std::runtime_error("Config: 許可されるHTTPメソッドが多すぎます"));
+}
+
+void Config::HandleRedirectDirective(std::istringstream &iss, std::map<int, std::string> &redirect)
+{
+	int status_code; // ステータスコードを取得
+	if (!(iss >> status_code))
+		throw(std::runtime_error("Config: returnの引数が不正です"));
+	std::string redirect_url;
+	if (!(iss >> redirect_url))
+		throw(std::runtime_error("Config: returnの引数が不正です"));
+	std::string tmp_str;
+	if (iss >> tmp_str)
+		throw(std::runtime_error("Config: returnの引数が多いです"));
+	redirect[status_code] = redirect_url; // マップに追加
+}
+
 // ロケーションブロックの設定を解析
 void Config::ParseLocation(std::ifstream &config_file, Location &location)
 {
-	std::string tmp_line;
-	while (std::getline(config_file, tmp_line))
+	std::string line;
+	while (std::getline(config_file, line))
 	{
-		std::istringstream tmp_iss(tmp_line);
-		std::string line;
+		std::istringstream tmp_iss(line);
 		std::getline(tmp_iss, line, ';');
 		std::istringstream iss(line);
 		std::string key;
@@ -151,32 +195,11 @@ void Config::ParseLocation(std::ifstream &config_file, Location &location)
 			}
 			else if (key == "error_page")
 			{
-				int error_code; // ステータスコードを取得
-				if (!(iss >> error_code))
-					throw(std::runtime_error("Config: returnの引数が不正です"));
-				std::string error_page_path;
-				if (!(iss >> error_page_path))
-					throw(std::runtime_error("Config: returnの引数が不正です"));
-				location.error_page[error_code] = error_page_path;
-
-				std::string tmp_str;
-				if (iss >> tmp_str)
-					throw(std::runtime_error("Config: returnの引数が多いです"));
+				HandleErrorPageDirective(iss, location.error_page);
 			}
 			else if (key == "allow_method")
 			{
-				// 許可されるHTTPメソッドをvectorに追加
-				std::string method;
-				int i = 0;
-				while (iss >> method)
-				{
-					if (method != "GET" && method != "POST" && method != "DELETE")
-						throw(std::runtime_error("Config: 許可されないHTTPメソッドが指定されています"));
-					location.allow_method.push_back(method);
-					i++;
-				}
-				if (i > 3)
-					throw(std::runtime_error("Config: 許可されるHTTPメソッドが多すぎます"));
+				HandleAllowMethodDirective(iss, location.allow_method);
 			}
 			else if (key == "cgi_path")
 			{
@@ -188,20 +211,11 @@ void Config::ParseLocation(std::ifstream &config_file, Location &location)
 			}
 			else if (key == "return")
 			{
-				int status_code; // ステータスコードを取得
-				if (!(iss >> status_code))
-					throw(std::runtime_error("Config: returnの引数が不正です"));
-				std::string redirect_url;
-				if (!(iss >> redirect_url))
-					throw(std::runtime_error("Config: returnの引数が不正です"));
-				std::string tmp_str;
-				if (iss >> tmp_str)
-					throw(std::runtime_error("Config: returnの引数が多いです"));
-				location.redirect[status_code] = redirect_url; // マップに追加
+				HandleRedirectDirective(iss, location.redirect);
 			}
 			else if (key == "}")
 			{
-				break; // locationブロックの終了
+				break;
 			}
 			else if (key.empty() || key == "\t" || key == "\n")
 			{
@@ -209,11 +223,6 @@ void Config::ParseLocation(std::ifstream &config_file, Location &location)
 			}
 			else
 			{
-				std::string next_line;
-				std::getline(config_file, next_line);
-				std::cout << RED << "次の行: " << next_line << NORMAL << std::endl;
-				std::getline(config_file, next_line);
-				std::cout << RED << "次の行: " << next_line << NORMAL << std::endl;
 				throw std::runtime_error(("不正なディレクティブ"));
 			}
 		}
@@ -226,14 +235,31 @@ void Config::ParseLocation(std::ifstream &config_file, Location &location)
 	}
 }
 
+void Config::HandleLocationDirective(std::istringstream &iss, std::ifstream &config_file, Server &server)
+{
+	Location location;
+	location.Initialize();
+	std::string tmp_str;
+	if (!(iss >> location.path))
+		throw(std::runtime_error("location.pathが指定されていません"));
+	if (!(iss >> tmp_str) || tmp_str != "{")
+		throw(std::runtime_error("Config: locationブロックの開始が不正です"));
+	if (iss >> tmp_str)
+		throw(std::runtime_error("Config: locationの引数が多いです"));
+	ParseLocation(config_file, location);
+	server.locations.push_back(location);
+	if (config_file.eof())
+	{
+		throw(std::runtime_error("Config: サーバーブロックが終了していない"));
+	}
+}
 // サーバーブロックの設定を解析
 void Config::ParseServer(std::ifstream &config_file, Server &server)
 {
-	std::string tmp_line;
-	while (std::getline(config_file, tmp_line))
+	std::string line;
+	while (std::getline(config_file, line))
 	{
-		std::istringstream tmp_iss(tmp_line);
-		std::string line;
+		std::istringstream tmp_iss(line);
 		std::getline(tmp_iss, line, ';');
 		std::istringstream iss(line);
 		std::string key;
@@ -241,33 +267,17 @@ void Config::ParseServer(std::ifstream &config_file, Server &server)
 		try
 		{
 			// 各ディレクティブに対する処理を記述
-			if (key == "server_name")
+			if (key == "location")
+			{
+				HandleLocationDirective(iss, config_file, server);
+			}
+			else if (key == "server_name")
 			{
 				server.server_name = PullWord<std::string>(iss);
-				// if (iss >> key)
-				// 	throw(std::runtime_error("Config: server_nameの引数が多いです"));
 			}
 			else if (key == "listen")
 			{
 				server.port = PullWord<int>(iss);
-			}
-			else if (key == "location")
-			{
-				Location location;
-				location.Initialize();
-				std::string tmp_str;
-				if (!(iss >> location.path))
-					throw(std::runtime_error("location.pathが指定されていません"));
-				if (!(iss >> tmp_str) || tmp_str != "{")
-					throw(std::runtime_error("Config: locationブロックの開始が不正です"));
-				if (iss >> tmp_str)
-					throw(std::runtime_error("Config: locationの引数が多いです"));
-				ParseLocation(config_file, location);
-				server.locations.push_back(location);
-				if (config_file.eof())
-				{
-					throw(std::runtime_error("Config: サーバーブロックが終了していない"));
-				}
 			}
 			else if (key == "root")
 			{
@@ -275,16 +285,7 @@ void Config::ParseServer(std::ifstream &config_file, Server &server)
 			}
 			else if (key == "error_page")
 			{
-				int error_code;
-				if (!(iss >> error_code))
-					throw(std::runtime_error("Config: error_pageの引数が不正です"));
-				std::string error_page_path;
-				if (!(iss >> error_page_path))
-					throw(std::runtime_error("Config: error_pageの引数が不正です"));
-				server.error_page[error_code] = error_page_path;
-				std::string tmp_str;
-				if (iss >> tmp_str)
-					throw(std::runtime_error("Config: returnの引数が多いです"));
+				HandleErrorPageDirective(iss, server.error_page);
 			}
 			else if (key == "client_max_body_size")
 			{
@@ -313,11 +314,6 @@ void Config::ParseServer(std::ifstream &config_file, Server &server)
 			}
 			else
 			{
-				std::string next_line;
-				std::getline(config_file, next_line);
-				std::cout << RED << "次の行: " << next_line << std::endl;
-				std::getline(config_file, next_line);
-				std::cout << RED << "次の行: " << next_line << std::endl;
 				throw std::runtime_error(("Config: 不正なディレクティブ"));
 			}
 		}
