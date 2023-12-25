@@ -1,6 +1,6 @@
 #include "parse_config.hpp"
 
-void Config::PrintLocation(const Location &location)
+void Config::PrintLocation(const Location &location) const
 {
 	std::cout << "\x1b[33m";
 	std::cout << "Location Path: " << location.path << std::endl;
@@ -43,7 +43,7 @@ void Config::PrintLocation(const Location &location)
 	std::cout << "\x1b[0m";
 }
 
-void Config::PrintServer(const Server &server)
+void Config::PrintServer(const Server &server) const
 {
 	std::cout << "\x1b[32m";
 	std::cout << "Server Name: " << server.server_name << std::endl;
@@ -76,6 +76,17 @@ void Config::PrintServer(const Server &server)
 	std::cout << "\x1b[0m";
 }
 
+void Config::DebugPrint(void) const
+{
+	std::cout << "server size = " << webserver.servers.size() << std::endl;
+	// debug
+	for (size_t i = 0; i < webserver.servers.size(); ++i)
+	{
+		std::cout << "Server #" << (i + 1) << std::endl;
+		PrintServer(webserver.servers[i]);
+	}
+}
+
 // Configクラスのコンストラクタ
 Config::Config(const char *config_path)
 {
@@ -85,32 +96,6 @@ Config::Config(const char *config_path)
 Config::~Config()
 {
 	std::cout << "delete config object" << std::endl;
-}
-
-void Config::InitializeServer(Server &server)
-{
-	server.server_name = "";
-	server.port = 80;
-	server.root = "";
-	server.error_page.clear();
-	server.client_max_body_size = 1048576; // 1MB
-	server.autoindex = false;
-	server.index = "index.html";
-	server.locations.clear();
-}
-
-void Config::InitializeLocation(Location &location)
-{
-	location.path = "";
-	location.root = "";
-	location.autoindex = false;
-	location.index = "index.html";
-	location.client_max_body_size = 0;
-	location.error_page.clear();
-	location.allow_method.clear();
-	location.cgi_path = "";
-	location.upload_path = "";
-	location.redirect.clear();
 }
 
 // 一般的なテンプレート関数
@@ -269,7 +254,7 @@ void Config::ParseServer(std::ifstream &config_file, Server &server)
 			else if (key == "location")
 			{
 				Location location;
-				InitializeLocation(location);
+				location.Initialize();
 				std::string tmp_str;
 				if (!(iss >> location.path))
 					throw(std::runtime_error("location.pathが指定されていません"));
@@ -365,7 +350,7 @@ void Config::ParseConfig(const char *config_path)
 		if (key == "server")
 		{
 			Server server;
-			InitializeServer(server);
+			server.InitializeServer();
 			std::string tmp_str;
 			if (!(iss >> tmp_str) || tmp_str != "{")
 				throw(std::runtime_error("Config: serverブロックの開始が不正です"));
@@ -389,13 +374,7 @@ int main(int argc, char **argv)
 	try
 	{
 		Config config(config_path);
-		std::cout << "server size = " << config.webserver.servers.size() << std::endl;
-		// debug
-		for (size_t i = 0; i < config.webserver.servers.size(); ++i)
-		{
-			std::cout << "Server #" << (i + 1) << std::endl;
-			config.PrintServer(config.webserver.servers[i]);
-		}
+		config.DebugPrint();
 	}
 	catch (const std::runtime_error &e)
 	{

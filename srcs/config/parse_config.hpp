@@ -21,13 +21,27 @@ struct Location
 	std::string path;					   // locationで指定されたパス
 	std::string root;					   // ルートディレクトリ
 	bool autoindex;						   // ディレクトリリスティングの有効/無効
-	std::string index;		   // デフォルトファイル名
+	std::string index;					   // デフォルトファイル名
 	size_t client_max_body_size;		   // リクエストボディの最大サイズ
 	std::map<int, std::string> error_page; // エラーページの設定
 	std::vector<std::string> allow_method; // 許可されるHTTPメソッド（GET, POST, DELETE）
 	std::string cgi_path;				   // CGIスクリプトのパス
 	std::string upload_path;			   // アップロードパス
-	std::map<int, std::string> redirect;				   // リダイレクト先のURL
+	std::map<int, std::string> redirect;   // リダイレクト先のURL
+	// 初期化メソッド
+	void Initialize()
+	{
+		path = "";
+		root = "";
+		autoindex = false;
+		index = "index.html";
+		client_max_body_size = 0;
+		error_page.clear();
+		allow_method.clear();
+		cgi_path = "";
+		upload_path = "";
+		redirect.clear();
+	}
 };
 
 // サーバーコンテキストの設定
@@ -40,7 +54,19 @@ struct Server
 	std::map<int, std::string> error_page; // エラーページの設定
 	size_t client_max_body_size;		   // サーバー全体のリクエストボディ最大サイズ
 	bool autoindex;						   // ディレクトリリスティングの有効/無効
-	std::string index;		   // デフォルトファイル名
+	std::string index;					   // デフォルトファイル名
+	// 初期化メソッド
+	void InitializeServer()
+	{
+		server_name = "";
+		port = 80;
+		root = "";
+		error_page.clear();
+		client_max_body_size = 1048576; // 1MB
+		autoindex = false;
+		index = "index.html";
+		locations.clear();
+	}
 };
 
 // 複数のサーバーを管理する
@@ -54,19 +80,18 @@ class Config
 private:
 	Config();
 	template <typename T>
-	T PullWord(std::istringstream& iss);
-	void ParseServer(std::ifstream& config_file, Server& server);
-	void ParseLocation(std::ifstream& config_file, Location& location);
-	void ParseConfig(const char* config_path);
-	void InitializeServer(Server& server);
-	void InitializeLocation(Location& location);
+	T PullWord(std::istringstream &iss);
+	void ParseServer(std::ifstream &config_file, Server &server);
+	void ParseLocation(std::ifstream &config_file, Location &location);
+	void ParseConfig(const char *config_path);
+	WebServer webserver;
 
 public:
-	Config(const char* config_path);
+	Config(const char *config_path);
 	~Config();
-	void PrintLocation(const Location& location);
-	void PrintServer(const Server& server);
-	WebServer webserver;
+	void DebugPrint(void) const;
+	void PrintLocation(const Location &location) const;
+	void PrintServer(const Server &server) const;
 };
 
 #endif
