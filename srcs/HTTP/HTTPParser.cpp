@@ -100,8 +100,41 @@ ParseHeaderResult	parseHTTPHeaders(std::string &httpRequest)
 	}
 	if (!line.empty() || header.empty())
 		return (ParseHeaderResult::Err(HTTP_STATUS_BAD_REQUEST));
-	
+
 	return (ParseHeaderResult::Ok(header));
+}
+
+ParseBodyResult	parseTransferEncoding(std::string &httpRequest, std::map<std::string, std::string> &header)
+{
+	std::cout << "====parseTransferEncoding====" << std::endl; // debug
+	std::string		line;
+
+	if (header["transfer-encoding"] != "chunked")
+		return (ParseBodyResult::Err(HTTP_STATUS_NOT_IMPLEMENTED)); // 501
+
+	std::string		body;
+	while (customGetLine(httpRequest, line))
+	{
+		if (line.empty())
+			break ;
+		if (isLineTooLong(line) == true)
+			return (ParseBodyResult::Err(HTTP_STATUS_REQUEST_URI_TOO_LONG));
+
+		std::istringstream	chunk_size_line(line);
+		int	chunk_size;
+		if (!(chunk_size_line >> std::hex >> chunk_size) || !chunk_size_line.eof())
+			return (ParseBodyResult::Err(HTTP_STATUS_BAD_REQUEST));
+
+		std::string	chunk;
+		if (!customGetLine(httpRequest, chunk) || chunk.length() != static_cast<size_t>(chunk_size))
+			return (ParseBodyResult::Err(HTTP_STATUS_BAD_REQUEST));
+
+		body += chunk;
+	}
+	if (!line.empty())
+		return (ParseBodyResult::Err(HTTP_STATUS_BAD_REQUEST));
+
+	return (ParseBodyResult::Ok(body));
 }
 
 ParseBodyResult	parseHTTPBody(std::string &httpRequest, std::map<std::string, std::string> &header)
@@ -109,30 +142,12 @@ ParseBodyResult	parseHTTPBody(std::string &httpRequest, std::map<std::string, st
 	std::cout << "====parseBody====" << std::endl; // debug
 	std::string		line;
 
-	if (!httpRequest.empty())
-	{
-		bool	has_content_length = header.find(toLower("Content-Length")) != header.end(); // この書き方きもいから直したい
-		bool	has_transfer_encoding = header.find(toLower("Transfer-Encoding")) != header.end(); // この書き方きもいから直したい
-		if (has_content_length && has_transfer_encoding)
-			return (ParseBodyResult::Err(HTTP_STATUS_BAD_REQUEST));
-		if (!has_content_length && !has_transfer_encoding)
-			return (ParseBodyResult::Err(HTTP_STATUS_BAD_REQUEST));
-	}
-
-	if (!header[toLower("Content-Length")].empty() && (stoi(header[toLower("Content-Length")]) > MAX_LEN)) // 数字が入ってるか確認すべき
-		return (ParseBodyResult::Err(HTTP_STATUS_CONTENT_TOO_LARGE));
-
-	while (customGetLine(httpRequest, line))
-	{
-		if (line.empty())
-			break ;
-		if (!header[toLower("Content-Length")].empty() && (httpRequest.length() != header[toLower("Content-Length")].length()))
-			return (ParseBodyResult::Err(HTTP_STATUS_REQUEST_URI_TOO_LONG));
-		if (std::isspace(line[0]))
-			return (ParseBodyResult::Err(HTTP_STATUS_BAD_REQUEST));
-	}
-
-	return (ParseBodyResult::Ok(httpRequest));
+	if (header.find("transfer-encoding") != header.end())
+		return (parseTransferEncoding(httpRequest, header));
+	else if (header.find("content-length") != header.end())
+		return (parseContentLength(httpRequest, header));
+	else
+		return (ParseBodyResult::Ok(""));
 }
 
 ParseResult	parseHTTPRequest(std::string &httpRequest)
