@@ -104,13 +104,13 @@ ParseHeaderResult	parseHTTPHeaders(std::string &httpRequest)
 	return (ParseHeaderResult::Ok(header));
 }
 
-ParseBodyResult	parseTransferEncoding(std::string &httpRequest, std::map<std::string, std::string> &header)
+ParseBodyResult	parseChunkedBody(std::string &httpRequest, std::map<std::string, std::string> &header)
 {
-	std::cout << "====parseTransferEncoding====" << std::endl; // debug
+	std::cout << "====parseChunkedBody====" << std::endl; // debug
 	std::string		line;
 
 	if (header["transfer-encoding"] != "chunked")
-		return (ParseBodyResult::Err(HTTP_STATUS_NOT_IMPLEMENTED)); // 501
+		return (ParseBodyResult::Err(HTTP_STATUS_NOT_IMPLEMENTED));
 
 	std::string		body;
 	while (customGetLine(httpRequest, line))
@@ -137,15 +137,36 @@ ParseBodyResult	parseTransferEncoding(std::string &httpRequest, std::map<std::st
 	return (ParseBodyResult::Ok(body));
 }
 
+ParseBodyResult	parsePlainBody(std::string &httpRequest, std::map<std::string, std::string> &header)
+{
+	std::cout << "====parsePlainBody====" << std::endl; // debug
+	std::string		line;
+
+	if (header["content-length"].empty() || !isNumber(header["content-length"]))
+		return (ParseBodyResult::Err(HTTP_STATUS_BAD_REQUEST));
+
+	size_t	content_length = std::stoul(header["content-length"]);
+	if (content_length > MAX_LEN)
+		return (ParseBodyResult::Err(HTTP_STATUS_CONTENT_TOO_LARGE));
+
+	std::string	body;
+	if (httpRequest.length() < content_length)
+		return (ParseBodyResult::Err(HTTP_STATUS_BAD_REQUEST));
+
+	body = httpRequest.substr(0, content_length);
+	httpRequest.erase(0, content_length);
+	return (ParseBodyResult::Ok(body));
+}
+
 ParseBodyResult	parseHTTPBody(std::string &httpRequest, std::map<std::string, std::string> &header)
 {
 	std::cout << "====parseBody====" << std::endl; // debug
 	std::string		line;
 
 	if (header.find("transfer-encoding") != header.end())
-		return (parseTransferEncoding(httpRequest, header));
+		return (parseChunkedBody(httpRequest, header));
 	else if (header.find("content-length") != header.end())
-		return (parseContentLength(httpRequest, header));
+		return (parsePlainBody(httpRequest, header));
 	else
 		return (ParseBodyResult::Ok(""));
 }
