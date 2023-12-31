@@ -65,7 +65,7 @@ ParseRequestLineResult	parseHTTPRequestLine(std::string &httpRequest)
 	int	error_code = HTTP_STATUS_OK;
 	if (checkMethod(method, error_code) == false || checkTarget(uri, error_code) == false || checkVersion(version, error_code) == false)
 		return (ParseRequestLineResult::Err(error_code));
-	
+
 	RequestLine	request_line_data = {method, uri, version};
 	return (ParseRequestLineResult::Ok(request_line_data));
 }
