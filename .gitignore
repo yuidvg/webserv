@@ -4,3 +4,5 @@
 *.out
 *.DS_Store
 .sample
+*/*.txt
+*/main.cpp
