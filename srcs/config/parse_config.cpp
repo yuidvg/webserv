@@ -1,6 +1,6 @@
 #include "parse_config.hpp"
 
-void Config::PrintLocation(const Location &location) const
+void Config::PrintLocation(const Location& location) const
 {
 	std::cout << "\x1b[33m";
 	std::cout << "Location Front_Path: " << location.front_path << std::endl;
@@ -13,7 +13,7 @@ void Config::PrintLocation(const Location &location) const
 	// Error Pages
 	std::cout << "Error Pages: ";
 	for (std::map<int, std::string>::const_iterator it = location.error_page.begin();
-		 it != location.error_page.end(); ++it)
+		it != location.error_page.end(); ++it)
 	{
 		std::cout << it->first << " => " << it->second << ", ";
 	}
@@ -36,7 +36,7 @@ void Config::PrintLocation(const Location &location) const
 	// Redirect URL
 	std::cout << "Redirect URL: ";
 	for (std::map<int, std::string>::const_iterator it = location.redirect.begin();
-		 it != location.redirect.end(); ++it)
+		it != location.redirect.end(); ++it)
 	{
 		std::cout << it->first << " => " << it->second << ", ";
 	}
@@ -44,7 +44,7 @@ void Config::PrintLocation(const Location &location) const
 	std::cout << "\x1b[0m";
 }
 
-void Config::PrintServer(const Server &server) const
+void Config::PrintServer(const Server& server) const
 {
 	std::cout << "\x1b[32m";
 	std::cout << "Server Name: " << server.server_name << std::endl;
@@ -53,7 +53,7 @@ void Config::PrintServer(const Server &server) const
 	// Error Pages
 	std::cout << "Server Error Pages: ";
 	for (std::map<int, std::string>::const_iterator it = server.error_page.begin();
-		 it != server.error_page.end(); ++it)
+		it != server.error_page.end(); ++it)
 	{
 		std::cout << it->first << " => " << it->second << ", ";
 	}
@@ -89,7 +89,7 @@ void Config::DebugPrint(void) const
 }
 
 // Configクラスのコンストラクタ
-Config::Config(const char *config_path)
+Config::Config(const char* config_path)
 {
 	ParseConfig(config_path);
 }
@@ -101,7 +101,7 @@ Config::~Config()
 
 // 一般的なテンプレート関数
 template <typename T>
-T Config::PullWord(std::istringstream &iss)
+T Config::PullWord(std::istringstream& iss)
 {
 	T word;
 	if (!(iss >> word))
@@ -118,7 +118,7 @@ T Config::PullWord(std::istringstream &iss)
 	return word;
 }
 
-void Config::HandleErrorPageDirective(std::istringstream &iss, std::map<int, std::string> &error_page)
+void Config::HandleErrorPageDirective(std::istringstream& iss, std::map<int, std::string>& error_page)
 {
 	int error_code; // ステータスコードを取得
 	if (!(iss >> error_code))
@@ -133,7 +133,7 @@ void Config::HandleErrorPageDirective(std::istringstream &iss, std::map<int, std
 		throw(std::runtime_error("Config: returnの引数が多いです"));
 }
 
-void Config::HandleAllowMethodDirective(std::istringstream &iss, std::vector<std::string> &allow_method)
+void Config::HandleAllowMethodDirective(std::istringstream& iss, std::vector<std::string>& allow_method)
 {
 	// 許可されるHTTPメソッドをvectorに追加
 	std::string method;
@@ -149,7 +149,7 @@ void Config::HandleAllowMethodDirective(std::istringstream &iss, std::vector<std
 		throw(std::runtime_error("Config: 許可されるHTTPメソッドが多すぎます"));
 }
 
-void Config::HandleRedirectDirective(std::istringstream &iss, std::map<int, std::string> &redirect)
+void Config::HandleRedirectDirective(std::istringstream& iss, std::map<int, std::string>& redirect)
 {
 	int status_code; // ステータスコードを取得
 	if (!(iss >> status_code))
@@ -164,7 +164,7 @@ void Config::HandleRedirectDirective(std::istringstream &iss, std::map<int, std:
 }
 
 // ロケーションブロックの設定を解析
-void Config::ParseLocation(std::ifstream &config_file, Location &location)
+void Config::ParseLocation(std::ifstream& config_file, Location& location)
 {
 	std::string line;
 	while (std::getline(config_file, line))
@@ -227,7 +227,7 @@ void Config::ParseLocation(std::ifstream &config_file, Location &location)
 				throw std::runtime_error(("不正なディレクティブ"));
 			}
 		}
-		catch (const std::runtime_error &e)
+		catch (const std::runtime_error& e)
 		{
 			// 正常に解析が行われなkった部分を発見する
 			std::cerr << RED << e.what() << "\nkey: " << key << NORMAL << std::endl;
@@ -236,7 +236,7 @@ void Config::ParseLocation(std::ifstream &config_file, Location &location)
 	}
 }
 
-void Config::HandleLocationDirective(std::istringstream &iss, std::ifstream &config_file, Server &server, int type)
+void Config::HandleLocationDirective(std::istringstream& iss, std::ifstream& config_file, Server& server, int type)
 {
 	Location location;
 	location.Initialize();
@@ -265,7 +265,7 @@ void Config::HandleLocationDirective(std::istringstream &iss, std::ifstream &con
 	}
 }
 // サーバーブロックの設定を解析
-void Config::ParseServer(std::ifstream &config_file, Server &server)
+void Config::ParseServer(std::ifstream& config_file, Server& server)
 {
 	std::string line;
 	while (std::getline(config_file, line))
@@ -332,7 +332,7 @@ void Config::ParseServer(std::ifstream &config_file, Server &server)
 				throw std::runtime_error(("Config: 不正なディレクティブ"));
 			}
 		}
-		catch (const std::runtime_error &e)
+		catch (const std::runtime_error& e)
 		{
 			std::string next_line;
 			std::getline(config_file, next_line);
@@ -347,7 +347,7 @@ void Config::ParseServer(std::ifstream &config_file, Server &server)
 }
 
 // 設定ファイルを解析するメイン関数
-void Config::ParseConfig(const char *config_path)
+void Config::ParseConfig(const char* config_path)
 {
 	std::ifstream config_file(config_path);
 	std::string line;
@@ -378,25 +378,25 @@ void Config::ParseConfig(const char *config_path)
 	}
 }
 
-int main(int argc, char **argv)
-{
-	if (argc < 2)
-	{
-		std::cerr << "config fileを指定してください" << std::endl;
-		return 1;
-	}
+// int main(int argc, char **argv)
+// {
+// 	if (argc < 2)
+// 	{
+// 		std::cerr << "config fileを指定してください" << std::endl;
+// 		return 1;
+// 	}
 
-	const char *config_path = argv[1];
-	try
-	{
-		Config config(config_path);
-		config.DebugPrint();
-	}
-	catch (const std::runtime_error &e)
-	{
-		std::cerr << RED << e.what() << NORMAL;
-		return 1;
-	}
+// 	const char *config_path = argv[1];
+// 	try
+// 	{
+// 		Config config(config_path);
+// 		config.DebugPrint();
+// 	}
+// 	catch (const std::runtime_error &e)
+// 	{
+// 		std::cerr << RED << e.what() << NORMAL;
+// 		return 1;
+// 	}
 
-	return 0;
-}
+// 	return 0;
+// }
