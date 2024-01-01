@@ -3,7 +3,8 @@
 void Config::PrintLocation(const Location &location) const
 {
 	std::cout << "\x1b[33m";
-	std::cout << "Location Path: " << location.path << std::endl;
+	std::cout << "Location Front_Path: " << location.front_path << std::endl;
+	std::cout << "Location Back_Path: " << location.back_path << std::endl;
 	std::cout << "Root: " << location.root << std::endl;
 	std::cout << "Autoindex: " << (location.autoindex ? "on" : "off") << std::endl;
 	std::cout << "Index: " << location.index << std::endl;
@@ -27,7 +28,7 @@ void Config::PrintLocation(const Location &location) const
 	std::cout << std::endl;
 
 	// CGI Path
-	std::cout << "CGI Path: " << location.cgi_path << std::endl;
+	std::cout << "CGI Executor: " << location.cgi_executor << std::endl;
 
 	// Upload Path
 	std::cout << "Upload Path: " << location.upload_path << std::endl;
@@ -201,9 +202,9 @@ void Config::ParseLocation(std::ifstream &config_file, Location &location)
 			{
 				HandleAllowMethodDirective(iss, location.allow_method);
 			}
-			else if (key == "cgi_path")
+			else if (key == "cgi_executor")
 			{
-				location.cgi_path = PullWord<std::string>(iss);
+				location.cgi_executor = PullWord<std::string>(iss);
 			}
 			else if (key == "upload_path")
 			{
@@ -235,13 +236,23 @@ void Config::ParseLocation(std::ifstream &config_file, Location &location)
 	}
 }
 
-void Config::HandleLocationDirective(std::istringstream &iss, std::ifstream &config_file, Server &server)
+void Config::HandleLocationDirective(std::istringstream &iss, std::ifstream &config_file, Server &server, int type)
 {
 	Location location;
 	location.Initialize();
 	std::string tmp_str;
-	if (!(iss >> location.path))
-		throw(std::runtime_error("location.pathが指定されていません"));
+	if (type == FRONT)
+	{
+		if (!(iss >> location.front_path))
+			throw(std::runtime_error("location.front_pathが指定されていません"));
+	}
+	else
+	{
+		if (!(iss >> location.back_path))
+			throw(std::runtime_error("location.back_pathが指定されていません"));
+		if (location.back_path[0] != '.')
+			throw(std::runtime_error("location.back_pathは拡張子で指定してください"));
+	}
 	if (!(iss >> tmp_str) || tmp_str != "{")
 		throw(std::runtime_error("Config: locationブロックの開始が不正です"));
 	if (iss >> tmp_str)
@@ -269,7 +280,11 @@ void Config::ParseServer(std::ifstream &config_file, Server &server)
 			// 各ディレクティブに対する処理を記述
 			if (key == "location")
 			{
-				HandleLocationDirective(iss, config_file, server);
+				HandleLocationDirective(iss, config_file, server, FRONT);
+			}
+			else if (key == "location_back")
+			{
+				HandleLocationDirective(iss, config_file, server, BACK);
 			}
 			else if (key == "server_name")
 			{
@@ -319,6 +334,11 @@ void Config::ParseServer(std::ifstream &config_file, Server &server)
 		}
 		catch (const std::runtime_error &e)
 		{
+			std::string next_line;
+			std::getline(config_file, next_line);
+			std::cout << RED << "次の行: " << next_line << std::endl;
+			std::getline(config_file, next_line);
+			std::cout << RED << "次の行: " << next_line << std::endl;
 			// 正常に解析が行われなkった部分を発見する
 			std::cerr << RED << e.what() << "\nkey: " << key << NORMAL << std::endl;
 			throw(std::runtime_error(""));
