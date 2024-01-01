@@ -11,7 +11,7 @@ int server(void)
 	char buffer[80];
 	struct sockaddr_in6 addr;
 	struct timeval timeout;
-	struct fd_set master_set, working_set;
+	fd_set master_set, working_set;
 	listen_sd = socket(AF_INET6, SOCK_STREAM, 0);
 	if (listen_sd < 0)
 	{
@@ -38,7 +38,7 @@ int server(void)
 	addr.sin6_family = AF_INET6;
 	addr.sin6_addr = in6addr_any;
 	addr.sin6_port = htons(SERVER_PORT);
-	rc = bind(listen_sd, (struct sockaddr *)&addr, sizeof(addr));
+	rc = bind(listen_sd, (struct sockaddr*)&addr, sizeof(addr));
 	if (rc < 0)
 	{
 		std::cout << RED << "bind() failed" << strerror(errno) << NORMAL << std::endl;
@@ -115,6 +115,8 @@ int server(void)
 					while (TRUE)
 					{
 						rc = recv(i, buffer, sizeof(buffer), 0);
+						// TODO:受け取ったHTTPリクエストを解析する
+						//
 						std::cout << buffer << std::endl;
 						if (rc < 0)
 						{
@@ -134,6 +136,8 @@ int server(void)
 						}
 						len = rc;
 						std::cout << len << " bytes received" << std::endl;
+						//TODO:HTTPレスポンスを作成する
+						//
 						rc = send(i, "Yeah Client", 12, 0);
 						if (rc < 0)
 						{
