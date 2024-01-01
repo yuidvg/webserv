@@ -69,12 +69,6 @@ struct Server
 	}
 };
 
-// 複数のサーバーを管理する
-struct WebServer
-{
-	std::vector<Server> servers;
-};
-
 class Config
 {
 private:
@@ -93,7 +87,8 @@ private:
 	void HandleLocationDirective(std::istringstream &iss, std::ifstream &config_file, Server &server);
 
 	void ParseConfig(const char *config_path);
-	WebServer webserver;
+	// 複数のサーバーを管理する
+	std::vector<Server> servers;
 
 public:
 	Config(const char *config_path);

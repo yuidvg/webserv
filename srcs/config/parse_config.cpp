@@ -78,12 +78,12 @@ void Config::PrintServer(const Server &server) const
 
 void Config::DebugPrint(void) const
 {
-	std::cout << "server size = " << webserver.servers.size() << std::endl;
+	std::cout << "server size = " << servers.size() << std::endl;
 	// debug
-	for (size_t i = 0; i < webserver.servers.size(); ++i)
+	for (size_t i = 0; i < servers.size(); ++i)
 	{
 		std::cout << "Server #" << (i + 1) << std::endl;
-		PrintServer(webserver.servers[i]);
+		PrintServer(servers[i]);
 	}
 }
 
@@ -353,7 +353,7 @@ void Config::ParseConfig(const char *config_path)
 			if (iss >> tmp_str)
 				throw(std::runtime_error("Config: serverの引数が多いです"));
 			ParseServer(config_file, server);
-			webserver.servers.push_back(server);
+			servers.push_back(server);
 		}
 	}
 }
