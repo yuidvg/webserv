@@ -19,7 +19,8 @@ int main(int argc, char** argv)
 		Config config(config_path);
 		config.DebugPrint();
 		// 複数のsocket()を生成
-		server();
+		Server server;
+		server.Start();
 	}
 	catch (const std::runtime_error& e)
 	{

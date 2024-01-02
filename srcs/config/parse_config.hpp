@@ -50,7 +50,7 @@ struct Location
 };
 
 // サーバーコンテキストの設定
-struct Server
+struct ConfigServer
 {
 	std::string server_name;			   // サーバー名
 	size_t port;						   // ポート番号
@@ -80,7 +80,7 @@ private:
 	Config();
 	template <typename T>
 	T PullWord(std::istringstream& iss);
-	void ParseServer(std::ifstream& config_file, Server& server);
+	void ParseServer(std::ifstream& config_file, ConfigServer& server);
 	void ParseLocation(std::ifstream& config_file, Location& location);
 	// Directive
 	// Server Location
@@ -89,7 +89,7 @@ private:
 	void HandleAllowMethodDirective(std::istringstream& iss, std::vector<std::string>& allow_method);
 	void HandleRedirectDirective(std::istringstream& iss, std::map<int, std::string>& redirect);
 	// Server
-	void HandleLocationDirective(std::istringstream& iss, std::ifstream& config_file, Server& server, int type);
+	void HandleLocationDirective(std::istringstream& iss, std::ifstream& config_file, ConfigServer& server, int type);
 
 	void ParseConfig(const char* config_path);
 
@@ -98,9 +98,9 @@ public:
 	~Config();
 	void DebugPrint(void) const;
 	void PrintLocation(const Location& location) const;
-	void PrintServer(const Server& server) const;
+	void PrintServer(const ConfigServer& server) const;
 	// 複数のサーバーを管理する
-	std::vector<Server> servers;
+	std::vector<ConfigServer> servers;
 };
 
 #endif

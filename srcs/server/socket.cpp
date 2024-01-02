@@ -1,6 +1,15 @@
 #include "socket.hpp"
 
-int server(void)
+Server::Server() {
+
+}
+
+Server::~Server() {
+
+}
+
+
+int Server::Start()
 {
 	int i, len, rc;
 	int listen_sd;

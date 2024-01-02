@@ -44,7 +44,7 @@ void Config::PrintLocation(const Location& location) const
 	std::cout << "\x1b[0m";
 }
 
-void Config::PrintServer(const Server& server) const
+void Config::PrintServer(const ConfigServer& server) const
 {
 	std::cout << "\x1b[32m";
 	std::cout << "Server Name: " << server.server_name << std::endl;
@@ -236,7 +236,7 @@ void Config::ParseLocation(std::ifstream& config_file, Location& location)
 	}
 }
 
-void Config::HandleLocationDirective(std::istringstream& iss, std::ifstream& config_file, Server& server, int type)
+void Config::HandleLocationDirective(std::istringstream& iss, std::ifstream& config_file, ConfigServer& server, int type)
 {
 	Location location;
 	location.Initialize();
@@ -265,7 +265,7 @@ void Config::HandleLocationDirective(std::istringstream& iss, std::ifstream& con
 	}
 }
 // サーバーブロックの設定を解析
-void Config::ParseServer(std::ifstream& config_file, Server& server)
+void Config::ParseServer(std::ifstream& config_file, ConfigServer& server)
 {
 	std::string line;
 	while (std::getline(config_file, line))
@@ -365,7 +365,7 @@ void Config::ParseConfig(const char* config_path)
 
 		if (key == "server")
 		{
-			Server server;
+			ConfigServer server;
 			server.InitializeServer();
 			std::string tmp_str;
 			if (!(iss >> tmp_str) || tmp_str != "{")
