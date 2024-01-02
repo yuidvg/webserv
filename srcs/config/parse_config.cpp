@@ -41,7 +41,7 @@ void Config::PrintLocation(const Location& location) const
 		std::cout << it->first << " => " << it->second << ", ";
 	}
 	std::cout << std::endl;
-	std::cout << "\x1b[0m";
+	std::cout << NORMAL;
 }
 
 void Config::PrintServer(const ConfigServer& server) const
