@@ -1,23 +1,27 @@
 #include "server/socket.hpp"
 #include "config/parse_config.hpp"
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
-   if (argc < 2)
+	const char* config_path;
+	if (argc < 2)
+		config_path = "config/default.conf";
+	else if (argc == 2)
+		config_path = argv[1];
+	else
 	{
-		std::cerr << "config fileを指定してください" << std::endl;
+		std::cerr << RED << "引数が多すぎます" << NORMAL << std::endl;
 		return 1;
 	}
-    const char *config_path = argv[1];
 	try
 	{
-        // Configを読む
+		// Configを読む
 		Config config(config_path);
 		config.DebugPrint();
-        // 複数のsocket()を生成
-        server();
+		// 複数のsocket()を生成
+		server();
 	}
-	catch (const std::runtime_error &e)
+	catch (const std::runtime_error& e)
 	{
 		std::cerr << RED << e.what() << NORMAL;
 		return 1;
