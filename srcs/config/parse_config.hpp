@@ -79,28 +79,28 @@ class Config
 private:
 	Config();
 	template <typename T>
-	T PullWord(std::istringstream &iss);
-	void ParseServer(std::ifstream &config_file, Server &server);
-	void ParseLocation(std::ifstream &config_file, Location &location);
+	T PullWord(std::istringstream& iss);
+	void ParseServer(std::ifstream& config_file, Server& server);
+	void ParseLocation(std::ifstream& config_file, Location& location);
 	// Directive
 	// Server Location
-	void HandleErrorPageDirective(std::istringstream &iss, std::map<int, std::string> &error_page);
+	void HandleErrorPageDirective(std::istringstream& iss, std::map<int, std::string>& error_page);
 	// Location
-	void HandleAllowMethodDirective(std::istringstream &iss, std::vector<std::string> &allow_method);
-	void HandleRedirectDirective(std::istringstream &iss, std::map<int, std::string> &redirect);
+	void HandleAllowMethodDirective(std::istringstream& iss, std::vector<std::string>& allow_method);
+	void HandleRedirectDirective(std::istringstream& iss, std::map<int, std::string>& redirect);
 	// Server
-	void HandleLocationDirective(std::istringstream &iss, std::ifstream &config_file, Server &server, int type);
+	void HandleLocationDirective(std::istringstream& iss, std::ifstream& config_file, Server& server, int type);
 
-	void ParseConfig(const char *config_path);
-	// 複数のサーバーを管理する
-	std::vector<Server> servers;
+	void ParseConfig(const char* config_path);
 
 public:
-	Config(const char *config_path);
+	Config(const char* config_path);
 	~Config();
 	void DebugPrint(void) const;
-	void PrintLocation(const Location &location) const;
-	void PrintServer(const Server &server) const;
+	void PrintLocation(const Location& location) const;
+	void PrintServer(const Server& server) const;
+	// 複数のサーバーを管理する
+	std::vector<Server> servers;
 };
 
 #endif
