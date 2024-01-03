@@ -13,6 +13,7 @@ int main(int argc, char** argv)
 		std::cerr << RED << "引数が多すぎます" << NORMAL << std::endl;
 		return 1;
 	}
+
 	try
 	{
 		// Configを読む

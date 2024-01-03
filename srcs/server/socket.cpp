@@ -9,11 +9,60 @@ Server::~Server() {
 }
 
 
+void Server::CloseConnection(int socket) {
+	close(socket);
+	FD_CLR(socket, &master_set);
+	if (socket == max_sd) {
+		while (!FD_ISSET(max_sd, &master_set)) {
+			max_sd -= 1;
+		}
+	}
+}
+
+void Server::InitializeSocket() {
+	listen_sd = socket(PF_INET, SOCK_STREAM, 0);
+	if (listen_sd < 0) {
+		throw std::runtime_error("socket() failed");
+	}
+
+	int flags = fcntl(listen_sd, F_GETFL, 0);
+	if (flags < 0) {
+		close(listen_sd);
+		throw std::runtime_error("fcntl() failed");
+	}
+	flags |= O_NONBLOCK;
+	if (fcntl(listen_sd, F_SETFL, flags) < 0) {
+		close(listen_sd);
+		throw std::runtime_error("fcntl() failed to set non-blocking");
+	}
+
+	struct sockaddr_in addr = {};
+	addr.sin_family = PF_INET;
+	addr.sin_addr.s_addr = htonl(INADDR_ANY);  // IPv4アドレスを指定
+	addr.sin_port = htons(SERVER_PORT);  // ポート番号を設定
+
+	if (bind(listen_sd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+		close(listen_sd);
+		throw std::runtime_error("bind() failed");
+	}
+
+	if (listen(listen_sd, 5) < 0) {
+		close(listen_sd);
+		throw std::runtime_error("listen() failed");
+	}
+
+	FD_ZERO(&master_set);
+	// listen_sdをmaster_setに追加
+	FD_SET(listen_sd, &master_set);
+	max_sd = listen_sd;
+}
+
 
 void Server::AcceptNewConnection() {
 	int new_sd = accept(listen_sd, NULL, NULL);
 	if (new_sd < 0) {
 		if (errno != EWOULDBLOCK) {
+			// ノンブロッキング操作がブロックされた
 			throw std::runtime_error("accept() failed");
 		}
 	}
@@ -25,6 +74,7 @@ void Server::AcceptNewConnection() {
 	}
 }
 
+// 接続が確立されたソケットと通信する
 void Server::ProcessConnection(int socket) {
 	bool close_conn = false;
 	char buffer[80];
@@ -54,7 +104,7 @@ void Server::ProcessConnection(int socket) {
 
 		// TODO: HTTPレスポンスを作成する
 		// HTTPレスポンス作成のロジックをここに実装
-		std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 11\r\n\r\nYeah Client";
+		std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 22\r\n\r\n<h1>Hello Webserv</h1>";
 		rc = send(socket, response.c_str(), response.length(), 0);
 		if (rc < 0) {
 			std::cerr << "send() failed: " << strerror(errno) << std::endl;
@@ -69,50 +119,7 @@ void Server::ProcessConnection(int socket) {
 }
 
 
-void Server::InitializeSocket() {
-	listen_sd = socket(AF_INET6, SOCK_STREAM, 0);
-	if (listen_sd < 0) {
-		throw std::runtime_error("socket() failed");
-	}
 
-	int flags = fcntl(listen_sd, F_GETFL, 0);
-	if (flags < 0) {
-		close(listen_sd);
-		throw std::runtime_error("fcntl() failed");
-	}
-	flags |= O_NONBLOCK;
-	if (fcntl(listen_sd, F_SETFL, flags) < 0) {
-		close(listen_sd);
-		throw std::runtime_error("fcntl() failed to set non-blocking");
-	}
-
-	struct sockaddr_in6 addr = {};
-	addr.sin6_family = AF_INET6;
-	addr.sin6_addr = in6addr_any;
-	addr.sin6_port = htons(SERVER_PORT);
-	if (bind(listen_sd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
-		close(listen_sd);
-		throw std::runtime_error("bind() failed");
-	}
-	if (listen(listen_sd, 5) < 0) {
-		close(listen_sd);
-		throw std::runtime_error("listen() failed");
-	}
-
-	FD_ZERO(&master_set);
-	FD_SET(listen_sd, &master_set);
-	max_sd = listen_sd;
-}
-
-void Server::CloseConnection(int socket) {
-	close(socket);
-	FD_CLR(socket, &master_set);
-	if (socket == max_sd) {
-		while (!FD_ISSET(max_sd, &master_set)) {
-			max_sd -= 1;
-		}
-	}
-}
 
 
 int Server::Start() {
@@ -124,7 +131,7 @@ int Server::Start() {
 
 	while (end_server == FALSE) {
 		memcpy(&working_set, &master_set, sizeof(master_set));
-		timeout.tv_sec = 3 * 60; // 例: タイムアウト値を3分に設定
+		timeout.tv_sec = 3 * 60; // タイムアウト値を3分に設定
 		timeout.tv_usec = 0;
 
 		std::cout << "Waiting on select()..." << std::endl;
@@ -138,7 +145,9 @@ int Server::Start() {
 			break;
 		}
 
+		// std::cout << "max_sd" << max_sd << std::endl;
 		for (int i = 0; i <= max_sd; ++i) {
+			// working_setの集合に特定のFD(i)が存在するかどうかを判別する
 			if (FD_ISSET(i, &working_set)) {
 				if (i == listen_sd) {
 					AcceptNewConnection();

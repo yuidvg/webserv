@@ -13,7 +13,7 @@ int main()
 	}
 
 	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(12345);
+	serv_addr.sin_port = htons(SERVER_PORT);
 
 	// IPv4アドレスへの変換
 	if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0)

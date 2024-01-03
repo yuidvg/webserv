@@ -14,7 +14,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#define SERVER_PORT 12345
+#define SERVER_PORT  80
 
 #define TRUE 1
 #define FALSE 0
@@ -31,7 +31,7 @@ private:
 
     int listen_sd; // リスニングソケット
     int max_sd;    // 最大のファイルディスクリプタ
-    fd_set master_set; // ファイルディスクリプタセット
+    fd_set master_set; // ファイルディスクリプタの集合
 public:
     Server();  // コンストラクタ
     ~Server(); // デストラクタ
