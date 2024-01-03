@@ -22,13 +22,13 @@ int main(int argc, char** argv)
 	int sock = 0;
 	struct sockaddr_in serv_addr;
 	// ソケットの作成
-	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+	if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0)
 	{
 		std::cerr << "Socket creation error" << std::endl;
 		return -1;
 	}
 
-	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_family = PF_INET;
 	if (!is_digits_only(argv[1]))
 	{
 		std::cerr << "Invalid port number" << std::endl;
@@ -38,7 +38,7 @@ int main(int argc, char** argv)
 	serv_addr.sin_port = htons(port);
 
 	// IPv4アドレスへの変換
-	if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0)
+	if (inet_pton(PF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0)
 	{
 		std::cerr << "Invalid address / Address not supported" << std::endl;
 		return -1;
@@ -51,6 +51,7 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
+	std::cout << "接続は成功しました" << std::endl;
 	while (TRUE)
 	{
 		// メッセージの送信
@@ -63,7 +64,8 @@ int main(int argc, char** argv)
 		int valread = read(sock, buffer, 1024);
 		if (valread < 0)
 		{
-			std::cerr << "Read error" << std::endl;
+			// std::cerr << "Read error" << std::endl;
+			std::cerr << "Read error: " << strerror(errno) << std::endl;
 			return -1;
 		}
 		std::cout << "Server: " << buffer << std::endl;

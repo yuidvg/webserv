@@ -10,6 +10,7 @@ Connection::~Connection()
 
 void Connection::CloseConnection(int socket)
 {
+	std::cout << "close socket: " << socket << std::endl;
 	close(socket);
 	FD_CLR(socket, &master_set);
 	if (socket == max_sd)
@@ -23,6 +24,7 @@ void Connection::CloseConnection(int socket)
 
 void Connection::AllCloseConnection()
 {
+	std::cout << "すべての接続を閉じます" << std::endl;
 	for (int i = 0; i <= max_sd; ++i)
 	{
 		if (FD_ISSET(i, &master_set))
@@ -102,10 +104,16 @@ void Connection::ProcessConnection(int socket)
 
 	while (true)
 	{
+		// socketが有効かどうか確認する
+		if (std::find(listen_sockets.begin(), listen_sockets.end(), socket) == listen_sockets.end()) {
+			std::cerr << RED << "Invalid socket descriptor" << NORMAL << std::endl;
+			break;
+		}
 		rc = recv(socket, buffer, sizeof(buffer), 0);
 		if (rc < 0)
 		{
-			std::cerr << "recv() failed: " << std::endl;
+			// std::cerr << "recv() failed: " << std::endl;
+			std::cerr << "recv() failed " << strerror(errno) << std::endl;
 			close_conn = true;
 			break;
 		}
@@ -116,6 +124,7 @@ void Connection::ProcessConnection(int socket)
 			close_conn = true;
 			break;
 		}
+		std::cout << "recv = " << buffer << std::endl;
 
 		int len = rc;
 		std::cout << "Received " << len << " bytes: " << buffer << std::endl;
@@ -171,6 +180,7 @@ void Connection::Start(std::vector<Server> servers)
 		timeout.tv_usec = 0;
 
 		std::cout << "Waiting on select()..." << std::endl;
+		//TODO: 監視対象のfdの内容からfdの抜け漏れがないか確認する必要あり
 		int rc = select(max_sd + 1, &working_set, NULL, NULL, &timeout);
 		if (rc < 0) {
 			std::cerr << "select() failed: " << strerror(errno) << std::endl;
@@ -191,6 +201,7 @@ void Connection::Start(std::vector<Server> servers)
 						AllCloseConnection();
 						return;
 					}
+					std::cout << "接続は成功しました" << std::endl;
 				}
 				else {
 					ProcessConnection(i);
