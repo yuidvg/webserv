@@ -20,24 +20,28 @@
 #define RED "\x1b[31m"
 #define NORMAL "\x1b[0m"
 
-// // TODOL クラスメイ Connection
-// class Server {
-// private:
-//     void AcceptNewConnection(); // 新規接続を受け入れる
-//     void ProcessConnection(int socket); //接続が確立されたソケットと通信する
-//     int InitializeSocket(int port);
-//     void CloseConnection(int fd);  // 接続を閉じる
+typedef Result<int, std::string> SocketResult;
+typedef Result<int, std::string> InitializeResult;
+typedef Result<std::map<int, std::string>, std::string> ErrorPageMapResult;
 
-//     int listen_sd; // リスニングソケット
-//     int max_sd;    // 最大のファイルディスクリプタ
-//     fd_set master_set; // ファイルディスクリプタの集合
-// public:
-//     Server();  // コンストラクタ
-//     ~Server(); // デストラクタ
+class Connection {
+private:
+    SocketResult AcceptNewConnection(); // 新規接続を受け入れる
+    void ProcessConnection(int socket); //接続が確立されたソケットと通信する
+    InitializeResult InitializeSocket(int port);
+    void AllCloseConnection();
+    void CloseConnection(int fd);  // 接続を閉じる
 
-//     int Start(Config config); // サーバーを開始するためのメソッド
-//     int GetListenSocket() const;
-// };
+    int listen_sd; // リスニングソケット
+    int max_sd;    // 最大のファイルディスクリプタ
+    fd_set master_set; // ファイルディスクリプタの集合
+public:
+    Connection();  // コンストラクタ
+    ~Connection(); // デストラクタ
+
+    void Start(std::vector<Server> servers); // サーバーを開始するためのメソッド
+    int GetListenSocket() const;
+};
 
 #endif
 // 

@@ -1,10 +1,15 @@
 #include "srcs/server/socket.hpp"
+#include <stdio.h>
 
-int main()
+int main(int argc, char** argv)
 {
+	if (argc < 2)
+	{
+		std::cerr << "ポート番号を指定してください" << std::endl;
+		return -1;
+	}
 	int sock = 0;
 	struct sockaddr_in serv_addr;
-
 	// ソケットの作成
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
@@ -13,7 +18,8 @@ int main()
 	}
 
 	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(80);
+	int port = atoi(argv[1]);
+	serv_addr.sin_port = htons(port);
 
 	// IPv4アドレスへの変換
 	if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0)

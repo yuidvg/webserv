@@ -83,16 +83,17 @@ typedef Result<Server, std::string> ParseServerResult;
 typedef Result<std::string, std::string> ParseRoutesResult;
 typedef Result<std::map<int, std::string>, std::string> ErrorPageMapResult;
 
-template <typename T>
-Result<T, std::string> PullWord(std::istringstream &iss);
-ParseServerResult ParseServer(std::ifstream &config_file);
-ParseRoutesResult ParseLocation(std::ifstream &config_file, Location &location);
-ErrorPageMapResult HandleErrorPageDirective(std::istringstream &iss);
-void HandleLocationDirective(std::istringstream &iss, std::ifstream &config_file, Server &server, int type);
 
-ParseResult ParseConfig(const char *config_path);
+template <typename T>
+Result<T, std::string> PullWord(std::istringstream& iss);
+ParseServerResult ParseServer(std::ifstream& config_file);
+ParseRoutesResult ParseLocation(std::ifstream& config_file, Location& location);
+ErrorPageMapResult HandleErrorPageDirective(std::istringstream& iss);
+void HandleLocationDirective(std::istringstream& iss, std::ifstream& config_file, Server& server, int type);
+
+ParseResult ParseConfig(const char* config_path);
 void DebugPrint(std::vector<Server> servers);
-void PrintLocation(const Location &location);
-void PrintServer(const Server &server);
+void PrintLocation(const Location& location);
+void PrintServer(const Server& server);
 
 #endif
