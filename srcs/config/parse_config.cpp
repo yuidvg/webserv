@@ -89,9 +89,8 @@ void Config::DebugPrint(void) const
 }
 
 // Configクラスのコンストラクタ
-Config::Config(const char* config_path)
+Config::Config()
 {
-	ParseConfig(config_path);
 }
 
 Config::~Config()
@@ -334,19 +333,20 @@ void Config::ParseServer(std::ifstream& config_file, ConfigServer& server)
 		}
 		catch (const std::runtime_error& e)
 		{
+			std::cerr << RED << e.what();
+			// 正常に解析が行われなkった部分を発見する
+			std::cerr << RED << "\nkey: " << key << NORMAL << std::endl;
 			std::string next_line;
 			std::getline(config_file, next_line);
 			std::cout << RED << "次の行: " << next_line << std::endl;
 			std::getline(config_file, next_line);
 			std::cout << RED << "次の行: " << next_line << std::endl;
-			// 正常に解析が行われなkった部分を発見する
-			std::cerr << RED << e.what() << "\nkey: " << key << NORMAL << std::endl;
 			throw(std::runtime_error(""));
 		}
 	}
 }
 
-// 設定ファイルを解析するメイン関数
+// 設定ファイルを解析するメインの関数
 void Config::ParseConfig(const char* config_path)
 {
 	std::ifstream config_file(config_path);

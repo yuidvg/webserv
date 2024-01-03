@@ -19,7 +19,7 @@ void Server::CloseConnection(int socket) {
 	}
 }
 
-void Server::InitializeSocket() {
+void Server::InitializeSocket(ConfigServer config_server) {
 	listen_sd = socket(PF_INET, SOCK_STREAM, 0);
 	if (listen_sd < 0) {
 		throw std::runtime_error("socket() failed");
@@ -39,7 +39,7 @@ void Server::InitializeSocket() {
 	struct sockaddr_in addr = {};
 	addr.sin_family = PF_INET;
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);  // IPv4アドレスを指定
-	addr.sin_port = htons(SERVER_PORT);  // ポート番号を設定
+	addr.sin_port = htons(config_server.port);  // ポート番号を設定
 
 	if (bind(listen_sd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
 		close(listen_sd);
@@ -122,8 +122,8 @@ void Server::ProcessConnection(int socket) {
 
 
 
-int Server::Start() {
-	InitializeSocket();
+int Server::Start(ConfigServer config_server) {
+	InitializeSocket(config_server);
 
 	fd_set working_set;
 	struct timeval timeout;

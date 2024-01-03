@@ -13,8 +13,7 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <unistd.h>
-
-#define SERVER_PORT  80
+#include "../config/parse_config.hpp"
 
 #define TRUE 1
 #define FALSE 0
@@ -26,7 +25,7 @@ class Server {
 private:
     void AcceptNewConnection(); // 新規接続を受け入れる
     void ProcessConnection(int socket); //接続が確立されたソケットと通信する
-    void InitializeSocket();
+    void InitializeSocket(ConfigServer config_server);
     void CloseConnection(int fd);  // 接続を閉じる
 
     int listen_sd; // リスニングソケット
@@ -36,7 +35,7 @@ public:
     Server();  // コンストラクタ
     ~Server(); // デストラクタ
 
-    int Start(); // サーバーを開始するためのメソッド
+    int Start(ConfigServer config_server); // サーバーを開始するためのメソッド
 };
 
 #endif

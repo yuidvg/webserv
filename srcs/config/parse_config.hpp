@@ -77,7 +77,6 @@ struct ConfigServer
 class Config
 {
 private:
-	Config();
 	template <typename T>
 	T PullWord(std::istringstream& iss);
 	void ParseServer(std::ifstream& config_file, ConfigServer& server);
@@ -91,11 +90,10 @@ private:
 	// Server
 	void HandleLocationDirective(std::istringstream& iss, std::ifstream& config_file, ConfigServer& server, int type);
 
-	void ParseConfig(const char* config_path);
-
 public:
-	Config(const char* config_path);
+	Config();
 	~Config();
+	void ParseConfig(const char* config_path);
 	void DebugPrint(void) const;
 	void PrintLocation(const Location& location) const;
 	void PrintServer(const ConfigServer& server) const;
