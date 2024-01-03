@@ -1,5 +1,16 @@
-#include "srcs/server/socket.hpp"
+#include "srcs/server/connection.hpp"
 #include <stdio.h>
+#include <stdbool.h>
+#include <ctype.h>
+
+bool is_digits_only(const char* str) {
+	while (*str) {
+		if (!isdigit((unsigned char)*str))
+			return false;
+		str++;
+	}
+	return true;
+}
 
 int main(int argc, char** argv)
 {
@@ -18,6 +29,11 @@ int main(int argc, char** argv)
 	}
 
 	serv_addr.sin_family = AF_INET;
+	if (!is_digits_only(argv[1]))
+	{
+		std::cerr << "Invalid port number" << std::endl;
+		return -1;
+	}
 	int port = atoi(argv[1]);
 	serv_addr.sin_port = htons(port);
 
@@ -51,6 +67,7 @@ int main(int argc, char** argv)
 			return -1;
 		}
 		std::cout << "Server: " << buffer << std::endl;
+		usleep(3000000);
 	}
 	// ソケットのクローズ
 	close(sock);

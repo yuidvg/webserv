@@ -147,23 +147,23 @@ int Connection::GetListenSocket() const
 void Connection::Start(std::vector<Server> servers)
 {
 	// 各仮想サーバーのソケットを初期化し、監視セットに追加
-	// for (size_t i = 0; i < servers.size(); ++i)
-	// {
-		// InitializeResult resultSd = InitializeSocket(servers[i].port);
-	InitializeResult resultSd = InitializeSocket(servers[0].port);
-	if (!resultSd.ok())
+	for (size_t i = 0; i < servers.size(); ++i)
 	{
-		std::cerr << resultSd.unwrapErr() << std::endl;
-		return;
+		InitializeResult resultSd = InitializeSocket(servers[i].port);
+		// InitializeResult resultSd = InitializeSocket(servers[0].port);
+		if (!resultSd.ok())
+		{
+			std::cerr << resultSd.unwrapErr() << std::endl;
+			return;
+		}
+		this->listen_sd = resultSd.unwrap();
+		FD_SET(listen_sd, &master_set);
+		if (listen_sd > max_sd)
+		{
+			max_sd = listen_sd;
+		}
+		std::cout << "listen_sd = " << this->listen_sd << std::endl;
 	}
-	this->listen_sd = resultSd.unwrap();
-	std::cout << "listen_sd = " << this->listen_sd << std::endl;
-	FD_SET(listen_sd, &master_set);
-	if (listen_sd > max_sd)
-	{
-		max_sd = listen_sd;
-	}
-	// }
 
 	fd_set working_set;
 	struct timeval timeout;
@@ -172,6 +172,7 @@ void Connection::Start(std::vector<Server> servers)
 	while (end_server == FALSE)
 	{
 		memcpy(&working_set, &master_set, sizeof(master_set));
+		std::cout << "max_sd" << max_sd << std::endl;
 		timeout.tv_sec = 3 * 60; // タイムアウト値を3分に設定
 		timeout.tv_usec = 0;
 
