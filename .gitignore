@@ -5,4 +5,12 @@
 *.DS_Store
 .sample
 client
-webserve
+webserv
+*/*.txt
+*/main.cppclient
+webserv
+srcs/Makefile
+srcs/*/main.cpp
+objs
+*.txt
+client
