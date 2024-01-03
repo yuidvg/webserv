@@ -1,5 +1,8 @@
 #include "socket.hpp"
 
+
+// TODO: errnoは使用禁止なため、コードを修正する必要がある
+
 Server::Server() {
 
 }
@@ -117,6 +120,7 @@ void Server::ProcessConnection(int socket) {
 		CloseConnection(socket);
 	}
 }
+
 
 
 
