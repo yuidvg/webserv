@@ -1,5 +1,5 @@
-#ifndef SOCKET_HPP
-#define SOCKET_HPP
+#ifndef CONNECTION_HPP
+#define CONNECTION_HPP
 
 #include <arpa/inet.h>
 #include <cstring>
@@ -31,7 +31,6 @@ private:
     InitializeResult InitializeSocket(int port);
     void AllCloseConnection();
     void CloseConnection(int fd);  // 接続を閉じる
-
     int listen_sd; // リスニングソケット
     int max_sd;    // 最大のファイルディスクリプタ
     fd_set master_set; // ファイルディスクリプタの集合
@@ -44,4 +43,3 @@ public:
 };
 
 #endif
-// 

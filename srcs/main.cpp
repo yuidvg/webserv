@@ -1,4 +1,4 @@
-#include "server/socket.hpp"
+#include "server/connection.hpp"
 #include "config/parse_config.hpp"
 
 int main(int argc, char** argv)

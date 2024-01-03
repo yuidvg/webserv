@@ -1,4 +1,4 @@
-#include "socket.hpp"
+#include "connection.hpp"
 
 Connection::Connection()
 {
@@ -100,11 +100,10 @@ void Connection::ProcessConnection(int socket)
 
 	while (true)
 	{
-		// TODO: 無効なファイルディスクリプタで recv() 関数を呼び出してるのでセグフォが発生している
 		rc = recv(socket, buffer, sizeof(buffer), 0);
 		if (rc < 0)
 		{
-			std::cerr << "recv() failed: " << errno << std::endl;
+			std::cerr << "recv() failed: " << std::endl;
 			close_conn = true;
 			break;
 		}
@@ -157,11 +156,12 @@ void Connection::Start(std::vector<Server> servers)
 		std::cerr << resultSd.unwrapErr() << std::endl;
 		return;
 	}
-	int sd = resultSd.unwrap();
-	FD_SET(sd, &master_set);
-	if (sd > max_sd)
+	this->listen_sd = resultSd.unwrap();
+	std::cout << "listen_sd = " << this->listen_sd << std::endl;
+	FD_SET(listen_sd, &master_set);
+	if (listen_sd > max_sd)
 	{
-		max_sd = sd;
+		max_sd = listen_sd;
 	}
 	// }
 
@@ -188,7 +188,6 @@ void Connection::Start(std::vector<Server> servers)
 			break;
 		}
 
-		// std::cout << "max_sd" << max_sd << std::endl;
 		for (int i = 0; i <= max_sd; ++i)
 		{
 			// working_setの集合に特定のFD(i)が存在するかどうかを判別する
