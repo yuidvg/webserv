@@ -9,6 +9,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include "../Result/Result.hpp"
 
 #define RED "\x1b[31m"
 #define GREEN "\x1b[32m"
@@ -19,6 +20,7 @@
 #define BACK 1
 
 // ルートコンテキストの設定
+// TODO:routesに変更
 struct Location
 {
 	std::string front_path;				   // location(前方一致)で指定されたパス
@@ -29,11 +31,12 @@ struct Location
 	size_t client_max_body_size;		   // リクエストボディの最大サイズ
 	std::map<int, std::string> error_page; // エラーページの設定
 	std::vector<std::string> allow_method; // 許可されるHTTPメソッド（GET, POST, DELETE）
-	std::string cgi_executor;			   // CGIとして実行する拡張子
-	std::string upload_path;			   // アップロードパス
-	std::map<int, std::string> redirect;   // リダイレクト先のURL
-	// 初期化メソッド
-	void Initialize()
+	// 課題文的にVectorにすべき。
+	std::string cgi_executor;			 // CGIとして実行する拡張子
+	std::string upload_path;			 // アップロードパス
+	std::map<int, std::string> redirect; // リダイレクト先のURL
+	// コンストラクタ
+	Location()
 	{
 		front_path = "";
 		back_path = "";
@@ -50,18 +53,19 @@ struct Location
 };
 
 // サーバーコンテキストの設定
-struct ConfigServer
+struct Server
 {
-	std::string server_name;			   // サーバー名
-	size_t port;						   // ポート番号
+	std::string server_name; // name		   // サーバー名
+	size_t port;			 // ポート番号
+	// TODO:routesに変更
 	std::vector<Location> locations;	   // ロケーションの設定
 	std::string root;					   // サーバー全体のルートディレクトリ
 	std::map<int, std::string> error_page; // エラーページの設定
 	size_t client_max_body_size;		   // サーバー全体のリクエストボディ最大サイズ
 	bool autoindex;						   // ディレクトリリスティングの有効/無効
 	std::string index;					   // デフォルトファイル名
-	// 初期化メソッド
-	void InitializeServer()
+	// コンストラクタ
+	Server()
 	{
 		server_name = "";
 		port = 80;
@@ -74,31 +78,21 @@ struct ConfigServer
 	}
 };
 
-class Config
-{
-private:
-	template <typename T>
-	T PullWord(std::istringstream& iss);
-	void ParseServer(std::ifstream& config_file, ConfigServer& server);
-	void ParseLocation(std::ifstream& config_file, Location& location);
-	// Directive
-	// Server Location
-	void HandleErrorPageDirective(std::istringstream& iss, std::map<int, std::string>& error_page);
-	// Location
-	void HandleAllowMethodDirective(std::istringstream& iss, std::vector<std::string>& allow_method);
-	void HandleRedirectDirective(std::istringstream& iss, std::map<int, std::string>& redirect);
-	// Server
-	void HandleLocationDirective(std::istringstream& iss, std::ifstream& config_file, ConfigServer& server, int type);
+typedef Result<std::vector<Server>, std::string> ParseResult;
+typedef Result<Server, std::string> ParseServerResult;
+typedef Result<std::string, std::string> ParseRoutesResult;
+typedef Result<std::map<int, std::string>, std::string> ErrorPageMapResult;
 
-public:
-	Config();
-	~Config();
-	void ParseConfig(const char* config_path);
-	void DebugPrint(void) const;
-	void PrintLocation(const Location& location) const;
-	void PrintServer(const ConfigServer& server) const;
-	// 複数のサーバーを管理する
-	std::vector<ConfigServer> servers;
-};
+template <typename T>
+Result<T, std::string> PullWord(std::istringstream &iss);
+ParseServerResult ParseServer(std::ifstream &config_file);
+ParseRoutesResult ParseLocation(std::ifstream &config_file, Location &location);
+ErrorPageMapResult HandleErrorPageDirective(std::istringstream &iss);
+void HandleLocationDirective(std::istringstream &iss, std::ifstream &config_file, Server &server, int type);
+
+ParseResult ParseConfig(const char *config_path);
+void DebugPrint(std::vector<Server> servers);
+void PrintLocation(const Location &location);
+void PrintServer(const Server &server);
 
 #endif

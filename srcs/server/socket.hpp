@@ -20,22 +20,24 @@
 #define RED "\x1b[31m"
 #define NORMAL "\x1b[0m"
 
+// // TODOL クラスメイ Connection
+// class Server {
+// private:
+//     void AcceptNewConnection(); // 新規接続を受け入れる
+//     void ProcessConnection(int socket); //接続が確立されたソケットと通信する
+//     int InitializeSocket(int port);
+//     void CloseConnection(int fd);  // 接続を閉じる
 
-class Server {
-private:
-    void AcceptNewConnection(); // 新規接続を受け入れる
-    void ProcessConnection(int socket); //接続が確立されたソケットと通信する
-    void InitializeSocket(ConfigServer config_server);
-    void CloseConnection(int fd);  // 接続を閉じる
+//     int listen_sd; // リスニングソケット
+//     int max_sd;    // 最大のファイルディスクリプタ
+//     fd_set master_set; // ファイルディスクリプタの集合
+// public:
+//     Server();  // コンストラクタ
+//     ~Server(); // デストラクタ
 
-    int listen_sd; // リスニングソケット
-    int max_sd;    // 最大のファイルディスクリプタ
-    fd_set master_set; // ファイルディスクリプタの集合
-public:
-    Server();  // コンストラクタ
-    ~Server(); // デストラクタ
-
-    int Start(ConfigServer config_server); // サーバーを開始するためのメソッド
-};
+//     int Start(Config config); // サーバーを開始するためのメソッド
+//     int GetListenSocket() const;
+// };
 
 #endif
+// 
