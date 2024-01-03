@@ -68,28 +68,30 @@ InitializeResult Connection::InitializeSocket(int port)
 		return(SocketResult::Err("listen() failed"));
 	}
 
-	FD_ZERO(&master_set);
+	// FD_ZERO(&master_set);
 	return SocketResult::Ok(sd);
 }
 
-SocketResult Connection::AcceptNewConnection()
-{
-	int new_sd = accept(listen_sd, NULL, NULL);
-	if (new_sd < 0)
-	{
-		// ノンブロッキング操作がブロックされた
-		return (SocketResult::Err("accept() failed"));
-	}
-	else
-	{
-		FD_SET(new_sd, &master_set);
-		if (new_sd > max_sd)
-		{
-			max_sd = new_sd;
+SocketResult Connection::AcceptNewConnection() {
+	for (size_t i = 0; i < listen_sockets.size(); ++i) {
+		int listen_socket = listen_sockets[i];
+		int new_sd = accept(listen_socket, NULL, NULL);
+		if (new_sd < 0) {
+			if (errno != EWOULDBLOCK) {
+				// エラーメッセージを返す
+				std::string error_msg = "accept() failed on socket ";
+				return SocketResult::Err(error_msg);
+			}
+		}
+		else {
+			// 新しい接続を受け入れた
+			return SocketResult::Ok(new_sd);
 		}
 	}
+	// どのソケットでも新しい接続はない
 	return SocketResult::Ok(0);
 }
+
 
 // 接続が確立されたソケットと通信する
 void Connection::ProcessConnection(int socket)
@@ -139,73 +141,58 @@ void Connection::ProcessConnection(int socket)
 	}
 }
 
-int Connection::GetListenSocket() const
-{
-	return listen_sd;
-}
 
 void Connection::Start(std::vector<Server> servers)
 {
 	// 各仮想サーバーのソケットを初期化し、監視セットに追加
-	for (size_t i = 0; i < servers.size(); ++i)
-	{
+	FD_ZERO(&master_set);
+	for (size_t i = 0; i < servers.size(); ++i) {
 		InitializeResult resultSd = InitializeSocket(servers[i].port);
-		// InitializeResult resultSd = InitializeSocket(servers[0].port);
-		if (!resultSd.ok())
-		{
+		if (!resultSd.ok()) {
 			std::cerr << resultSd.unwrapErr() << std::endl;
 			return;
 		}
-		this->listen_sd = resultSd.unwrap();
-		FD_SET(listen_sd, &master_set);
-		if (listen_sd > max_sd)
-		{
-			max_sd = listen_sd;
+		int new_listen_sd = resultSd.unwrap();
+		listen_sockets.push_back(new_listen_sd); // 新しいリスニングソケットを追加
+		FD_SET(new_listen_sd, &master_set);
+		if (new_listen_sd > max_sd) {
+			max_sd = new_listen_sd;
 		}
-		std::cout << "listen_sd = " << this->listen_sd << std::endl;
+		std::cout << "new_listen_sd: " << new_listen_sd << std::endl;
 	}
 
 	fd_set working_set;
 	struct timeval timeout;
 	int end_server = FALSE;
 
-	while (end_server == FALSE)
-	{
+	while (end_server == FALSE) {
 		memcpy(&working_set, &master_set, sizeof(master_set));
-		std::cout << "max_sd" << max_sd << std::endl;
 		timeout.tv_sec = 3 * 60; // タイムアウト値を3分に設定
 		timeout.tv_usec = 0;
 
 		std::cout << "Waiting on select()..." << std::endl;
 		int rc = select(max_sd + 1, &working_set, NULL, NULL, &timeout);
-		if (rc < 0)
-		{
-			std::cerr << "select() failed: " << std::endl;
+		if (rc < 0) {
+			std::cerr << "select() failed: " << strerror(errno) << std::endl;
 			break;
 		}
-		else if (rc == 0)
-		{
+		else if (rc == 0) {
 			std::cout << "select() timed out. End program." << std::endl;
 			break;
 		}
 
-		for (int i = 0; i <= max_sd; ++i)
-		{
-			// working_setの集合に特定のFD(i)が存在するかどうかを判別する
-			if (FD_ISSET(i, &working_set))
-			{
-				if (i == listen_sd)
-				{
+		for (int i = 0; i <= max_sd; ++i) {
+			if (FD_ISSET(i, &working_set)) {
+				// リスニングソケットの確認
+				if (std::find(listen_sockets.begin(), listen_sockets.end(), i) != listen_sockets.end()) {
 					SocketResult socketResult = AcceptNewConnection();
-					if (!socketResult.ok())
-					{
+					if (!socketResult.ok()) {
 						std::cerr << socketResult.unwrapErr() << std::endl;
 						AllCloseConnection();
 						return;
 					}
 				}
-				else
-				{
+				else {
 					ProcessConnection(i);
 				}
 			}
@@ -213,5 +200,4 @@ void Connection::Start(std::vector<Server> servers)
 	}
 
 	AllCloseConnection();
-	return;
 }
