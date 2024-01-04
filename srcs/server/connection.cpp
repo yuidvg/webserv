@@ -10,7 +10,7 @@ Connection::~Connection()
 
 void Connection::CloseConnection(int socket)
 {
-	std::cout << "close socket: " << socket << std::endl;
+	std::cout << YELLO << "close socket: " << socket << NORMAL << std::endl;
 	close(socket);
 	FD_CLR(socket, &master_set);
 	if (socket == max_sd)
@@ -74,7 +74,7 @@ InitializeResult Connection::InitializeSocket(int port)
 	return SocketResult::Ok(sd);
 }
 
-SocketResult Connection::AcceptNewConnection(int listen_sd) {
+SocketResult Connection::AcceptNewConnection(const int listen_sd) {
 	int new_sd = -1;
 	while (true) {
 		new_sd = accept(listen_sd, NULL, NULL);
@@ -92,9 +92,8 @@ SocketResult Connection::AcceptNewConnection(int listen_sd) {
 			max_sd = new_sd;
 		}
 	}
-	// どのソケットでも新しい接続はない
+	// 新しい接続はない
 	return SocketResult::Ok(0);
-	// return SocketResult::Err("新しい接続がない");
 }
 
 
@@ -175,7 +174,6 @@ void Connection::Start(std::vector<Server> servers)
 		memcpy(&working_set, &master_set, sizeof(master_set));
 
 		std::cout << "Waiting on select()..." << std::endl;
-		//TODO: 監視対象のfdの内容からfdの抜け漏れがないか確認する必要あり
 		int rc = select(max_sd + 1, &working_set, NULL, NULL, &timeout);
 		if (rc < 0) {
 			std::cerr << "select() failed: " << strerror(errno) << std::endl;
@@ -192,8 +190,6 @@ void Connection::Start(std::vector<Server> servers)
 			{
 				// 読み取り可能なfdが見つかったら、検索を停止するため。
 				desc_ready -= 1;
-				std::cout << "max_sd: " << max_sd << std::endl;
-				std::cout << "i = " << i << std::endl;
 				// リスニングソケットの確認
 				if (std::find(listen_sockets.begin(), listen_sockets.end(), i) != listen_sockets.end()) {
 					SocketResult socketResult = AcceptNewConnection(i);

@@ -58,7 +58,7 @@ int main(int argc, char** argv)
 	while (TRUE)
 	{
 		// メッセージの送信
-		std::string message = "Hello Server " + std::string(argv[1]) + "!!!";
+		std::string message = "Hello Server " + std::string(argv[1]) + " ^_^";
 		send(sock, message.c_str(), message.length(), 0);
 		std::cout << "Message sent" << std::endl;
 
