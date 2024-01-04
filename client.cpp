@@ -51,11 +51,14 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
+
 	std::cout << "接続は成功しました" << std::endl;
+	std::cout << "接続したfd: " << sock << std::endl;
+	usleep(2000000);
 	while (TRUE)
 	{
 		// メッセージの送信
-		std::string message = "Hello Server!";
+		std::string message = "Hello Server " + std::string(argv[1]) + "!!!";
 		send(sock, message.c_str(), message.length(), 0);
 		std::cout << "Message sent" << std::endl;
 
