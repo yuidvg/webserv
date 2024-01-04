@@ -156,29 +156,21 @@ ParseServerResult ParseServer(std::ifstream& config_file)
 		iss >> key;
 		// 各ディレクティブに対する処理を記述
 		// TODO:switch文に変更
-		if (key == "location")
+		if (key == "location" || key == "location_back")
 		{
+
 			Location location;
 			std::string tmp_str;
-			if (!(iss >> location.front_path))
-				return ParseServerResult::Err("location.front_pathが指定されていません");
-			if (!(iss >> tmp_str) || tmp_str != "{")
-				return ParseServerResult::Err("Config: locationブロックの開始が不正です");
-			if (iss >> tmp_str)
-				return ParseServerResult::Err("Config: locationの引数が多いです");
-			ParseLocation(config_file, location);
-			server.locations.push_back(location);
-			if (config_file.eof())
-				return ParseServerResult::Err("Config: サーバーブロックが終了していない");
-		}
-		else if (key == "location_back")
-		{
-			Location location;
-			std::string tmp_str;
-			if (!(iss >> location.back_path))
-				return ParseServerResult::Err("location.back_pathが指定されていません");
-			if (location.back_path[0] != '.')
-				return ParseServerResult::Err("location.back_pathは拡張子で指定してください");
+			if (key == "location")
+			{
+				if (!(iss >> location.front_path))
+					return ParseServerResult::Err("location.front_pathが指定されていません");
+			}
+			else if (key == "location_back")
+			{
+				if (!(iss >> location.back_path))
+					return ParseServerResult::Err("location.back_pathが指定されていません");
+			}
 			if (!(iss >> tmp_str) || tmp_str != "{")
 				return ParseServerResult::Err("Config: locationブロックの開始が不正です");
 			if (iss >> tmp_str)
