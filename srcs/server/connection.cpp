@@ -163,13 +163,13 @@ void Connection::Start(std::vector<Server> servers)
 		if (new_listen_sd > max_sd) {
 			max_sd = new_listen_sd;
 		}
-		std::cout << "new_listen_sd: " << new_listen_sd << std::endl;
+		std::cout << "listen_socket: " << new_listen_sd << std::endl;
 	}
 
 	fd_set working_set;
 	struct timeval timeout;
 	int end_server = FALSE;
-	timeout.tv_sec = 3 * 60; // タイムアウト値を3分に設定
+	timeout.tv_sec = 1 * 60; // タイムアウト値を1分に設定
 	timeout.tv_usec = 0;
 
 	while (end_server == FALSE) {
