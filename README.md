@@ -6,10 +6,10 @@ make
 ```
 **サーバー**
 ```
-./webserv
+./webserv <config path>
 ```
 
 **クライアント**
 ```
-./cliennt <ポート番号>
+./cliennt <port number>
 ```
