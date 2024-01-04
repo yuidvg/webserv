@@ -61,6 +61,7 @@ InitializeResult Connection::InitializeSocket(int port)
 	if (bind(sd, (struct sockaddr*)&addr, sizeof(addr)) < 0)
 	{
 		close(sd);
+		std::cout << errno << std::endl;
 		return(SocketResult::Err("bind() failed"));
 	}
 
@@ -70,28 +71,30 @@ InitializeResult Connection::InitializeSocket(int port)
 		return(SocketResult::Err("listen() failed"));
 	}
 
-	// FD_ZERO(&master_set);
 	return SocketResult::Ok(sd);
 }
 
-SocketResult Connection::AcceptNewConnection() {
-	for (size_t i = 0; i < listen_sockets.size(); ++i) {
-		int listen_socket = listen_sockets[i];
-		int new_sd = accept(listen_socket, NULL, NULL);
+SocketResult Connection::AcceptNewConnection(int listen_sd) {
+	int new_sd = -1;
+	while (true) {
+		new_sd = accept(listen_sd, NULL, NULL);
 		if (new_sd < 0) {
 			if (errno != EWOULDBLOCK) {
 				// エラーメッセージを返す
 				std::string error_msg = "accept() failed on socket ";
 				return SocketResult::Err(error_msg);
 			}
+			break;
 		}
-		else {
-			// 新しい接続を受け入れた
-			return SocketResult::Ok(new_sd);
+		std::cout << GREEN << "New incoming connection " << new_sd << NORMAL << std::endl;
+		FD_SET(new_sd, &master_set);
+		if (new_sd > max_sd) {
+			max_sd = new_sd;
 		}
 	}
 	// どのソケットでも新しい接続はない
 	return SocketResult::Ok(0);
+	// return SocketResult::Err("新しい接続がない");
 }
 
 
@@ -104,11 +107,6 @@ void Connection::ProcessConnection(int socket)
 
 	while (true)
 	{
-		// socketが有効かどうか確認する
-		if (std::find(listen_sockets.begin(), listen_sockets.end(), socket) == listen_sockets.end()) {
-			std::cerr << RED << "Invalid socket descriptor" << NORMAL << std::endl;
-			break;
-		}
 		rc = recv(socket, buffer, sizeof(buffer), 0);
 		if (rc < 0)
 		{
@@ -124,10 +122,7 @@ void Connection::ProcessConnection(int socket)
 			close_conn = true;
 			break;
 		}
-		std::cout << "recv = " << buffer << std::endl;
-
-		int len = rc;
-		std::cout << "Received " << len << " bytes: " << buffer << std::endl;
+		std::cout << "Received " << rc << " bytes: " << buffer << std::endl;
 
 		// TODO: 受け取ったHTTPリクエストを解析する
 		// HTTPリクエスト解析のロジックをここに実装
@@ -173,11 +168,11 @@ void Connection::Start(std::vector<Server> servers)
 	fd_set working_set;
 	struct timeval timeout;
 	int end_server = FALSE;
+	timeout.tv_sec = 3 * 60; // タイムアウト値を3分に設定
+	timeout.tv_usec = 0;
 
 	while (end_server == FALSE) {
 		memcpy(&working_set, &master_set, sizeof(master_set));
-		timeout.tv_sec = 3 * 60; // タイムアウト値を3分に設定
-		timeout.tv_usec = 0;
 
 		std::cout << "Waiting on select()..." << std::endl;
 		//TODO: 監視対象のfdの内容からfdの抜け漏れがないか確認する必要あり
@@ -191,17 +186,22 @@ void Connection::Start(std::vector<Server> servers)
 			break;
 		}
 
-		for (int i = 0; i <= max_sd; ++i) {
-			if (FD_ISSET(i, &working_set)) {
+		int desc_ready = rc;
+		for (int i = 0; i <= max_sd && desc_ready > 0; ++i) {
+			if (FD_ISSET(i, &working_set))
+			{
+				// 読み取り可能なfdが見つかったら、検索を停止するため。
+				desc_ready -= 1;
+				std::cout << "max_sd: " << max_sd << std::endl;
+				std::cout << "i = " << i << std::endl;
 				// リスニングソケットの確認
 				if (std::find(listen_sockets.begin(), listen_sockets.end(), i) != listen_sockets.end()) {
-					SocketResult socketResult = AcceptNewConnection();
+					SocketResult socketResult = AcceptNewConnection(i);
 					if (!socketResult.ok()) {
 						std::cerr << socketResult.unwrapErr() << std::endl;
 						AllCloseConnection();
 						return;
 					}
-					std::cout << "接続は成功しました" << std::endl;
 				}
 				else {
 					ProcessConnection(i);

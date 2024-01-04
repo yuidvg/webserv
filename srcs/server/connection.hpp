@@ -27,7 +27,7 @@ typedef Result<std::map<int, std::string>, std::string> ErrorPageMapResult;
 
 class Connection {
 private:
-    SocketResult AcceptNewConnection(); // 新規接続を受け入れる
+    SocketResult AcceptNewConnection(int listen_sd); // 新規接続を受け入れる
     void ProcessConnection(int socket); //接続が確立されたソケットと通信する
     InitializeResult InitializeSocket(int port);
     void AllCloseConnection();
