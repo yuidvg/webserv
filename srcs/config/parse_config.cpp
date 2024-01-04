@@ -1,6 +1,5 @@
 #include "parse_config.hpp"
 
-// 一般的なテンプレート関数
 template <typename T>
 Result<T, std::string> PullWord(std::istringstream& iss)
 {
@@ -19,9 +18,8 @@ Result<T, std::string> PullWord(std::istringstream& iss)
 	return Result<T, std::string>::Ok(word);
 }
 
-ErrorPageMapResult HandleErrorPageDirective(std::istringstream& iss)
+ErrorPageMapResult HandleErrorPageDirective(std::istringstream& iss, std::map<int, std::string>& error_page)
 {
-	std::map<int, std::string> error_page;
 	int error_code; // ステータスコードを取得
 	std::string error_page_path;
 
@@ -33,7 +31,7 @@ ErrorPageMapResult HandleErrorPageDirective(std::istringstream& iss)
 	std::string tmp_str;
 	if (iss >> tmp_str)
 		return ErrorPageMapResult::Err("Config: error_pageの引数が多いです");
-	return ErrorPageMapResult::Ok(error_page);
+	return ErrorPageMapResult::Ok("OK");
 }
 
 // ロケーションブロックの設定を解析
@@ -78,10 +76,10 @@ ParseRoutesResult ParseLocation(std::ifstream& config_file, Location& location)
 		}
 		else if (key == "error_page")
 		{
-			ErrorPageMapResult errorPageMapResult = HandleErrorPageDirective(iss);
+
+			ErrorPageMapResult errorPageMapResult = HandleErrorPageDirective(iss, location.error_page);
 			if (!errorPageMapResult.ok())
 				return ParseRoutesResult::Err(errorPageMapResult.unwrapErr());
-			location.error_page = errorPageMapResult.unwrap();
 		}
 		else if (key == "allow_method")
 		{
@@ -124,7 +122,7 @@ ParseRoutesResult ParseLocation(std::ifstream& config_file, Location& location)
 			std::string tmp_str;
 			if (iss >> tmp_str)
 				return ParseRoutesResult::Err("Config: returnの引数が多いです");
-			location.redirect[status_code] = redirect_url; // マップに追加
+			location.redirect[status_code] = redirect_url;
 		}
 		else if (key == "}")
 		{
@@ -155,7 +153,6 @@ ParseServerResult ParseServer(std::ifstream& config_file)
 		std::string key;
 		iss >> key;
 		// 各ディレクティブに対する処理を記述
-		// TODO:switch文に変更
 		if (key == "location" || key == "location_back")
 		{
 
@@ -183,40 +180,50 @@ ParseServerResult ParseServer(std::ifstream& config_file)
 		else if (key == "server_name")
 		{
 			Result<std::string, std::string> result = PullWord<std::string>(iss);
+			if (!result.ok())
+				return ParseServerResult::Err(result.unwrapErr());
 			server.name = result.unwrap();
 		}
 		else if (key == "listen")
 		{
 			Result<int, std::string> result = PullWord<int>(iss);
+			if (!result.ok())
+				return ParseServerResult::Err(result.unwrapErr());
 			server.port = result.unwrap();
 		}
 		else if (key == "root")
 		{
 			Result<std::string, std::string> result = PullWord<std::string>(iss);
+			if (!result.ok())
+				return ParseServerResult::Err(result.unwrapErr());
 			server.root = result.unwrap();
 		}
 		else if (key == "error_page")
 		{
-			ErrorPageMapResult errorPageMapResult = HandleErrorPageDirective(iss);
+			ErrorPageMapResult errorPageMapResult = HandleErrorPageDirective(iss, server.error_page);
 			if (!errorPageMapResult.ok())
 				return ParseServerResult::Err(errorPageMapResult.unwrapErr());
-			// TODO: errror_pageを複数設定できるようにする
-			server.error_page = errorPageMapResult.unwrap();
 		}
 		else if (key == "client_max_body_size")
 		{
 			Result<size_t, std::string> result = PullWord<size_t>(iss);
+			if (!result.ok())
+				return ParseServerResult::Err(result.unwrapErr());
 			server.client_max_body_size = result.unwrap();
 		}
 		else if (key == "autoindex")
 		{
 			Result<std::string, std::string> result = PullWord<std::string>(iss);
+			if (!result.ok())
+				return ParseServerResult::Err(result.unwrapErr());
 			std::string autoindex_value = result.unwrap();
 			server.autoindex = (autoindex_value == "on");
 		}
 		else if (key == "index")
 		{
 			Result<std::string, std::string> result = PullWord<std::string>(iss);
+			if (!result.ok())
+				return ParseServerResult::Err(result.unwrapErr());
 			server.index = result.unwrap();
 		}
 		else if (key == "}")
