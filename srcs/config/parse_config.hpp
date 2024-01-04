@@ -19,8 +19,11 @@
 #define FRONT 0
 #define BACK 1
 
-// ルートコンテキストの設定
-// TODO:routesに変更
+/*
+ ディレクティブの名前はconfigファイルに準拠して実装を行っているため、
+ ルーティングの名前も同様にnginxに合わせLocationとする。
+ */
+ // ルートコンテキストの設定
 struct Location
 {
 	std::string front_path;				   // location(前方一致)で指定されたパス
@@ -31,11 +34,9 @@ struct Location
 	size_t client_max_body_size;		   // リクエストボディの最大サイズ
 	std::map<int, std::string> error_page; // エラーページの設定
 	std::vector<std::string> allow_method; // 許可されるHTTPメソッド（GET, POST, DELETE）
-	// 課題文的にVectorにすべき。
-	std::string cgi_executor;			 // CGIとして実行する拡張子
+	std::vector<std::string> cgi_executor;			 // CGIとして実行するプログラム
 	std::string upload_path;			 // アップロードパス
 	std::map<int, std::string> redirect; // リダイレクト先のURL
-	// コンストラクタ
 	Location()
 	{
 		front_path = "";
@@ -46,7 +47,7 @@ struct Location
 		client_max_body_size = 0;
 		error_page.clear();
 		allow_method.clear();
-		cgi_executor = "";
+		cgi_executor.clear();
 		upload_path = "";
 		redirect.clear();
 	}
@@ -55,19 +56,17 @@ struct Location
 // サーバーコンテキストの設定
 struct Server
 {
-	std::string server_name; // name		   // サーバー名
-	size_t port;			 // ポート番号
-	// TODO:routesに変更
+	std::string name;	   					// サーバー名
+	size_t port;							 // ポート番号
 	std::vector<Location> locations;	   // ロケーションの設定
 	std::string root;					   // サーバー全体のルートディレクトリ
 	std::map<int, std::string> error_page; // エラーページの設定
 	size_t client_max_body_size;		   // サーバー全体のリクエストボディ最大サイズ
 	bool autoindex;						   // ディレクトリリスティングの有効/無効
 	std::string index;					   // デフォルトファイル名
-	// コンストラクタ
 	Server()
 	{
-		server_name = "";
+		name = "";
 		port = 80;
 		root = "";
 		error_page.clear();

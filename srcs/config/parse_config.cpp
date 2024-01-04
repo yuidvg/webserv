@@ -1,6 +1,6 @@
 #include "parse_config.hpp"
 
-void PrintLocation(const Location &location)
+void PrintLocation(const Location& location)
 {
 	std::cout << "\x1b[33m";
 	std::cout << "Location Front_Path: " << location.front_path << std::endl;
@@ -13,7 +13,7 @@ void PrintLocation(const Location &location)
 	// Error Pages
 	std::cout << "Error Pages: ";
 	for (std::map<int, std::string>::const_iterator it = location.error_page.begin();
-		 it != location.error_page.end(); ++it)
+		it != location.error_page.end(); ++it)
 	{
 		std::cout << it->first << " => " << it->second << ", ";
 	}
@@ -28,7 +28,12 @@ void PrintLocation(const Location &location)
 	std::cout << std::endl;
 
 	// CGI Path
-	std::cout << "CGI Executor: " << location.cgi_executor << std::endl;
+	std::cout << "CGI Executor: ";
+	for (size_t i = 0; i < location.cgi_executor.size(); ++i)
+	{
+		std::cout << location.cgi_executor[i] << (i < location.cgi_executor.size() - 1 ? ", " : "");
+	}
+	std::cout << std::endl;
 
 	// Upload Path
 	std::cout << "Upload Path: " << location.upload_path << std::endl;
@@ -36,7 +41,7 @@ void PrintLocation(const Location &location)
 	// Redirect URL
 	std::cout << "Redirect URL: ";
 	for (std::map<int, std::string>::const_iterator it = location.redirect.begin();
-		 it != location.redirect.end(); ++it)
+		it != location.redirect.end(); ++it)
 	{
 		std::cout << it->first << " => " << it->second << ", ";
 	}
@@ -44,16 +49,16 @@ void PrintLocation(const Location &location)
 	std::cout << NORMAL;
 }
 
-void PrintServer(const Server &server)
+void PrintServer(const Server& server)
 {
 	std::cout << "\x1b[32m";
-	std::cout << "Server Name: " << server.server_name << std::endl;
+	std::cout << "Server Name: " << server.name << std::endl;
 	std::cout << "Port: " << server.port << std::endl;
 
 	// Error Pages
 	std::cout << "Server Error Pages: ";
 	for (std::map<int, std::string>::const_iterator it = server.error_page.begin();
-		 it != server.error_page.end(); ++it)
+		it != server.error_page.end(); ++it)
 	{
 		std::cout << it->first << " => " << it->second << ", ";
 	}
@@ -90,7 +95,7 @@ void DebugPrint(std::vector<Server> servers)
 
 // 一般的なテンプレート関数
 template <typename T>
-Result<T, std::string> PullWord(std::istringstream &iss)
+Result<T, std::string> PullWord(std::istringstream& iss)
 {
 	T word;
 	if (!(iss >> word))
@@ -107,7 +112,7 @@ Result<T, std::string> PullWord(std::istringstream &iss)
 	return Result<T, std::string>::Ok(word);
 }
 
-ErrorPageMapResult HandleErrorPageDirective(std::istringstream &iss)
+ErrorPageMapResult HandleErrorPageDirective(std::istringstream& iss)
 {
 	std::map<int, std::string> error_page;
 	int error_code; // ステータスコードを取得
@@ -125,7 +130,7 @@ ErrorPageMapResult HandleErrorPageDirective(std::istringstream &iss)
 }
 
 // ロケーションブロックの設定を解析
-ParseRoutesResult ParseLocation(std::ifstream &config_file, Location &location)
+ParseRoutesResult ParseLocation(std::ifstream& config_file, Location& location)
 {
 	std::string line;
 
@@ -188,10 +193,11 @@ ParseRoutesResult ParseLocation(std::ifstream &config_file, Location &location)
 		}
 		else if (key == "cgi_executor")
 		{
-			Result<std::string, std::string> result = PullWord<std::string>(iss);
-			if (!result.ok())
-				return ParseRoutesResult::Err(result.unwrapErr());
-			location.cgi_executor = result.unwrap();
+			std::string cgi_program;
+			while (iss >> cgi_program)
+			{
+				location.cgi_executor.push_back(cgi_program);
+			}
 		}
 		else if (key == "upload_path")
 		{
@@ -230,7 +236,7 @@ ParseRoutesResult ParseLocation(std::ifstream &config_file, Location &location)
 }
 
 // サーバーブロックの設定を解析
-ParseServerResult ParseServer(std::ifstream &config_file)
+ParseServerResult ParseServer(std::ifstream& config_file)
 {
 	std::string line;
 	Server server;
@@ -278,7 +284,7 @@ ParseServerResult ParseServer(std::ifstream &config_file)
 		else if (key == "server_name")
 		{
 			Result<std::string, std::string> result = PullWord<std::string>(iss);
-			server.server_name = result.unwrap();
+			server.name = result.unwrap();
 		}
 		else if (key == "listen")
 		{
@@ -335,7 +341,7 @@ ParseServerResult ParseServer(std::ifstream &config_file)
 }
 
 // 設定ファイルを解析するメインの関数
-ParseResult ParseConfig(const char *config_path)
+ParseResult ParseConfig(const char* config_path)
 {
 	std::ifstream config_file(config_path);
 	std::string line;
