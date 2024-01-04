@@ -1,10 +1,8 @@
 #include "../HTTP/HTTPParser.hpp"
-#include "../config/serverConfig.hpp"
+#include "matchedRoute.cpp"
 
 bool shouldUseCGI(const ParsedRequest request, ServerConfig config)
 {
-	if (request.uri.find() != std::string::npos)
-		return true;
-
+    Location location = matchedLocation(request.uri, config.locations);
+	if (location.cgi_path.empty())
 }
-

@@ -1,20 +1,22 @@
-#include "../config/serverConfig.hpp"
+#include "../config/config.hpp"
 
 unsigned int lengthOfPrefixMatch(const std::string string, const std::string pattern)
 {
-	unsigned int i = 0;
-	while (i < string.length() && i < pattern.length() && string[i] == pattern[i])
-		i++;
-	return i;
+    unsigned int i = 0;
+    if (string.find(pattern) == 0)
+        return pattern.length();
+    else
+        return 0;
 }
 
-
-RouteConfig matchedRoute(const std::string uri, const std::vector<RouteConfig> routes)
+Location matchedLocation(const std::string uri, const std::vector<Location> locations)
 {
-	for (unsigned int i = 0; i < routes.size(); i++)
-	{
-		if (uri.find(routes[i].) == 0)
-			return routes[i];
-	}
-	return RouteConfig();
+    Location matchedLocation = locations[0];
+    for (unsigned int i = 1; i < locations.size(); i++)
+    {
+        Location location = locations[i];
+        if (lengthOfPrefixMatch(uri, location.path) > lengthOfPrefixMatch(uri, matchedLocation.path))
+            matchedLocation = location;
+    }
+    return matchedLocation;
 }
