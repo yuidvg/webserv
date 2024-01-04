@@ -1,38 +1,32 @@
 #ifndef RESULT_HPP
-#define RESULT_HPP
+# define RESULT_HPP
 
-#include <string>
+# include <cstring>
+# include <stdexcept>
 
-class Error
-{
-  private:
-    bool isError;
-    std::string message;
-
-  public:
-    explicit Error(bool isError = true);
-    Error(const std::string message);
-    ~Error();
-
-    bool isError() const;
-    std::string getMessage() const;
-}
-
-template <typename T>
+// 成功したら構造体、失敗したらエラーコードを返すresultを作成する
+template <typename T, typename E>
 class Result
 {
-  private:
-    T value;
-    Error error;
+	private:
+		T		*_value;
+		E		_error;
+		bool	_is_ok;
 
-  public:
-    Result(T value);
-    Result(Error error);
-    ~Result();
+	public:
+		Result();
+		~Result();
+		// 成功を表す静的メソッド
+		static Result<T, E>	Ok(const T &value);
+		// 失敗を表す静的メソッド
+		static Result<T, E>	Err(E error);
 
-    bool isError() const;
-    T getValue() const;
-    Error getError() const;
-}
+		bool	ok() const;
+
+		T		unwrap();
+		E		unwrapErr();
+};
+
+# include "Result.tpp"
 
 #endif

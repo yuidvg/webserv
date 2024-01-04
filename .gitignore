@@ -11,3 +11,4 @@ srcs/*/main.cpp
 obj
 *.txt
 client
+*/main.cpp
