@@ -91,8 +91,5 @@ ErrorPageMapResult HandleErrorPageDirective(std::istringstream& iss);
 void HandleLocationDirective(std::istringstream& iss, std::ifstream& config_file, Server& server, int type);
 
 ParseResult ParseConfig(const char* config_path);
-void DebugPrint(std::vector<Server> servers);
-void PrintLocation(const Location& location);
-void PrintServer(const Server& server);
 
 #endif

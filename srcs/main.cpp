@@ -1,5 +1,6 @@
 #include "server/connection.hpp"
 #include "config/parse_config.hpp"
+#include "config/print_config.hpp"
 
 int main(int argc, char** argv)
 {
