@@ -40,6 +40,14 @@ InitializeResult Connection::InitializeSocket(int port)
 	if (sd < 0)
 		return(SocketResult::Err("socket() failed"));
 
+	// 同じローカルアドレスとポートを使用しているソケットがあっても、ソケットを再利用できるようにする
+	int on = 1;
+	if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) < 0)
+	{
+		close(sd);
+		return(SocketResult::Err("setsockopt() failed"));
+	}
+
 	int flags = fcntl(sd, F_GETFL, 0);
 	if (flags < 0)
 	{
@@ -104,38 +112,32 @@ void Connection::ProcessConnection(int socket)
 	char buffer[80];
 	int rc;
 
-	while (true)
+	rc = recv(socket, buffer, sizeof(buffer), 0);
+	if (rc < 0)
 	{
-		rc = recv(socket, buffer, sizeof(buffer), 0);
-		if (rc < 0)
-		{
-			// std::cerr << "recv() failed: " << std::endl;
-			std::cerr << "recv() failed " << strerror(errno) << std::endl;
-			close_conn = true;
-			break;
-		}
+		// std::cerr << "recv() failed: " << std::endl;
+		std::cerr << "recv() failed " << strerror(errno) << std::endl;
+		close_conn = true;
+	}
 
-		if (rc == 0)
-		{
-			std::cout << "Connection closed" << std::endl;
-			close_conn = true;
-			break;
-		}
-		std::cout << "Received " << rc << " bytes: " << buffer << std::endl;
+	if (rc == 0)
+	{
+		std::cout << "Connection closed" << std::endl;
+		close_conn = true;
+	}
+	std::cout << "Received " << rc << " bytes: " << buffer << std::endl;
 
-		// TODO: 受け取ったHTTPリクエストを解析する
-		// HTTPリクエスト解析のロジックをここに実装
+	// TODO: 受け取ったHTTPリクエストを解析する
+	// HTTPリクエスト解析のロジックをここに実装
 
-		// TODO: HTTPレスポンスを作成する
-		// HTTPレスポンス作成のロジックをここに実装
-		std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 22\r\n\r\n<h1>Hello Webserv</h1>";
-		rc = send(socket, response.c_str(), response.length(), 0);
-		if (rc < 0)
-		{
-			std::cerr << "send() failed: " << std::endl;
-			close_conn = true;
-			break;
-		}
+	// TODO: HTTPレスポンスを作成する
+	// HTTPレスポンス作成のロジックをここに実装
+	std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 22\r\n\r\n<h1>Hello Webserv</h1>";
+	rc = send(socket, response.c_str(), response.length(), 0);
+	if (rc < 0)
+	{
+		std::cerr << "send() failed: " << std::endl;
+		close_conn = true;
 	}
 
 	if (close_conn)
