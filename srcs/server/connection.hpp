@@ -1,6 +1,8 @@
 #ifndef CONNECTION_HPP
 #define CONNECTION_HPP
 
+#include "socket.hpp"
+#include "../config/parse_config.hpp"
 #include <arpa/inet.h>
 #include <cstring>
 #include <errno.h>
@@ -14,8 +16,6 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <algorithm>
-#include "../config/parse_config.hpp"
-#include "socket.hpp"
 
 #define TRUE 1
 #define FALSE 0
@@ -23,18 +23,21 @@
 #define YELLOW "\x1b[33m"
 #define NORMAL "\x1b[0m"
 
-typedef Result<int, std::string> SocketResult;
+typedef Result<int, std::string> ListenSocketResult;
+typedef Result<Socket, std::string> FindConnectedVirtualServerResult;
 
 class Connection
 {
 private:
     void AllCloseConnection();
     void CloseConnection(int fd); // 接続を閉じる
-    SocketResult AcceptNewConnection(int listen_sd); // 新規接続を受け入れる
-    void ProcessConnection(int socket);              // 接続が確立されたソケットと通信する
-    std::vector<int> listen_sockets;                 // リスニングソケット
-    int max_sd;                                      // 最大のファイルディスクリプタ
-    fd_set master_set;                               // ファイルディスクリプタの集合
+    FindConnectedVirtualServerResult FindConnectedVirtualServer(int sd, std::vector<Socket> &sockets);
+    ListenSocketResult AcceptNewConnection(int listen_sd);               // 新規接続を受け入れる
+    void ProcessConnection(int sd, Socket &socket, const Server &server); // 接続が確立されたソケットと通信する
+    std::vector<int> listen_sockets;                                     // リスニングソケット
+    std::vector<Socket> sockets;                                         // リスニングソケット
+    int max_sd;                                                          // 最大のファイルディスクリプタ
+    fd_set master_set;                                                   // ファイルディスクリプタの集合
 public:
     Connection();  // コンストラクタ
     ~Connection(); // デストラクタ

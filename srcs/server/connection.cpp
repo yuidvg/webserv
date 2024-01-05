@@ -8,12 +8,12 @@ Connection::~Connection()
 {
 }
 
-void Connection::CloseConnection(int socket)
+void Connection::CloseConnection(int sd)
 {
-	std::cout << YELLO << "close socket: " << socket << NORMAL << std::endl;
-	close(socket);
-	FD_CLR(socket, &master_set);
-	if (socket == max_sd)
+	std::cout << YELLO << "close sd: " << sd << NORMAL << std::endl;
+	close(sd);
+	FD_CLR(sd, &master_set);
+	if (sd == max_sd)
 	{
 		while (!FD_ISSET(max_sd, &master_set))
 		{
@@ -28,58 +28,61 @@ void Connection::AllCloseConnection()
 	{
 		if (FD_ISSET(i, &master_set))
 		{
-			std::cout << "接続を閉じています " << i << std::endl;
 			CloseConnection(i);
 		}
 	}
 	std::cout << "すべての接続を閉じた" << std::endl;
 }
 
-SocketResult Connection::AcceptNewConnection(const int listen_sd)
+ListenSocketResult Connection::AcceptNewConnection(const int listen_sd)
 {
 	int new_sd = -1;
-	while (true)
+	new_sd = accept(listen_sd, NULL, NULL);
+	if (new_sd < 0)
 	{
-		new_sd = accept(listen_sd, NULL, NULL);
-		if (new_sd < 0)
+		if (errno != EWOULDBLOCK)
 		{
-			if (errno != EWOULDBLOCK)
-			{
-				// エラーメッセージを返す
-				std::string error_msg = "accept() failed on socket ";
-				return SocketResult::Err(error_msg);
-			}
-			break;
-		}
-		std::cout << GREEN << "New incoming connection " << new_sd << NORMAL << std::endl;
-		FD_SET(new_sd, &master_set);
-		if (new_sd > max_sd)
-		{
-			max_sd = new_sd;
+			// エラーメッセージを返す
+			std::string error_msg = "accept() failed on socket ";
+			return ListenSocketResult::Err(error_msg);
 		}
 	}
-	// 新しい接続はない
-	return SocketResult::Ok(0);
+	std::cout << GREEN << "New incoming connection " << new_sd << NORMAL << std::endl;
+	FD_SET(new_sd, &master_set);
+	if (new_sd > max_sd)
+	{
+		max_sd = new_sd;
+	}
+	// 新しい接続を受け入れた
+	return ListenSocketResult::Ok(new_sd);
 }
 
 // 接続が確立されたソケットと通信する
-void Connection::ProcessConnection(int socket)
+void Connection::ProcessConnection(int sd, Socket &socket, const Server &server)
 {
-	char buffer[80] = {0}; // Initialize buffer with null
+	char buffer[500] = {0}; // Initialize buffer with null
 	int rc;
 
-	rc = recv(socket, buffer, sizeof(buffer) - 1, 0); // Leave space for null terminator
+	// Debug用
+	std::cout << GREEN;
+	std::cout << "Port = " << server.port << std::endl;
+	std::cout << "server_name = " << server.name << std::endl;
+	std::cout << NORMAL;
+
+	rc = recv(sd, buffer, sizeof(buffer) - 1, 0); // Leave space for null terminator
 	if (rc < 0)
 	{
 		std::cerr << "recv() failed " << strerror(errno) << std::endl;
-		CloseConnection(socket);
-		return ;
+		socket.deleteConnSock(sd);
+		CloseConnection(sd);
+		return;
 	}
 	else if (rc == 0)
 	{
 		std::cout << "Connection closed" << std::endl;
-		CloseConnection(socket);
-		return ;
+		socket.deleteConnSock(sd);
+		CloseConnection(sd);
+		return;
 	}
 	else
 	{
@@ -92,13 +95,31 @@ void Connection::ProcessConnection(int socket)
 	// TODO: HTTPレスポンスを作成する
 	// HTTPレスポンス作成のロジックをここに実装
 	std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 22\r\n\r\n<h1>Hello Webserv</h1>";
-	rc = send(socket, response.c_str(), response.length(), 0);
+	rc = send(sd, response.c_str(), response.length(), 0);
 	if (rc < 0)
 	{
 		std::cerr << "send() failed: " << std::endl;
-		CloseConnection(socket);
-		return ;
+		socket.deleteConnSock(sd);
+		CloseConnection(sd);
+		return;
 	}
+}
+
+FindConnectedVirtualServerResult Connection::FindConnectedVirtualServer(int sd, std::vector<Socket> &sockets)
+{
+	for (std::vector<Socket>::iterator it = sockets.begin(); it != sockets.end(); ++it)
+	{
+		std::vector<int> conn_socks = it->getConnSock();
+		for (std::vector<int>::iterator conn_it = conn_socks.begin(); conn_it != conn_socks.end(); ++conn_it)
+		{
+			if (*conn_it == sd) // sd is the fd we are looking for
+			{
+				Socket find_socket = *it;
+				return FindConnectedVirtualServerResult::Ok(find_socket);
+			}
+		}
+	}
+	return FindConnectedVirtualServerResult::Err("No connected virtual server found for the given fd");
 }
 
 void Connection::Start(std::vector<Server> servers)
@@ -107,7 +128,8 @@ void Connection::Start(std::vector<Server> servers)
 	FD_ZERO(&master_set);
 	for (size_t i = 0; i < servers.size(); ++i)
 	{
-		Socket socket(servers[i].port);
+		Socket socket(servers[i].port, i);
+		sockets.push_back(socket); // 新しいリスニングソケットを追加
 		int listen_sd = socket.getSocket();
 		listen_sockets.push_back(listen_sd); // 新しいリスニングソケットを追加
 		FD_SET(listen_sd, &master_set);
@@ -120,7 +142,7 @@ void Connection::Start(std::vector<Server> servers)
 	fd_set working_set;
 	struct timeval timeout;
 	int end_server = FALSE;
-	timeout.tv_sec = 1 * 60; // タイムアウト値を1分に設定
+	timeout.tv_sec = 10;
 	timeout.tv_usec = 0;
 
 	while (end_server == FALSE)
@@ -150,20 +172,48 @@ void Connection::Start(std::vector<Server> servers)
 				// リスニングソケットの確認
 				if (std::find(listen_sockets.begin(), listen_sockets.end(), i) != listen_sockets.end())
 				{
-					SocketResult socketResult = AcceptNewConnection(i);
+					ListenSocketResult socketResult = AcceptNewConnection(i);
 					if (!socketResult.ok())
 					{
 						std::cerr << socketResult.unwrapErr() << std::endl;
 						AllCloseConnection();
 						return;
 					}
+					for (std::vector<Socket>::iterator it = sockets.begin(); it != sockets.end(); ++it)
+					{
+						if (it->getSocket() == i)
+							it->addConnSock(socketResult.unwrap());
+					}
 				}
 				else
 				{
-					ProcessConnection(i);
+					FindConnectedVirtualServerResult result = FindConnectedVirtualServer(i, sockets);
+					if (!result.ok())
+					{
+						std::cerr << result.unwrapErr() << std::endl;
+						AllCloseConnection();
+						return;
+					}
+					Socket connectedSocket = result.unwrap();
+					ProcessConnection(i, connectedSocket, servers[connectedSocket.getServerNum()]);
 				}
 			}
 		}
+	}
+
+	// DEBUG
+	for (std::vector<Socket>::iterator it = sockets.begin(); it != sockets.end(); ++it)
+	{
+		std::vector<int> conn_socks = it->getConnSock();
+
+		std::cout << "Socket: " << it->getSocket() << ", conn_socks: ";
+
+		for (std::vector<int>::iterator it = conn_socks.begin(); it != conn_socks.end(); ++it)
+		{
+			std::cout << *it << " ";
+		}
+
+		std::cout << std::endl;
 	}
 
 	AllCloseConnection();
