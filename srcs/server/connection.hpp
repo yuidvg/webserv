@@ -23,7 +23,7 @@
 #define YELLOW "\x1b[33m"
 #define NORMAL "\x1b[0m"
 
-typedef Result<int, std::string> ListenSocketResult;
+typedef Result<int, std::string> NewSDResult;
 typedef Result<Socket, std::string> FindConnectedVirtualServerResult;
 
 class Connection
@@ -32,16 +32,18 @@ private:
     void AllCloseConnection();
     void CloseConnection(int fd); // 接続を閉じる
     FindConnectedVirtualServerResult FindConnectedVirtualServer(int sd, std::vector<Socket>& sockets);
-    ListenSocketResult AcceptNewConnection(int listen_sd);               // 新規接続を受け入れる
+    NewSDResult AcceptNewConnection(int listen_sd);               // 新規接続を受け入れる
     void ProcessConnection(int sd, Socket& socket); // 接続が確立されたソケットと通信する
     std::vector<int> listen_sockets;                                     // リスニングソケット
     std::vector<Socket> sockets;                                         // リスニングソケット
     int max_sd;                                                          // 最大のファイルディスクリプタ
     fd_set master_set;                                                   // ファイルディスクリプタの集合
+
+    std::map<int, Socket> conn_socks; // connected_sockets<sd,socket> この仮想サーバーが受け持つソケットのリスト
 public:
     Connection();  // コンストラクタ
     ~Connection(); // デストラクタ
-
+    void deleteConnSock(int sd);
     void Start(std::vector<Server> servers); // サーバーを開始するためのメソッド
 };
 

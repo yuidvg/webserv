@@ -25,16 +25,15 @@ class Socket
 private:
     InitializeResult initialize() const;
     int listen_socket;
-    std::vector<int> conn_socks; // この仮想サーバーが受け持つソケットのリスト
+    // std::vector<int> conn_socks; // connected_sockets この仮想サーバーが受け持つソケットのリスト
     Server server;
 
 public:
+    Socket();
+    ~Socket();
     Socket(Server server);
     Server getServer() const;
     int getListenSocket() const;
-    std::vector<int> getConnSock() const;
-    void addConnSock(int sock);
-    void deleteConnSock(int sock);
 };
 
 #endif

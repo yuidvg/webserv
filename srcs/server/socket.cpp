@@ -1,5 +1,13 @@
 #include "socket.hpp"
 
+Socket::Socket()
+{
+}
+
+Socket::~Socket()
+{
+}
+
 InitializeResult Socket::initialize() const
 {
     int sd = socket(PF_INET, SOCK_STREAM, 0);
@@ -57,54 +65,14 @@ Server Socket::getServer() const
     return (server);
 }
 
-std::vector<int> Socket::getConnSock() const
-{
-    return (conn_socks);
-}
-void Socket::addConnSock(int sock)
-{
-    conn_socks.push_back(sock);
-}
-
-// TODO: conn_sockの中身が削除できていない。
-void Socket::deleteConnSock(int sock)
-{
-    std::vector<int> new_conn_socks;
-    bool found = false;
-
-    // Copy all elements except the one to be deleted
-    for (std::vector<int>::iterator it = conn_socks.begin(); it != conn_socks.end(); ++it)
-    {
-        if (*it != sock)
-        {
-            new_conn_socks.push_back(*it);
-        }
-        else
-        {
-            found = true;
-        }
-    }
-
-    if (found)
-    {
-        std::cout << YELLOW << "delete ConnSock " << sock << NORMAL << std::endl;
-    }
-    else
-    {
-        std::cout << RED << "not found ConnSock " << sock << NORMAL << std::endl;
-    }
-
-    // Replace the old vector with the new one
-    conn_socks = new_conn_socks;
-
-    // Iterate over the vector
-    std::cout << GREEN << "conn_socks: " << std::endl;
-    for (std::vector<int>::iterator it = conn_socks.begin(); it != conn_socks.end(); ++it)
-    {
-        std::cout << *it << std::endl;
-    }
-    std::cout << NORMAL;
-}
+// std::vector<int> Socket::getConnSock() const
+// {
+//     return (conn_socks);
+// }
+// void Socket::addConnSock(int sock)
+// {
+//     conn_socks.push_back(sock);
+// }
 
 Socket::Socket(Server server)
 {

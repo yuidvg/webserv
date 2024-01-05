@@ -34,7 +34,7 @@ void Connection::AllCloseConnection()
 	std::cout << "すべての接続を閉じた" << std::endl;
 }
 
-ListenSocketResult Connection::AcceptNewConnection(const int listen_sd)
+NewSDResult Connection::AcceptNewConnection(const int listen_sd)
 {
 	int new_sd = -1;
 	new_sd = accept(listen_sd, NULL, NULL);
@@ -44,7 +44,7 @@ ListenSocketResult Connection::AcceptNewConnection(const int listen_sd)
 		{
 			// エラーメッセージを返す
 			std::string error_msg = "accept() failed on socket ";
-			return ListenSocketResult::Err(error_msg);
+			return NewSDResult::Err(error_msg);
 		}
 	}
 	std::cout << GREEN << "New incoming connection " << new_sd << NORMAL << std::endl;
@@ -54,7 +54,13 @@ ListenSocketResult Connection::AcceptNewConnection(const int listen_sd)
 		max_sd = new_sd;
 	}
 	// 新しい接続を受け入れた
-	return ListenSocketResult::Ok(new_sd);
+	return NewSDResult::Ok(new_sd);
+}
+
+// TODO: conn_sockの中身が削除できていない。
+void Connection::deleteConnSock(int sd)
+{
+	conn_socks.erase(sd);
 }
 
 // 接続が確立されたソケットと通信する
@@ -73,14 +79,14 @@ void Connection::ProcessConnection(int sd, Socket& socket)
 	if (rc < 0)
 	{
 		std::cerr << "recv() failed " << strerror(errno) << std::endl;
-		socket.deleteConnSock(sd);
+		deleteConnSock(sd);
 		CloseConnection(sd);
 		return;
 	}
 	else if (rc == 0)
 	{
 		std::cout << "Connection closed" << std::endl;
-		socket.deleteConnSock(sd);
+		deleteConnSock(sd);
 		CloseConnection(sd);
 		return;
 	}
@@ -99,28 +105,12 @@ void Connection::ProcessConnection(int sd, Socket& socket)
 	if (rc < 0)
 	{
 		std::cerr << "send() failed: " << std::endl;
-		socket.deleteConnSock(sd);
+		deleteConnSock(sd);
 		CloseConnection(sd);
 		return;
 	}
 }
 
-FindConnectedVirtualServerResult Connection::FindConnectedVirtualServer(int sd, std::vector<Socket>& sockets)
-{
-	for (std::vector<Socket>::iterator it = sockets.begin(); it != sockets.end(); ++it)
-	{
-		std::vector<int> conn_socks = it->getConnSock();
-		for (std::vector<int>::iterator conn_it = conn_socks.begin(); conn_it != conn_socks.end(); ++conn_it)
-		{
-			if (*conn_it == sd) // sd is the fd we are looking for
-			{
-				Socket find_socket = *it;
-				return FindConnectedVirtualServerResult::Ok(find_socket);
-			}
-		}
-	}
-	return FindConnectedVirtualServerResult::Err("No connected virtual server found for the given fd");
-}
 
 void Connection::Start(std::vector<Server> servers)
 {
@@ -172,49 +162,34 @@ void Connection::Start(std::vector<Server> servers)
 				// リスニングソケットの確認
 				if (std::find(listen_sockets.begin(), listen_sockets.end(), i) != listen_sockets.end())
 				{
-					ListenSocketResult socketResult = AcceptNewConnection(i);
-					if (!socketResult.ok())
+					NewSDResult newSDResult = AcceptNewConnection(i);
+					if (!newSDResult.ok())
 					{
-						std::cerr << socketResult.unwrapErr() << std::endl;
+						std::cerr << newSDResult.unwrapErr() << std::endl;
 						AllCloseConnection();
 						return;
 					}
-					for (std::vector<Socket>::iterator it = sockets.begin(); it != sockets.end(); ++it)
+					for (size_t index = 0; index < sockets.size(); ++index)
 					{
-						if (it->getListenSocket() == i)
-							it->addConnSock(socketResult.unwrap());
+						if (sockets[index].getListenSocket() == i)
+						{
+							std::cout << "新しい接続を受け入れた" << std::endl;
+							conn_socks.insert(std::make_pair(newSDResult.unwrap(), sockets[index]));
+						}
 					}
 				}
 				else
 				{
-					FindConnectedVirtualServerResult result = FindConnectedVirtualServer(i, sockets);
-					if (!result.ok())
-					{
-						std::cerr << result.unwrapErr() << std::endl;
-						AllCloseConnection();
-						return;
-					}
-					Socket connectedSocket = result.unwrap();
-					ProcessConnection(i, connectedSocket);
+					ProcessConnection(i, conn_socks[i]);
+				}
+				//Debug用
+				for (std::map<int, Socket>::iterator it = conn_socks.begin(); it != conn_socks.end(); ++it)
+				{
+					std::cout << it->first << " : " << it->second.getServer().name << std::endl;
 				}
 			}
 		}
+
 	}
-
-	// DEBUG
-	for (std::vector<Socket>::iterator it = sockets.begin(); it != sockets.end(); ++it)
-	{
-		std::vector<int> conn_socks = it->getConnSock();
-
-		std::cout << "Socket: " << it->getListenSocket() << ", conn_socks: ";
-
-		for (std::vector<int>::iterator it = conn_socks.begin(); it != conn_socks.end(); ++it)
-		{
-			std::cout << *it << " ";
-		}
-
-		std::cout << std::endl;
-	}
-
 	AllCloseConnection();
 }
