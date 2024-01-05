@@ -23,13 +23,13 @@ typedef Result<int, std::string> InitializeResult;
 class Socket
 {
 private:
+    InitializeResult initialize() const;
     int listen_socket;
     std::vector<int> conn_socks; // この仮想サーバーが受け持つソケットのリスト
     Server server;
 
 public:
     Socket(Server server);
-    InitializeResult initialize();
     Server getServer() const;
     int getListenSocket() const;
     std::vector<int> getConnSock() const;

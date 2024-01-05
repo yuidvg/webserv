@@ -1,6 +1,6 @@
 #include "socket.hpp"
 
-InitializeResult Socket::initialize()
+InitializeResult Socket::initialize() const
 {
     int sd = socket(PF_INET, SOCK_STREAM, 0);
     if (sd < 0)
