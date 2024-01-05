@@ -58,15 +58,15 @@ ListenSocketResult Connection::AcceptNewConnection(const int listen_sd)
 }
 
 // 接続が確立されたソケットと通信する
-void Connection::ProcessConnection(int sd, Socket &socket, const Server &server)
+void Connection::ProcessConnection(int sd, Socket& socket)
 {
-	char buffer[500] = {0}; // Initialize buffer with null
+	char buffer[500] = { 0 }; // Initialize buffer with null
 	int rc;
 
 	// Debug用
 	std::cout << GREEN;
-	std::cout << "Port = " << server.port << std::endl;
-	std::cout << "server_name = " << server.name << std::endl;
+	std::cout << "Port = " << socket.getServer().port << std::endl;
+	std::cout << "server_name = " << socket.getServer().name << std::endl;
 	std::cout << NORMAL;
 
 	rc = recv(sd, buffer, sizeof(buffer) - 1, 0); // Leave space for null terminator
@@ -105,7 +105,7 @@ void Connection::ProcessConnection(int sd, Socket &socket, const Server &server)
 	}
 }
 
-FindConnectedVirtualServerResult Connection::FindConnectedVirtualServer(int sd, std::vector<Socket> &sockets)
+FindConnectedVirtualServerResult Connection::FindConnectedVirtualServer(int sd, std::vector<Socket>& sockets)
 {
 	for (std::vector<Socket>::iterator it = sockets.begin(); it != sockets.end(); ++it)
 	{
@@ -128,9 +128,9 @@ void Connection::Start(std::vector<Server> servers)
 	FD_ZERO(&master_set);
 	for (size_t i = 0; i < servers.size(); ++i)
 	{
-		Socket socket(servers[i].port, i);
+		Socket socket(servers[i]);
 		sockets.push_back(socket); // 新しいリスニングソケットを追加
-		int listen_sd = socket.getSocket();
+		int listen_sd = socket.getListenSocket();
 		listen_sockets.push_back(listen_sd); // 新しいリスニングソケットを追加
 		FD_SET(listen_sd, &master_set);
 		if (listen_sd > max_sd)
@@ -142,7 +142,7 @@ void Connection::Start(std::vector<Server> servers)
 	fd_set working_set;
 	struct timeval timeout;
 	int end_server = FALSE;
-	timeout.tv_sec = 10;
+	timeout.tv_sec = 30;
 	timeout.tv_usec = 0;
 
 	while (end_server == FALSE)
@@ -181,7 +181,7 @@ void Connection::Start(std::vector<Server> servers)
 					}
 					for (std::vector<Socket>::iterator it = sockets.begin(); it != sockets.end(); ++it)
 					{
-						if (it->getSocket() == i)
+						if (it->getListenSocket() == i)
 							it->addConnSock(socketResult.unwrap());
 					}
 				}
@@ -195,7 +195,7 @@ void Connection::Start(std::vector<Server> servers)
 						return;
 					}
 					Socket connectedSocket = result.unwrap();
-					ProcessConnection(i, connectedSocket, servers[connectedSocket.getServerNum()]);
+					ProcessConnection(i, connectedSocket);
 				}
 			}
 		}
@@ -206,7 +206,7 @@ void Connection::Start(std::vector<Server> servers)
 	{
 		std::vector<int> conn_socks = it->getConnSock();
 
-		std::cout << "Socket: " << it->getSocket() << ", conn_socks: ";
+		std::cout << "Socket: " << it->getListenSocket() << ", conn_socks: ";
 
 		for (std::vector<int>::iterator it = conn_socks.begin(); it != conn_socks.end(); ++it)
 		{

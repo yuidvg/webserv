@@ -8,7 +8,7 @@ InitializeResult Socket::initialize()
 
     // 同じローカルアドレスとポートを使用しているソケットがあっても、ソケットを再利用できるようにする
     int on = 1;
-    if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on)) < 0)
+    if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) < 0)
     {
         close(sd);
         return (InitializeResult::Err("setsockopt() failed"));
@@ -29,9 +29,9 @@ InitializeResult Socket::initialize()
     struct sockaddr_in addr = {};
     addr.sin_family = PF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY); // IPv4アドレスを指定
-    addr.sin_port = htons(port);              // ポート番号を設定
+    addr.sin_port = htons(server.port);              // ポート番号を設定
 
-    if (bind(sd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+    if (bind(sd, (struct sockaddr*)&addr, sizeof(addr)) < 0)
     {
         close(sd);
         std::cout << errno << std::endl;
@@ -47,21 +47,17 @@ InitializeResult Socket::initialize()
     return InitializeResult::Ok(sd);
 }
 
-int Socket::getSocket()
+int Socket::getListenSocket() const
 {
     return (listen_socket);
 }
-int Socket::getPort()
+
+Server Socket::getServer() const
 {
-    return (port);
+    return (server);
 }
 
-int Socket::getServerNum()
-{
-    return (server_num);
-}
-
-std::vector<int> Socket::getConnSock()
+std::vector<int> Socket::getConnSock() const
 {
     return (conn_socks);
 }
@@ -110,15 +106,14 @@ void Socket::deleteConnSock(int sock)
     std::cout << NORMAL;
 }
 
-Socket::Socket(int port, int server_num)
+Socket::Socket(Server server)
 {
-    this->port = port;
-    this->server_num = server_num;
+    this->server = server;
     InitializeResult result = initialize();
     if (!result.ok())
     {
         std::cout << result.unwrapErr() << std::endl;
-        exit(1);
+        _exit(1);
     }
     listen_socket = result.unwrap();
 }

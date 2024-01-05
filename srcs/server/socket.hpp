@@ -7,7 +7,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "../Result/Result.hpp"
+#include "../config/parse_config.hpp"
 #include <vector>
+#include <cerrno>
 
 #define TRUE 1
 #define FALSE 0
@@ -22,19 +24,17 @@ class Socket
 {
 private:
     int listen_socket;
-    int server_num;
-    int port;
     std::vector<int> conn_socks; // この仮想サーバーが受け持つソケットのリスト
+    Server server;
 
 public:
-    Socket(int port, int server_num);
+    Socket(Server server);
     InitializeResult initialize();
-    int getSocket();
-    int getPort();
-    int getServerNum();
+    Server getServer() const;
+    int getListenSocket() const;
+    std::vector<int> getConnSock() const;
     void addConnSock(int sock);
     void deleteConnSock(int sock);
-    std::vector<int> getConnSock();
 };
 
 #endif

@@ -31,9 +31,9 @@ class Connection
 private:
     void AllCloseConnection();
     void CloseConnection(int fd); // 接続を閉じる
-    FindConnectedVirtualServerResult FindConnectedVirtualServer(int sd, std::vector<Socket> &sockets);
+    FindConnectedVirtualServerResult FindConnectedVirtualServer(int sd, std::vector<Socket>& sockets);
     ListenSocketResult AcceptNewConnection(int listen_sd);               // 新規接続を受け入れる
-    void ProcessConnection(int sd, Socket &socket, const Server &server); // 接続が確立されたソケットと通信する
+    void ProcessConnection(int sd, Socket& socket); // 接続が確立されたソケットと通信する
     std::vector<int> listen_sockets;                                     // リスニングソケット
     std::vector<Socket> sockets;                                         // リスニングソケット
     int max_sd;                                                          // 最大のファイルディスクリプタ
