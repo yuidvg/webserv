@@ -7,7 +7,7 @@ static bool	isLineTooLong(const std::string &line)
 	return (false);
 }
 
-static bool	checkMethod(std::string &method, int &error_code, std::vector<std::string> allowed_methods)
+static bool	checkMethod(std::string &method, int &error_code, std::vector<std::string> &allowed_methods)
 {
 	for (int i = 0; i < 3; i++)
 	{
