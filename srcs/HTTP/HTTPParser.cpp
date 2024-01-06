@@ -7,7 +7,7 @@ static bool	isLineTooLong(const std::string &line)
 	return (false);
 }
 
-static bool	checkMethod(std::string method, int &error_code, std::vector<std::string> allowed_methods)
+static bool	checkMethod(std::string &method, int &error_code, std::vector<std::string> allowed_methods)
 {
 	for (int i = 0; i < 3; i++)
 	{
@@ -22,7 +22,7 @@ static bool	checkMethod(std::string method, int &error_code, std::vector<std::st
 	return (true);
 }
 
-static bool	checkTarget(std::string uri, int &error_code)
+static bool	checkTarget(std::string &uri, int &error_code)
 {
 	if (uri.find(':') != std::string::npos && uri.find('*') != std::string::npos) // CONNECT, OPTIONSは非対応
 	{
@@ -32,7 +32,7 @@ static bool	checkTarget(std::string uri, int &error_code)
 	return (true);
 }
 
-static bool	checkVersion(std::string version, int &error_code)
+static bool	checkVersion(std::string &version, int &error_code)
 {
 	if (version != "HTTP/1.1")
 	{
@@ -42,7 +42,7 @@ static bool	checkVersion(std::string version, int &error_code)
 	return (true);
 }
 
-ParseRequestLineResult	parseHTTPRequestLine(std::string &httpRequest, std::vector<std::string> allowed_methods)
+ParseRequestLineResult	parseHTTPRequestLine(std::string &httpRequest, std::vector<std::string> &allowed_methods)
 {
 	std::string		line;
 	std::string		method, uri, version;
@@ -170,7 +170,7 @@ ParseBodyResult	parseHTTPBody(std::string &httpRequest, std::map<std::string, st
 		return (ParseBodyResult::Ok(""));
 }
 
-ParseResult	parseHTTPRequest(std::string &httpRequest, std::vector<std::string> allowed_methods)
+ParseResult	parseHTTPRequest(std::string &httpRequest, std::vector<std::string> &allowed_methods)
 {
 	ParseRequestLineResult	request_line = parseHTTPRequestLine(httpRequest, allowed_methods);
 	if (!request_line.ok())
