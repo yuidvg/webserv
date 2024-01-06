@@ -72,7 +72,7 @@ void Connection::deleteConnSock(int sd)
 // 接続が確立されたソケットと通信する
 void Connection::ProcessConnection(int sd, Socket &socket)
 {
-	char buffer[500] = {0}; // Initialize buffer with null
+	char buffer[100000] = {0}; // Initialize buffer with null
 	int rc;
 
 	// Debug用
@@ -94,11 +94,8 @@ void Connection::ProcessConnection(int sd, Socket &socket)
 		CloseConnection(sd);
 		return;
 	}
-	else
-	{
-		std::cout << "Received \n"
-				  << GREEN << rc << " bytes: " << buffer << NORMAL << std::endl;
-	}
+	std::cout << "Received \n"
+			  << GREEN << rc << " bytes: " << buffer << NORMAL << std::endl;
 
 	// TODO: 受け取ったHTTPリクエストを解析する
 	// HTTPリクエスト解析のロジックをここに実装
@@ -185,11 +182,16 @@ void Connection::Start(std::vector<Server> servers)
 				{
 					ProcessConnection(i, conn_socks[i]);
 				}
-				
+
+
 				// Debug用
+				for (std::vector<int>::iterator it = listen_sockets.begin(); it != listen_sockets.end(); ++it)
+				{
+					std::cout << *it << " :Listen socket" << std::endl;
+				}
 				for (std::map<int, Socket>::iterator it = conn_socks.begin(); it != conn_socks.end(); ++it)
 				{
-					std::cout << it->first << " : " << it->second.getServer().name << std::endl;
+					std::cout << it->first << " :" << it->second.getServer().name << std::endl;
 				}
 			}
 		}
