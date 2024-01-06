@@ -6,6 +6,7 @@
 # include <iostream>
 # include <sstream>
 # include <map>
+# include <vector>
 
 # include "utils.hpp"
 # include "Result.hpp"
@@ -47,9 +48,9 @@ typedef Result<RequestLine, int>						ParseRequestLineResult;
 typedef Result<std::map<std::string, std::string>, int>	ParseHeaderResult;
 typedef Result<std::string, int>						ParseBodyResult;
 
-ParseRequestLineResult	parseHTTPRequestLine(std::string &httpRequest);
+ParseRequestLineResult	parseHTTPRequestLine(std::string &httpRequest, std::vector<std::string> allowed_methods);
 ParseHeaderResult		parseHTTPHeaders(std::string &httpRequest);
 ParseBodyResult			parseHTTPBody(std::string &httpRequest, std::map<std::string, std::string> &header);
-ParseResult				parseHTTPRequest(std::string &httpRequest);
+ParseResult				parseHTTPRequest(std::string &httpRequest, std::vector<std::string> allowed_methods);
 
 #endif
