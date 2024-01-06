@@ -2,9 +2,9 @@
 #include "config/parse_config.hpp"
 #include "config/print_config.hpp"
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
-	const char* config_path;
+	const char *config_path;
 	if (argc < 2)
 		config_path = "config/default.conf";
 	else if (argc == 2)
@@ -26,4 +26,9 @@ int main(int argc, char** argv)
 
 	Connection connection;
 	connection.Start(servers);
+}
+
+__attribute__((destructor)) static void destructor(void)
+{
+	system("leaks -q webserv");
 }

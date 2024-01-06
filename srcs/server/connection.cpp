@@ -10,14 +10,20 @@ Connection::~Connection()
 
 void Connection::CloseConnection(int sd)
 {
-	std::cout << YELLO << "close sd: " << sd << NORMAL << std::endl;
+	std::cout << "close sd: " << sd << std::endl;
 	close(sd);
 	FD_CLR(sd, &master_set);
 	if (sd == max_sd)
 	{
-		while (!FD_ISSET(max_sd, &master_set))
+		std::cout << "接続を閉じた" << std::endl;
+		while (max_sd > 0 && !FD_ISSET(max_sd, &master_set))
 		{
 			max_sd -= 1;
+			std::cout << "max_sd = " << max_sd << std::endl;
+		}
+		if (max_sd == 0 && !FD_ISSET(0, &master_set))
+		{
+			max_sd = -1; // 有効なディスクリプタが残っていない
 		}
 	}
 }
@@ -64,9 +70,9 @@ void Connection::deleteConnSock(int sd)
 }
 
 // 接続が確立されたソケットと通信する
-void Connection::ProcessConnection(int sd, Socket& socket)
+void Connection::ProcessConnection(int sd, Socket &socket)
 {
-	char buffer[500] = { 0 }; // Initialize buffer with null
+	char buffer[500] = {0}; // Initialize buffer with null
 	int rc;
 
 	// Debug用
@@ -111,7 +117,6 @@ void Connection::ProcessConnection(int sd, Socket& socket)
 	}
 }
 
-
 void Connection::Start(std::vector<Server> servers)
 {
 	// 各仮想サーバーのソケットを初期化し、監視セットに追加
@@ -132,8 +137,8 @@ void Connection::Start(std::vector<Server> servers)
 	fd_set working_set;
 	struct timeval timeout;
 	int end_server = FALSE;
-	timeout.tv_sec = 30;
-	timeout.tv_usec = 0;
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 10;
 
 	while (end_server == FALSE)
 	{
@@ -182,14 +187,14 @@ void Connection::Start(std::vector<Server> servers)
 				{
 					ProcessConnection(i, conn_socks[i]);
 				}
-				//Debug用
+				// Debug用
 				for (std::map<int, Socket>::iterator it = conn_socks.begin(); it != conn_socks.end(); ++it)
 				{
 					std::cout << it->first << " : " << it->second.getServer().name << std::endl;
 				}
 			}
 		}
-
 	}
+	std::cout << "Closing socket discriptor..." << std::endl;
 	AllCloseConnection();
 }
