@@ -11,14 +11,21 @@ Connection::~Connection()
 
 void Connection::CloseConnection(int sd)
 {
-	std::cout << YELLO << "close sd: " << sd << NORMAL << std::endl;
+	std::cout << YELLOW << "close sd: " << NORMAL << sd << std::endl;
+
+	deleteConnSock(sd);
 	close(sd);
 	FD_CLR(sd, &master_set);
 	if (sd == max_sd)
 	{
-		while (!FD_ISSET(max_sd, &master_set))
+		while (max_sd > 0 && !FD_ISSET(max_sd, &master_set))
 		{
 			max_sd -= 1;
+		}
+		if (max_sd == 0 && !FD_ISSET(0, &master_set))
+		{
+			// 有効なディスクリプタが残っていない
+			max_sd = -1;
 		}
 	}
 }
@@ -32,7 +39,6 @@ void Connection::AllCloseConnection()
 			CloseConnection(i);
 		}
 	}
-	std::cout << "すべての接続を閉じた" << std::endl;
 }
 
 NewSDResult Connection::AcceptNewConnection(const int listen_sd)
@@ -58,14 +64,14 @@ NewSDResult Connection::AcceptNewConnection(const int listen_sd)
 	return NewSDResult::Ok(new_sd);
 }
 
-// TODO: conn_sockの中身が削除できていない。
 void Connection::deleteConnSock(int sd)
 {
+	// c++98で使用可能 https://en.cppreference.com/w/cpp/container/map/erase
 	conn_socks.erase(sd);
 }
 
 // 接続が確立されたソケットと通信する
-void Connection::ProcessConnection(int sd, Socket& socket)
+void Connection::ProcessConnection(int sd, Socket &socket)
 {
 	char buffer[500000] = { 0 }; // Initialize buffer with null
 	int rc;
@@ -76,25 +82,21 @@ void Connection::ProcessConnection(int sd, Socket& socket)
 	std::cout << "server_name = " << socket.getServer().name << std::endl;
 	std::cout << NORMAL;
 
-	rc = recv(sd, buffer, sizeof(buffer) - 1, 0); // Leave space for null terminator
+	rc = recv(sd, buffer, sizeof(buffer) - 1, 0);
 	if (rc < 0)
 	{
 		std::cerr << "recv() failed " << strerror(errno) << std::endl;
-		deleteConnSock(sd);
 		CloseConnection(sd);
 		return;
 	}
 	else if (rc == 0)
 	{
 		std::cout << "Connection closed" << std::endl;
-		deleteConnSock(sd);
 		CloseConnection(sd);
 		return;
 	}
-	else
-	{
-		std::cout << "Received " << rc << " bytes: " << buffer << std::endl;
-	}
+	std::cout << "Received \n"
+			  << GREEN << rc << " bytes: " << buffer << NORMAL << std::endl;
 
 	// TODO: 受け取ったHTTPリクエストを解析する
 	// HTTPリクエスト解析のロジックをここに実装
@@ -108,7 +110,6 @@ void Connection::ProcessConnection(int sd, Socket& socket)
 	if (rc < 0)
 	{
 		std::cerr << "send() failed: " << std::endl;
-		deleteConnSock(sd);
 		CloseConnection(sd);
 		return;
 	}
@@ -184,14 +185,20 @@ void Connection::Start(std::vector<Server> servers)
 				{
 					ProcessConnection(i, conn_socks[i]);
 				}
-				//Debug用
+
+
+				// Debug用
+				for (std::vector<int>::iterator it = listen_sockets.begin(); it != listen_sockets.end(); ++it)
+				{
+					std::cout << *it << " :Listen socket" << std::endl;
+				}
 				for (std::map<int, Socket>::iterator it = conn_socks.begin(); it != conn_socks.end(); ++it)
 				{
-					std::cout << it->first << " : " << it->second.getServer().name << std::endl;
+					std::cout << it->first << " :" << it->second.getServer().name << std::endl;
 				}
 			}
 		}
-
 	}
+	std::cout << "Closing socket discriptor..." << std::endl;
 	AllCloseConnection();
 }

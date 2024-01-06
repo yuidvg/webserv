@@ -16,7 +16,7 @@ InitializeResult Socket::initialize() const
 
     // 同じローカルアドレスとポートを使用しているソケットがあっても、ソケットを再利用できるようにする
     int on = 1;
-    if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) < 0)
+    if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on)) < 0)
     {
         close(sd);
         return (InitializeResult::Err("setsockopt() failed"));
@@ -37,9 +37,9 @@ InitializeResult Socket::initialize() const
     struct sockaddr_in addr = {};
     addr.sin_family = PF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY); // IPv4アドレスを指定
-    addr.sin_port = htons(server.port);              // ポート番号を設定
+    addr.sin_port = htons(server.port);       // ポート番号を設定
 
-    if (bind(sd, (struct sockaddr*)&addr, sizeof(addr)) < 0)
+    if (bind(sd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
         close(sd);
         std::cout << errno << std::endl;
@@ -64,15 +64,6 @@ Server Socket::getServer() const
 {
     return (server);
 }
-
-// std::vector<int> Socket::getConnSock() const
-// {
-//     return (conn_socks);
-// }
-// void Socket::addConnSock(int sock)
-// {
-//     conn_socks.push_back(sock);
-// }
 
 Socket::Socket(Server server)
 {
