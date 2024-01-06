@@ -170,22 +170,22 @@ ParseBodyResult	parseHTTPBody(std::string &httpRequest, std::map<std::string, st
 		return (ParseBodyResult::Ok(""));
 }
 
-ParseResult	parseHTTPRequest(std::string &httpRequest, std::vector<std::string> &allowed_methods)
+HTTPParseResult	parseHTTPRequest(std::string &httpRequest, std::vector<std::string> &allowed_methods)
 {
 	ParseRequestLineResult	request_line = parseHTTPRequestLine(httpRequest, allowed_methods);
 	if (!request_line.ok())
-		return (ParseResult::Err(request_line.unwrapErr()));
+		return (HTTPParseResult::Err(request_line.unwrapErr()));
 
 	ParseHeaderResult		headers = parseHTTPHeaders(httpRequest);
 	if (!headers.ok())
-		return (ParseResult::Err(headers.unwrapErr()));
+		return (HTTPParseResult::Err(headers.unwrapErr()));
 
 	std::map<std::string, std::string>	header = headers.unwrap();
 	ParseBodyResult			body = parseHTTPBody(httpRequest, header);
 	if (!body.ok())
-		return (ParseResult::Err(body.unwrapErr()));
+		return (HTTPParseResult::Err(body.unwrapErr()));
 
 	RequestLine		requestLine = request_line.unwrap();
 	ParsedRequest	result(requestLine.method, requestLine.uri, requestLine.version, headers.unwrap(), body.unwrap());
-	return (ParseResult::Ok(result));
+	return (HTTPParseResult::Ok(result));
 }

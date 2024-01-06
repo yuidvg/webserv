@@ -9,7 +9,7 @@
 # include <vector>
 
 # include "utils.hpp"
-# include "Result.hpp"
+# include "../Result/Result.hpp"
 
 # define SUCCESS 0
 # define FAILURE 1
@@ -43,7 +43,7 @@ struct RequestLine
 	std::string	version;
 };
 
-typedef Result<ParsedRequest, int>						ParseResult;
+typedef Result<ParsedRequest, int>						HTTPParseResult;
 typedef Result<RequestLine, int>						ParseRequestLineResult;
 typedef Result<std::map<std::string, std::string>, int>	ParseHeaderResult;
 typedef Result<std::string, int>						ParseBodyResult;
@@ -51,6 +51,6 @@ typedef Result<std::string, int>						ParseBodyResult;
 ParseRequestLineResult	parseHTTPRequestLine(std::string &httpRequest, std::vector<std::string> &allowed_methods);
 ParseHeaderResult		parseHTTPHeaders(std::string &httpRequest);
 ParseBodyResult			parseHTTPBody(std::string &httpRequest, std::map<std::string, std::string> &header);
-ParseResult				parseHTTPRequest(std::string &httpRequest, std::vector<std::string> &allowed_methods);
+HTTPParseResult			parseHTTPRequest(std::string &httpRequest, std::vector<std::string> &allowed_methods);
 
 #endif
