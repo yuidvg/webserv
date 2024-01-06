@@ -13,4 +13,3 @@ srcs/Makefile
 srcs/*/main.cpp
 objs
 *.txt
-client
