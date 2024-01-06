@@ -10,16 +10,14 @@ Connection::~Connection()
 
 void Connection::CloseConnection(int sd)
 {
-	std::cout << "close sd: " << sd << std::endl;
+	std::cout << YELLOW << "close sd: " <<NORMAL << sd << std::endl;
 	close(sd);
 	FD_CLR(sd, &master_set);
 	if (sd == max_sd)
 	{
-		std::cout << "接続を閉じた" << std::endl;
 		while (max_sd > 0 && !FD_ISSET(max_sd, &master_set))
 		{
 			max_sd -= 1;
-			std::cout << "max_sd = " << max_sd << std::endl;
 		}
 		if (max_sd == 0 && !FD_ISSET(0, &master_set))
 		{
@@ -37,7 +35,6 @@ void Connection::AllCloseConnection()
 			CloseConnection(i);
 		}
 	}
-	std::cout << "すべての接続を閉じた" << std::endl;
 }
 
 NewSDResult Connection::AcceptNewConnection(const int listen_sd)
@@ -63,9 +60,9 @@ NewSDResult Connection::AcceptNewConnection(const int listen_sd)
 	return NewSDResult::Ok(new_sd);
 }
 
-// TODO: conn_sockの中身が削除できていない。
 void Connection::deleteConnSock(int sd)
 {
+	// c++98で使用可能 https://en.cppreference.com/w/cpp/container/map/erase
 	conn_socks.erase(sd);
 }
 
@@ -98,7 +95,7 @@ void Connection::ProcessConnection(int sd, Socket &socket)
 	}
 	else
 	{
-		std::cout << "Received " << rc << " bytes: " << buffer << std::endl;
+		std::cout << "Received \n" << GREEN << rc << " bytes: " << buffer << NORMAL<< std::endl;
 	}
 
 	// TODO: 受け取ったHTTPリクエストを解析する
@@ -137,8 +134,8 @@ void Connection::Start(std::vector<Server> servers)
 	fd_set working_set;
 	struct timeval timeout;
 	int end_server = FALSE;
-	timeout.tv_sec = 0;
-	timeout.tv_usec = 10;
+	timeout.tv_sec = 30;
+	timeout.tv_usec = 0;
 
 	while (end_server == FALSE)
 	{
