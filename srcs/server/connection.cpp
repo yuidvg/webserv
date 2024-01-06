@@ -1,5 +1,5 @@
 #include "connection.hpp"
-#include "../HTTP/HTTPParser.hpp"
+#include "../HTTPRequest/HTTPParser.hpp"
 
 Connection::Connection()
 {
@@ -67,7 +67,7 @@ void Connection::deleteConnSock(int sd)
 // 接続が確立されたソケットと通信する
 void Connection::ProcessConnection(int sd, Socket& socket)
 {
-	char buffer[INT_MAX] = { 0 }; // Initialize buffer with null
+	char buffer[500000] = { 0 }; // Initialize buffer with null
 	int rc;
 
 	// Debug用
@@ -98,7 +98,8 @@ void Connection::ProcessConnection(int sd, Socket& socket)
 
 	// TODO: 受け取ったHTTPリクエストを解析する
 	// HTTPリクエスト解析のロジックをここに実装
-	// parseHTTPRequest(buffer);
+	std::string	buf(buffer);
+	parseHTTPRequest(buf, socket.getServer());
 
 	// TODO: HTTPレスポンスを作成する
 	// HTTPレスポンス作成のロジックをここに実装
@@ -112,7 +113,6 @@ void Connection::ProcessConnection(int sd, Socket& socket)
 		return;
 	}
 }
-
 
 void Connection::Start(std::vector<Server> servers)
 {
