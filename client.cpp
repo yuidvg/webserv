@@ -2,6 +2,10 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <fstream>
+#include <sstream>
+#include <iostream>
+#include <string>
 
 bool is_digits_only(const char* str) {
 	while (*str) {
@@ -14,7 +18,24 @@ bool is_digits_only(const char* str) {
 
 int main(int argc, char** argv)
 {
-	if (argc < 2)
+	std::string httpRequest;
+	if (argc > 2)
+	{
+		std::ifstream requestFile(argv[2]);
+		if (requestFile.is_open())
+		{
+			std::stringstream buffer;
+			buffer << requestFile.rdbuf();
+			httpRequest = buffer.str();
+			requestFile.close();
+		}
+		else
+		{
+			std::cerr << "HTTPリクエストファイルを開けません: " << argv[2] << std::endl;
+			return -1;
+		}
+	}
+	else if (argc < 2)
 	{
 		std::cerr << "ポート番号を指定してください" << std::endl;
 		return -1;
@@ -58,9 +79,18 @@ int main(int argc, char** argv)
 	while (TRUE)
 	{
 		// メッセージの送信
-		std::string message = "Hello Server " + std::string(argv[1]) + " ^_^";
-		send(sock, message.c_str(), message.length(), 0);
-		std::cout << "Message sent" << std::endl;
+		if (argc > 2)
+		{
+			send(sock, httpRequest.c_str(), httpRequest.length(), 0);
+			std::cout << "HTTPリクエスト送信: " << std::endl << httpRequest << std::endl;
+			std::cout << "Message sent" << std::endl;
+		}
+		else
+		{
+			std::string message = "Hello Server " + std::string(argv[1]) + " ^_^";
+			send(sock, message.c_str(), message.length(), 0);
+			std::cout << "Message sent" << std::endl;
+		}
 
 		// レスポンスの受信
 		char buffer[1024] = { 0 };

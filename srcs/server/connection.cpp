@@ -99,9 +99,14 @@ void Connection::ProcessConnection(int sd, Socket &socket)
 			  << GREEN << rc << " bytes: " << buffer << NORMAL << std::endl;
 
 	// TODO: 受け取ったHTTPリクエストを解析する
-	// HTTPリクエスト解析のロジックをここに実装
 	std::string	buf(buffer);
-	parseHTTPRequest(buf, socket.getServer());
+	HTTPParseResult	parserResult = parseHTTPRequest(buf, socket.getServer());
+	if (!parserResult.ok())
+	{
+		std::cerr << RED << "error_code: " << parserResult.unwrapErr() << NORMAL << std::endl;
+		CloseConnection(sd);
+		return;
+	}
 
 	// TODO: HTTPレスポンスを作成する
 	// HTTPレスポンス作成のロジックをここに実装

@@ -26,6 +26,11 @@ static bool	checkRequestLine(std::string &method, std::string &uri, std::string 
 				allowed_methods = it->allow_method;
 				break; // マッチしたらループを抜ける
 			}
+			if (uri.find(it->front_path) == std::string::npos)
+			{
+				error_code = BAD_REQUEST;
+				return (false);
+			}
 		}
 		// else if (!it.back_path.empty() && uri.rfind(it.back_path) != std::string::npos)
 		// {
