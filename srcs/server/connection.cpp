@@ -98,7 +98,7 @@ void Connection::ProcessConnection(int sd, Socket& socket)
 
 	// TODO: 受け取ったHTTPリクエストを解析する
 	// HTTPリクエスト解析のロジックをここに実装
-	parseHTTPRequest(buffer);
+	// parseHTTPRequest(buffer);
 
 	// TODO: HTTPレスポンスを作成する
 	// HTTPレスポンス作成のロジックをここに実装

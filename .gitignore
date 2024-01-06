@@ -4,9 +4,13 @@
 *.out
 *.DS_Store
 .sample
-*/main.cpp
+client
+webserv
+*/*.txt
+*/main.cppclient
 webserv
 srcs/Makefile
 srcs/*/main.cpp
 objs
+*.txt
 client

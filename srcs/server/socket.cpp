@@ -1,167 +1,87 @@
 #include "socket.hpp"
 
-int server(void)
+Socket::Socket()
 {
-	int i, len, rc;
-	int listen_sd;
-	int max_sd;
-	int new_sd = 0;
-	int desc_ready, end_server = FALSE;
-	int close_conn;
-	char buffer[80];
-	struct sockaddr_in6 addr;
-	struct timeval timeout;
-	struct fd_set master_set, working_set;
-	listen_sd = socket(AF_INET6, SOCK_STREAM, 0);
-	if (listen_sd < 0)
-	{
-		std::cout << RED << "socket() failed: " << strerror(errno) << NORMAL << std::endl;
-		exit(-1);
-	}
+}
 
-	int flags = fcntl(listen_sd, F_GETFL, 0);
-	if (flags < 0)
-	{
-		std::cout << RED << "fcntl() failed: " << strerror(errno) << NORMAL << std::endl;
-		close(listen_sd);
-		exit(-1);
-	}
-	flags |= O_NONBLOCK;
-	rc = fcntl(listen_sd, F_SETFL, flags);
-	if (rc < 0)
-	{
-		std::cout << RED << "fcntl() failed: " << strerror(errno) << NORMAL << std::endl;
-		close(listen_sd);
-		exit(-1);
-	}
+Socket::~Socket()
+{
+}
 
-	addr.sin6_family = AF_INET6;
-	addr.sin6_addr = in6addr_any;
-	addr.sin6_port = htons(SERVER_PORT);
-	rc = bind(listen_sd, (struct sockaddr *)&addr, sizeof(addr));
-	if (rc < 0)
-	{
-		std::cout << RED << "bind() failed" << strerror(errno) << NORMAL << std::endl;
-		close(listen_sd);
-		exit(-1);
-	}
-	rc = listen(listen_sd, 5);
-	if (rc < 0)
-	{
-		std::cout << RED << "listen() failed" << strerror(errno) << NORMAL << std::endl;
-		close(listen_sd);
-		exit(-1);
-	}
-	FD_ZERO(&master_set);
-	max_sd = listen_sd;
-	/*listen_sdをmaster_setに追加します。 */
-	// listen_sd = 常に新しい接続要求を受け入れる(リスニングソケット)
-	FD_SET(listen_sd, &master_set);
+InitializeResult Socket::initialize() const
+{
+    int sd = socket(PF_INET, SOCK_STREAM, 0);
+    if (sd < 0)
+        return (InitializeResult::Err("socket() failed"));
 
-	timeout.tv_sec = 3 * 60;
-	timeout.tv_usec = 0;
-	while (end_server == FALSE)
-	{
-		memcpy(&working_set, &master_set, sizeof(master_set));
-		std::cout << "Waiting on select()... " << std::endl;
-		rc = select(max_sd + 1, &working_set, NULL, NULL, &timeout);
+    // 同じローカルアドレスとポートを使用しているソケットがあっても、ソケットを再利用できるようにする
+    int on = 1;
+    if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) < 0)
+    {
+        close(sd);
+        return (InitializeResult::Err("setsockopt() failed"));
+    }
 
-		if (rc < 0)
-		{
-			std::cout << RED << "select() failed: " << strerror(errno) << NORMAL << std::endl;
-			break;
-		}
-		else if (rc == 0)
-		{
-			std::cout << "select() timed out. End program.\n";
-			break;
-		}
-		desc_ready = rc;
-		for (i = 0; i <= max_sd && desc_ready > 0; ++i)
-		{
-			/* FD_ISSET()は、指定したファイルディスクリプタがセット内に存在するかどうかをチェックします。 */
-			if (FD_ISSET(i, &working_set))
-			{
-				desc_ready -= 1;
-				// 新しい接続要求を処理する
-				if (i == listen_sd)
-				{
-					std::cout << "  Listening socket is readable" << std::endl;
-					while (new_sd != -1)
-					{
-						new_sd = accept(listen_sd, NULL, NULL);
-						std::cout << RED << "new_sd = " << new_sd << NORMAL << std::endl;
-						if (new_sd < 0)
-						{
-							if (errno != EWOULDBLOCK)
-							{
-								std::cout << RED << "  accept() failed" << strerror(errno) << NORMAL << std::endl;
-								end_server = TRUE;
-							}
-							break;
-						}
+    int flags = fcntl(sd, F_GETFL, 0);
+    if (flags < 0)
+    {
+        close(sd);
+        return (InitializeResult::Err("fcntl() failed"));
+    }
+    flags |= O_NONBLOCK;
+    if (fcntl(sd, F_SETFL, flags) < 0)
+    {
+        close(sd);
+        return (InitializeResult::Err("fcntl() failed to set non-blocking"));
+    }
+    struct sockaddr_in addr = {};
+    addr.sin_family = PF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_ANY); // IPv4アドレスを指定
+    addr.sin_port = htons(server.port);              // ポート番号を設定
 
-						std::cout << "  New incoming connection " << new_sd << std::endl;
-						FD_SET(new_sd, &master_set);
-						if (new_sd > max_sd)
-							max_sd = new_sd;
-					}
-					new_sd = 0;
-				}
-				else // 接続済みのソケットと通信する
-				{
-					std::cout << "  Descriptor " << i << "is readable" << std::endl;
-					close_conn = FALSE;
-					while (TRUE)
-					{
-						rc = recv(i, buffer, sizeof(buffer), 0);
-						std::cout << buffer << std::endl;
-						if (rc < 0)
-						{
-							if (errno != EWOULDBLOCK)
-							{
-								std::cout << RED << "  recv() failed" << strerror(errno) << NORMAL << std::endl;
-								close_conn = TRUE;
-							}
-							break;
-						}
+    if (bind(sd, (struct sockaddr*)&addr, sizeof(addr)) < 0)
+    {
+        close(sd);
+        std::cout << errno << std::endl;
+        return (InitializeResult::Err("bind() failed"));
+    }
 
-						if (rc == 0)
-						{
-							std::cout << "Connection closed" << std::endl;
-							close_conn = TRUE;
-							break;
-						}
-						len = rc;
-						std::cout << len << " bytes received" << std::endl;
-						rc = send(i, "Yeah Client", 12, 0);
-						if (rc < 0)
-						{
-							std::cout << RED << "  send() failed" << strerror(errno) << NORMAL << std::endl;
-							close_conn = TRUE;
-							break;
-						}
-					}
+    if (listen(sd, 5) < 0)
+    {
+        close(sd);
+        return (InitializeResult::Err("listen() failed"));
+    }
 
-					if (close_conn == TRUE)
-					{
-						close(i);
-						FD_CLR(i, &master_set);
-						if (i == max_sd)
-						{
-							while (FD_ISSET(max_sd, &master_set) == FALSE)
-								max_sd -= 1;
-						}
-					}
-				}
-			}
-		}
-	}
+    return InitializeResult::Ok(sd);
+}
 
-	for (i = 0; i <= max_sd; ++i)
-	{
-		if (FD_ISSET(i, &master_set))
-			close(i);
-	}
-	return 0;
+int Socket::getListenSocket() const
+{
+    return (listen_socket);
+}
+
+Server Socket::getServer() const
+{
+    return (server);
+}
+
+// std::vector<int> Socket::getConnSock() const
+// {
+//     return (conn_socks);
+// }
+// void Socket::addConnSock(int sock)
+// {
+//     conn_socks.push_back(sock);
+// }
+
+Socket::Socket(Server server)
+{
+    this->server = server;
+    InitializeResult result = initialize();
+    if (!result.ok())
+    {
+        std::cout << result.unwrapErr() << std::endl;
+        _exit(1);
+    }
+    listen_socket = result.unwrap();
 }
