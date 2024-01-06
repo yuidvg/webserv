@@ -7,9 +7,8 @@ static bool	isLineTooLong(const std::string &line)
 	return (false);
 }
 
-static bool	checkMethod(std::string method, int &error_code)
+static bool	checkMethod(std::string method, int &error_code, std::vector<std::string> allowed_methods)
 {
-	std::string	allowed_methods[] = {"GET", "POST", "DELETE"}; // 本来はconfigから取得する？
 	for (int i = 0; i < 3; i++)
 	{
 		if (method == allowed_methods[i])
@@ -43,7 +42,7 @@ static bool	checkVersion(std::string version, int &error_code)
 	return (true);
 }
 
-ParseRequestLineResult	parseHTTPRequestLine(std::string &httpRequest)
+ParseRequestLineResult	parseHTTPRequestLine(std::string &httpRequest, std::vector<std::string> allowed_methods)
 {
 	std::string		line;
 	std::string		method, uri, version;
@@ -63,7 +62,7 @@ ParseRequestLineResult	parseHTTPRequestLine(std::string &httpRequest)
 
 	/* エラーチェック */
 	int	error_code = HTTP_STATUS_OK;
-	if (checkMethod(method, error_code) == false || checkTarget(uri, error_code) == false || checkVersion(version, error_code) == false)
+	if (!checkMethod(method, error_code, allowed_methods) || !checkTarget(uri, error_code) || !checkVersion(version, error_code))
 		return (ParseRequestLineResult::Err(error_code));
 
 	RequestLine	request_line_data = {method, uri, version};
@@ -171,9 +170,9 @@ ParseBodyResult	parseHTTPBody(std::string &httpRequest, std::map<std::string, st
 		return (ParseBodyResult::Ok(""));
 }
 
-ParseResult	parseHTTPRequest(std::string &httpRequest)
+ParseResult	parseHTTPRequest(std::string &httpRequest, std::vector<std::string> allowed_methods)
 {
-	ParseRequestLineResult	request_line = parseHTTPRequestLine(httpRequest);
+	ParseRequestLineResult	request_line = parseHTTPRequestLine(httpRequest, allowed_methods);
 	if (!request_line.ok())
 		return (ParseResult::Err(request_line.unwrapErr()));
 
