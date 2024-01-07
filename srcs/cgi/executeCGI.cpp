@@ -8,10 +8,10 @@ char *const *mapStringStringToCStringArray(const std::map<std::string, std::stri
     int i = 0;
     for (std::map<std::string, std::string>::const_iterator it = envMap.begin(); it != envMap.end(); ++it)
     {
-        std::string env = it->first + "=" + it->second;
-        envArray[i] = new char[env.size() + 1];
-        std::copy(env.begin(), env.end(), envArray[i]);
-        envArray[i][env.size()] = '\0'; // Null-terminate the string
+        std::string envString = it->first + "=" + it->second;
+        envArray[i] = new char[envString.size() + 1];
+        std::copy(envString.begin(), envString.end(), envArray[i]);
+        envArray[i][envString.size()] = '\0'; // Null-terminate the string
         ++i;
     }
     envArray[envMap.size()] = NULL; // Last element is NULL for execve
