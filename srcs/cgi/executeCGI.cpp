@@ -2,7 +2,23 @@
 #include "../map/value.cpp"
 #include "determineCGI.cpp"
 
-const char **enviromentVariables(const ParsedRequest request, const Server server)
+char *const *mapStringStringToCStringArray(const std::map<std::string, std::string> &envMap)
+{
+    char **envArray = new char *[envMap.size() + 1];
+    int i = 0;
+    for (std::map<std::string, std::string>::const_iterator it = envMap.begin(); it != envMap.end(); ++it)
+    {
+        std::string env = it->first + "=" + it->second;
+        envArray[i] = new char[env.size() + 1];
+        std::copy(env.begin(), env.end(), envArray[i]);
+        envArray[i][env.size()] = '\0'; // Null-terminate the string
+        ++i;
+    }
+    envArray[envMap.size()] = NULL; // Last element is NULL for execve
+    return envArray;
+}
+
+char *const *enviromentVariables(const ParsedRequest request, const Server server)
 {
     std::map<std::string, std::string> env;
     env["AUTH_TYPE"] = map::value(request.header, std::string("Authorization"));
@@ -10,21 +26,23 @@ const char **enviromentVariables(const ParsedRequest request, const Server serve
     env["CONTENT_TYPE"] = map::value(request.header, std::string("Content-Type"));
     env["GATEWAY_INTERFACE"] = GATEWAY_INTERFACE;
     env["PATH_INFO"] = request.uri;
-    env["PATH_TRANSLATED"] = ;
-    env["QUERY_STRING"] = ;
-    env["REMOTE_ADDR"] = ;
-    env["REMOTE_HOST"] = ;
-    env["REMOTE_IDENT"] = ;
-    env["REMOTE_USER"] = ;
+    env["PATH_TRANSLATED"] = request.uri;
+    // To be implemented
+    // env["QUERY_STRING"] = ;
+    // env["REMOTE_ADDR"] = ;
+    // env["REMOTE_HOST"] = ;
+    // env["REMOTE_IDENT"] = ;
+    // env["REMOTE_USER"] = ;
     env["REQUEST_METHOD"] = request.method;
     env["SCRIPT_NAME"] = map::value(request.header, request.uri);
     env["SERVER_NAME"] = server.server_name;
     env["SERVER_PORT"] = server.port;
     env["SERVER_PROTOCOL"] = SERVER_PROTOCOL;
     env["SERVER_SOFTWARE"] = SERVER_SOFTWARE;
+    return mapStringStringToCStringArray(env);
 }
 
-const bool executeCGI(const ParsedRequest request, const Route server, const int clientSocket)
+const std::string executeCGI(const ParsedRequest request, const Server server, const int clientSocket)
 {
     const pid_t pid = fork();
     if (pid == -1)
@@ -32,14 +50,17 @@ const bool executeCGI(const ParsedRequest request, const Route server, const int
     else if (pid == 0) // child process
     {
         execve(request.uri.c_str(), NULL, enviromentVariables(request, server));
+        std::cerr << "execve failed" << std::endl;
+        write(STDOUT_FILENO, "Status: 500\n\n", 13);
     }
     else // parent process
     {
         int status;
         waitpid(pid, &status, 0);
         if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
-            return true;
+            return ;
         else
-            return false;
+            return ;
     }
+    return cgiResponse;
 }
