@@ -1,9 +1,10 @@
 #include "parse_config.hpp"
 
-void Config::PrintLocation(const Location &location)
+void Config::PrintLocation(const Location& location) const
 {
 	std::cout << "\x1b[33m";
-	std::cout << "Location Path: " << location.path << std::endl;
+	std::cout << "Location Front_Path: " << location.front_path << std::endl;
+	std::cout << "Location Back_Path: " << location.back_path << std::endl;
 	std::cout << "Root: " << location.root << std::endl;
 	std::cout << "Autoindex: " << (location.autoindex ? "on" : "off") << std::endl;
 	std::cout << "Index: " << location.index << std::endl;
@@ -12,7 +13,7 @@ void Config::PrintLocation(const Location &location)
 	// Error Pages
 	std::cout << "Error Pages: ";
 	for (std::map<int, std::string>::const_iterator it = location.error_page.begin();
-		 it != location.error_page.end(); ++it)
+		it != location.error_page.end(); ++it)
 	{
 		std::cout << it->first << " => " << it->second << ", ";
 	}
@@ -27,7 +28,7 @@ void Config::PrintLocation(const Location &location)
 	std::cout << std::endl;
 
 	// CGI Path
-	std::cout << "CGI Path: " << location.cgi_path << std::endl;
+	std::cout << "CGI Executor: " << location.cgi_executor << std::endl;
 
 	// Upload Path
 	std::cout << "Upload Path: " << location.upload_path << std::endl;
@@ -35,7 +36,7 @@ void Config::PrintLocation(const Location &location)
 	// Redirect URL
 	std::cout << "Redirect URL: ";
 	for (std::map<int, std::string>::const_iterator it = location.redirect.begin();
-		 it != location.redirect.end(); ++it)
+		it != location.redirect.end(); ++it)
 	{
 		std::cout << it->first << " => " << it->second << ", ";
 	}
@@ -43,7 +44,7 @@ void Config::PrintLocation(const Location &location)
 	std::cout << "\x1b[0m";
 }
 
-void Config::PrintServer(const Server &server)
+void Config::PrintServer(const Server& server) const
 {
 	std::cout << "\x1b[32m";
 	std::cout << "Server Name: " << server.server_name << std::endl;
@@ -52,7 +53,7 @@ void Config::PrintServer(const Server &server)
 	// Error Pages
 	std::cout << "Server Error Pages: ";
 	for (std::map<int, std::string>::const_iterator it = server.error_page.begin();
-		 it != server.error_page.end(); ++it)
+		it != server.error_page.end(); ++it)
 	{
 		std::cout << it->first << " => " << it->second << ", ";
 	}
@@ -76,8 +77,19 @@ void Config::PrintServer(const Server &server)
 	std::cout << "\x1b[0m";
 }
 
+void Config::DebugPrint(void) const
+{
+	std::cout << "server size = " << servers.size() << std::endl;
+	// debug
+	for (size_t i = 0; i < servers.size(); ++i)
+	{
+		std::cout << "Server #" << (i + 1) << std::endl;
+		PrintServer(servers[i]);
+	}
+}
+
 // Configクラスのコンストラクタ
-Config::Config(const char *config_path)
+Config::Config(const char* config_path)
 {
 	ParseConfig(config_path);
 }
@@ -87,35 +99,9 @@ Config::~Config()
 	std::cout << "delete config object" << std::endl;
 }
 
-void Config::InitializeServer(Server &server)
-{
-	server.server_name = "";
-	server.port = 80;
-	server.root = "";
-	server.error_page.clear();
-	server.client_max_body_size = 1048576; // 1MB
-	server.autoindex = false;
-	server.index = "index.html";
-	server.locations.clear();
-}
-
-void Config::InitializeLocation(Location &location)
-{
-	location.path = "";
-	location.root = "";
-	location.autoindex = false;
-	location.index = "index.html";
-	location.client_max_body_size = 0;
-	location.error_page.clear();
-	location.allow_method.clear();
-	location.cgi_path = "";
-	location.upload_path = "";
-	location.redirect.clear();
-}
-
 // 一般的なテンプレート関数
 template <typename T>
-T Config::PullWord(std::istringstream &iss)
+T Config::PullWord(std::istringstream& iss)
 {
 	T word;
 	if (!(iss >> word))
@@ -132,14 +118,58 @@ T Config::PullWord(std::istringstream &iss)
 	return word;
 }
 
-// ロケーションブロックの設定を解析
-void Config::ParseLocation(std::ifstream &config_file, Location &location)
+void Config::HandleErrorPageDirective(std::istringstream& iss, std::map<int, std::string>& error_page)
 {
-	std::string tmp_line;
-	while (std::getline(config_file, tmp_line))
+	int error_code; // ステータスコードを取得
+	if (!(iss >> error_code))
+		throw(std::runtime_error("Config: returnの引数が不正です"));
+	std::string error_page_path;
+	if (!(iss >> error_page_path))
+		throw(std::runtime_error("Config: returnの引数が不正です"));
+	error_page[error_code] = error_page_path;
+
+	std::string tmp_str;
+	if (iss >> tmp_str)
+		throw(std::runtime_error("Config: returnの引数が多いです"));
+}
+
+void Config::HandleAllowMethodDirective(std::istringstream& iss, std::vector<std::string>& allow_method)
+{
+	// 許可されるHTTPメソッドをvectorに追加
+	std::string method;
+	int i = 0;
+	while (iss >> method)
 	{
-		std::istringstream tmp_iss(tmp_line);
-		std::string line;
+		if (method != "GET" && method != "POST" && method != "DELETE")
+			throw(std::runtime_error("Config: 許可されないHTTPメソッドが指定されています"));
+		allow_method.push_back(method);
+		i++;
+	}
+	if (i > 3)
+		throw(std::runtime_error("Config: 許可されるHTTPメソッドが多すぎます"));
+}
+
+void Config::HandleRedirectDirective(std::istringstream& iss, std::map<int, std::string>& redirect)
+{
+	int status_code; // ステータスコードを取得
+	if (!(iss >> status_code))
+		throw(std::runtime_error("Config: returnの引数が不正です"));
+	std::string redirect_url;
+	if (!(iss >> redirect_url))
+		throw(std::runtime_error("Config: returnの引数が不正です"));
+	std::string tmp_str;
+	if (iss >> tmp_str)
+		throw(std::runtime_error("Config: returnの引数が多いです"));
+	redirect[status_code] = redirect_url; // マップに追加
+}
+
+// ロケーションブロックの設定を解析
+void Config::ParseLocation(std::ifstream& config_file, Location& location)
+{
+	std::string line;
+	while (std::getline(config_file, line))
+	{
+		std::istringstream tmp_iss(line);
 		std::getline(tmp_iss, line, ';');
 		std::istringstream iss(line);
 		std::string key;
@@ -166,36 +196,15 @@ void Config::ParseLocation(std::ifstream &config_file, Location &location)
 			}
 			else if (key == "error_page")
 			{
-				int error_code; // ステータスコードを取得
-				if (!(iss >> error_code))
-					throw(std::runtime_error("Config: returnの引数が不正です"));
-				std::string error_page_path;
-				if (!(iss >> error_page_path))
-					throw(std::runtime_error("Config: returnの引数が不正です"));
-				location.error_page[error_code] = error_page_path;
-
-				std::string tmp_str;
-				if (iss >> tmp_str)
-					throw(std::runtime_error("Config: returnの引数が多いです"));
+				HandleErrorPageDirective(iss, location.error_page);
 			}
 			else if (key == "allow_method")
 			{
-				// 許可されるHTTPメソッドをvectorに追加
-				std::string method;
-				int i = 0;
-				while (iss >> method)
-				{
-					if (method != "GET" && method != "POST" && method != "DELETE")
-						throw(std::runtime_error("Config: 許可されないHTTPメソッドが指定されています"));
-					location.allow_method.push_back(method);
-					i++;
-				}
-				if (i > 3)
-					throw(std::runtime_error("Config: 許可されるHTTPメソッドが多すぎます"));
+				HandleAllowMethodDirective(iss, location.allow_method);
 			}
-			else if (key == "cgi_path")
+			else if (key == "cgi_executor")
 			{
-				location.cgi_path = PullWord<std::string>(iss);
+				location.cgi_executor = PullWord<std::string>(iss);
 			}
 			else if (key == "upload_path")
 			{
@@ -203,20 +212,11 @@ void Config::ParseLocation(std::ifstream &config_file, Location &location)
 			}
 			else if (key == "return")
 			{
-				int status_code; // ステータスコードを取得
-				if (!(iss >> status_code))
-					throw(std::runtime_error("Config: returnの引数が不正です"));
-				std::string redirect_url;
-				if (!(iss >> redirect_url))
-					throw(std::runtime_error("Config: returnの引数が不正です"));
-				std::string tmp_str;
-				if (iss >> tmp_str)
-					throw(std::runtime_error("Config: returnの引数が多いです"));
-				location.redirect[status_code] = redirect_url; // マップに追加
+				HandleRedirectDirective(iss, location.redirect);
 			}
 			else if (key == "}")
 			{
-				break; // locationブロックの終了
+				break;
 			}
 			else if (key.empty() || key == "\t" || key == "\n")
 			{
@@ -224,15 +224,10 @@ void Config::ParseLocation(std::ifstream &config_file, Location &location)
 			}
 			else
 			{
-				std::string next_line;
-				std::getline(config_file, next_line);
-				std::cout << RED << "次の行: " << next_line << NORMAL << std::endl;
-				std::getline(config_file, next_line);
-				std::cout << RED << "次の行: " << next_line << NORMAL << std::endl;
 				throw std::runtime_error(("不正なディレクティブ"));
 			}
 		}
-		catch (const std::runtime_error &e)
+		catch (const std::runtime_error& e)
 		{
 			// 正常に解析が行われなkった部分を発見する
 			std::cerr << RED << e.what() << "\nkey: " << key << NORMAL << std::endl;
@@ -241,14 +236,41 @@ void Config::ParseLocation(std::ifstream &config_file, Location &location)
 	}
 }
 
-// サーバーブロックの設定を解析
-void Config::ParseServer(std::ifstream &config_file, Server &server)
+void Config::HandleLocationDirective(std::istringstream& iss, std::ifstream& config_file, Server& server, int type)
 {
-	std::string tmp_line;
-	while (std::getline(config_file, tmp_line))
+	Location location;
+	location.Initialize();
+	std::string tmp_str;
+	if (type == FRONT)
 	{
-		std::istringstream tmp_iss(tmp_line);
-		std::string line;
+		if (!(iss >> location.front_path))
+			throw(std::runtime_error("location.front_pathが指定されていません"));
+	}
+	else
+	{
+		if (!(iss >> location.back_path))
+			throw(std::runtime_error("location.back_pathが指定されていません"));
+		if (location.back_path[0] != '.')
+			throw(std::runtime_error("location.back_pathは拡張子で指定してください"));
+	}
+	if (!(iss >> tmp_str) || tmp_str != "{")
+		throw(std::runtime_error("Config: locationブロックの開始が不正です"));
+	if (iss >> tmp_str)
+		throw(std::runtime_error("Config: locationの引数が多いです"));
+	ParseLocation(config_file, location);
+	server.locations.push_back(location);
+	if (config_file.eof())
+	{
+		throw(std::runtime_error("Config: サーバーブロックが終了していない"));
+	}
+}
+// サーバーブロックの設定を解析
+void Config::ParseServer(std::ifstream& config_file, Server& server)
+{
+	std::string line;
+	while (std::getline(config_file, line))
+	{
+		std::istringstream tmp_iss(line);
 		std::getline(tmp_iss, line, ';');
 		std::istringstream iss(line);
 		std::string key;
@@ -256,33 +278,21 @@ void Config::ParseServer(std::ifstream &config_file, Server &server)
 		try
 		{
 			// 各ディレクティブに対する処理を記述
-			if (key == "server_name")
+			if (key == "location")
+			{
+				HandleLocationDirective(iss, config_file, server, FRONT);
+			}
+			else if (key == "location_back")
+			{
+				HandleLocationDirective(iss, config_file, server, BACK);
+			}
+			else if (key == "server_name")
 			{
 				server.server_name = PullWord<std::string>(iss);
-				// if (iss >> key)
-				// 	throw(std::runtime_error("Config: server_nameの引数が多いです"));
 			}
 			else if (key == "listen")
 			{
 				server.port = PullWord<int>(iss);
-			}
-			else if (key == "location")
-			{
-				Location location;
-				InitializeLocation(location);
-				std::string tmp_str;
-				if (!(iss >> location.path))
-					throw(std::runtime_error("location.pathが指定されていません"));
-				if (!(iss >> tmp_str) || tmp_str != "{")
-					throw(std::runtime_error("Config: locationブロックの開始が不正です"));
-				if (iss >> tmp_str)
-					throw(std::runtime_error("Config: locationの引数が多いです"));
-				ParseLocation(config_file, location);
-				server.locations.push_back(location);
-				if (config_file.eof())
-				{
-					throw(std::runtime_error("Config: サーバーブロックが終了していない"));
-				}
 			}
 			else if (key == "root")
 			{
@@ -290,16 +300,7 @@ void Config::ParseServer(std::ifstream &config_file, Server &server)
 			}
 			else if (key == "error_page")
 			{
-				int error_code;
-				if (!(iss >> error_code))
-					throw(std::runtime_error("Config: error_pageの引数が不正です"));
-				std::string error_page_path;
-				if (!(iss >> error_page_path))
-					throw(std::runtime_error("Config: error_pageの引数が不正です"));
-				server.error_page[error_code] = error_page_path;
-				std::string tmp_str;
-				if (iss >> tmp_str)
-					throw(std::runtime_error("Config: returnの引数が多いです"));
+				HandleErrorPageDirective(iss, server.error_page);
 			}
 			else if (key == "client_max_body_size")
 			{
@@ -328,16 +329,16 @@ void Config::ParseServer(std::ifstream &config_file, Server &server)
 			}
 			else
 			{
-				std::string next_line;
-				std::getline(config_file, next_line);
-				std::cout << RED << "次の行: " << next_line << std::endl;
-				std::getline(config_file, next_line);
-				std::cout << RED << "次の行: " << next_line << std::endl;
 				throw std::runtime_error(("Config: 不正なディレクティブ"));
 			}
 		}
-		catch (const std::runtime_error &e)
+		catch (const std::runtime_error& e)
 		{
+			std::string next_line;
+			std::getline(config_file, next_line);
+			std::cout << RED << "次の行: " << next_line << std::endl;
+			std::getline(config_file, next_line);
+			std::cout << RED << "次の行: " << next_line << std::endl;
 			// 正常に解析が行われなkった部分を発見する
 			std::cerr << RED << e.what() << "\nkey: " << key << NORMAL << std::endl;
 			throw(std::runtime_error(""));
@@ -346,7 +347,7 @@ void Config::ParseServer(std::ifstream &config_file, Server &server)
 }
 
 // 設定ファイルを解析するメイン関数
-void Config::ParseConfig(const char *config_path)
+void Config::ParseConfig(const char* config_path)
 {
 	std::ifstream config_file(config_path);
 	std::string line;
@@ -365,43 +366,37 @@ void Config::ParseConfig(const char *config_path)
 		if (key == "server")
 		{
 			Server server;
-			InitializeServer(server);
+			server.InitializeServer();
 			std::string tmp_str;
 			if (!(iss >> tmp_str) || tmp_str != "{")
 				throw(std::runtime_error("Config: serverブロックの開始が不正です"));
 			if (iss >> tmp_str)
 				throw(std::runtime_error("Config: serverの引数が多いです"));
 			ParseServer(config_file, server);
-			webserver.servers.push_back(server);
+			servers.push_back(server);
 		}
 	}
 }
 
-int main(int argc, char **argv)
-{
-	if (argc < 2)
-	{
-		std::cerr << "config fileを指定してください" << std::endl;
-		return 1;
-	}
+// int main(int argc, char **argv)
+// {
+// 	if (argc < 2)
+// 	{
+// 		std::cerr << "config fileを指定してください" << std::endl;
+// 		return 1;
+// 	}
 
-	const char *config_path = argv[1];
-	try
-	{
-		Config config(config_path);
-		std::cout << "server size = " << config.webserver.servers.size() << std::endl;
-		// debug
-		for (size_t i = 0; i < config.webserver.servers.size(); ++i)
-		{
-			std::cout << "Server #" << (i + 1) << std::endl;
-			config.PrintServer(config.webserver.servers[i]);
-		}
-	}
-	catch (const std::runtime_error &e)
-	{
-		std::cerr << RED << e.what() << NORMAL;
-		return 1;
-	}
+// 	const char *config_path = argv[1];
+// 	try
+// 	{
+// 		Config config(config_path);
+// 		config.DebugPrint();
+// 	}
+// 	catch (const std::runtime_error &e)
+// 	{
+// 		std::cerr << RED << e.what() << NORMAL;
+// 		return 1;
+// 	}
 
-	return 0;
-}
+// 	return 0;
+// }
