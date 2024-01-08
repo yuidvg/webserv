@@ -13,6 +13,11 @@ OBJS_DIR = obj/
 OBJS = $(patsubst $(SRCS_DIR)%,$(OBJS_DIR)%,$(SRCS:.cpp=.o))
 DEPS = $(SRCS:.cpp=.d)
 
+#CLIENT
+CLIENT_NAME = client_app
+CLIENT_SRCS = client/client.cpp
+CLIENT_OBJS = $(CLIENT_SRCS:.cpp=.o)
+
 all: $(NAME)
 
 $(NAME): $(OBJS)
@@ -26,12 +31,17 @@ $(OBJS_DIR)%.o: $(SRCS_DIR)%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	$(RM) $(OBJS_DIR) $(DEBUG_OBJS_DIR) $(DEBUG_CLIENT_OBJS) client.d
+	$(RM) $(OBJS_DIR) $(DEBUG_OBJS_DIR) $(DEBUG_CLIENT_OBJS)
 
 fclean: clean
 	$(RM) $(NAME) $(DEBUG_NAME) $(DEBUG_CLIENT_NAME)
 
 re: fclean all
+
+client: $(CLIENT_NAME)
+
+$(CLIENT_NAME): $(CLIENT_OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $^
 
 .PHONY: all clean fclean re debug
 
