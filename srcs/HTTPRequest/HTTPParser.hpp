@@ -49,9 +49,9 @@ typedef Result<RequestLine, int>						ParseRequestLineResult;
 typedef Result<std::map<std::string, std::string>, int>	ParseHeaderResult;
 typedef Result<std::string, int>						ParseBodyResult;
 
-ParseRequestLineResult	parseHTTPRequestLine(std::string &httpRequest, const Server &server);
-ParseHeaderResult		parseHTTPHeaders(std::string &httpRequest);
-ParseBodyResult			parseHTTPBody(std::string &httpRequest, std::map<std::string, std::string> &header);
-HTTPParseResult			parseHTTPRequest(std::string &httpRequest, const Server &server);
+ParseRequestLineResult	parseHTTPRequestLine(std::istream &httpRequest, const Server &server);
+ParseHeaderResult		parseHTTPHeaders(std::istream &httpRequest);
+ParseBodyResult			parseHTTPBody(std::istream &httpRequest, std::map<std::string, std::string> &header);
+HTTPParseResult			parseHTTPRequest(std::istream &httpRequest, const Server &server);
 
 #endif
