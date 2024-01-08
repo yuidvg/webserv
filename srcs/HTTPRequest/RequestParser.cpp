@@ -30,6 +30,7 @@ static bool checkRequestLine(std::string &method, std::string &uri, std::string 
         return (false);
     }
 
+<<<<<<<< HEAD:srcs/HTTPRequest/RequestParser.cpp
     // std::vector<std::string>	allowedMethods;
     // std::vector<Location>::const_iterator it;
     // for (it = server.locations.begin(); it != server.locations.end(); ++it)
@@ -59,6 +60,35 @@ static bool checkRequestLine(std::string &method, std::string &uri, std::string 
     // 		return (false);
     // 	}
     // }
+========
+    std::vector<std::string> allowed_methods;
+    std::vector<Location>::const_iterator it;
+    for (it = server.locations.begin(); it != server.locations.end(); ++it)
+    {
+        if (!it->path.empty() && uri.find(it->path) != std::string::npos)
+        {
+            if (uri.find(it->path) != std::string::npos)
+            {
+                allowed_methods = it->allowMethod;
+                break; // マッチしたらループを抜ける
+            }
+            if (uri.find(it->path) == std::string::npos)
+            {
+                error_code = BAD_REQUEST;
+                return (false);
+            }
+        }
+        // else if (!it.backPath.empty() && uri.rfind(it.backPath) != std::string::npos)
+        // {
+        // 	// マッチしなかった場合は、後方一致のパスをチェックする
+        // }
+        else
+        {
+            error_code = BAD_REQUEST;
+            return (false);
+        }
+    }
+>>>>>>>> origin/develop:srcs/HTTPRequest/HTTPParser.cpp
 
     // for (int i = 0; i < 3; i++)
     // {
