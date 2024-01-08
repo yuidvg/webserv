@@ -1,7 +1,7 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
-#include "../config/structure_config.hpp"
+#include "../config/config.hpp"
 #include <cstring>
 #include <iostream>
 #include <sstream>

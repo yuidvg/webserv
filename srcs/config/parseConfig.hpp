@@ -1,8 +1,8 @@
-#ifndef PARSE_CONFIG_HPP
-#define PARSE_CONFIG_HPP
+#ifndef parseConfig_HPP
+#define parseConfig_HPP
 
 #include "../Result/Result.hpp"
-#include "structure_config.hpp"
+#include "config.hpp"
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -26,7 +26,7 @@ typedef Result<std::string, std::string> ErrorPageMapResult;
 template <typename T> Result<T, std::string> PullWord(std::istringstream &iss);
 ParseServerResult ParseServer(std::ifstream &config_file);
 ParseRoutesResult ParseLocation(std::ifstream &config_file, Location &location);
-ErrorPageMapResult HandleErrorPageDirective(std::istringstream &iss, std::map<int, std::string> &error_page);
+ErrorPageMapResult HandleErrorPageDirective(std::istringstream &iss, std::map<int, std::string> &errorPages);
 void HandleLocationDirective(std::istringstream &iss, std::ifstream &config_file, Server &server, int type);
 
 ParseResult ParseConfig(const char *config_path);

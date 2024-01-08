@@ -7,7 +7,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "../Result/Result.hpp"
-#include "../config/parse_config.hpp"
+#include "../config/parseConfig.hpp"
 #include <vector>
 #include <cerrno>
 

@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "../Result/Result.hpp"
-#include "../config/parse_config.hpp"
+#include "../config/parseConfig.hpp"
 #include "utils.hpp"
 
 #define SUCCESS 0
