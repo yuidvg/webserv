@@ -14,11 +14,10 @@ DEPS = $(SRCS:.cpp=.d)
 #DEBUG
 DEBUG_CXXFLAGS = -g
 DEBUG_NAME = debug.out
+DEBUG_SRCS_DIR = debug_src/
+DEBUG_SRCS = $(DEBUG_SRCS_DIR)$(DEBUG_SRC_NAME) $(SRCS)
 DEBUG_OBJS_DIR = debug_obj/
-DEBUG_OBJS = $(patsubst $(SRCS_DIR)%,$(DEBUG_OBJS_DIR)%,$(SRCS:.cpp=.o))
-DEBUG_CLIENT_NAME = client
-DEBUG_CLIENT_SRCS = client.cpp
-DEBUG_CLIENT_OBJS = $(DEBUG_CLIENT_SRCS:.cpp=.o)
+DEBUG_OBJS = $(patsubst $(DEBUG_SRCS_DIR)%,$(DEBUG_OBJS_DIR)%,$(DEBUG_SRCS:.cpp=.o))
 
 all: $(NAME)
 
@@ -42,7 +41,7 @@ re: fclean all
 
 
 #DEBUG
-debug: $(DEBUG_NAME) $(DEBUG_CLIENT_NAME)
+debug: $(DEBUG_NAME)
 
 $(DEBUG_NAME): $(DEBUG_OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^
@@ -51,9 +50,6 @@ $(DEBUG_NAME): $(DEBUG_OBJS)
 $(DEBUG_OBJS_DIR)%.o: $(SRCS_DIR)%.cpp
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) $(DEBUG_CXXFLAGS) -c $< -o $@
-
-$(DEBUG_CLIENT_NAME): $(DEBUG_CLIENT_OBJS)
-	$(CXX) -o $@ $^
 
 .PHONY: all clean fclean re debug
 
