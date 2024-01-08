@@ -12,4 +12,5 @@ const unsigned int OUT = 0;
 const std::string RED = "\x1b[31m";
 const std::string GREEN = "\x1b[32m";
 const std::string YELLO = "\x1b[33m";
+
 const std::string NORMAL = "\x1b[0m";

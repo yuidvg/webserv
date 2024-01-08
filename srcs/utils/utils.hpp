@@ -15,6 +15,10 @@ std::string &trim(std::string &str);
 std::string toLower(std::string str);
 bool isNumber(const std::string &str);
 
+template <typename T>
+void printError(const T &message);
+
+
 } // namespace utils
 
 #endif
