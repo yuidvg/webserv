@@ -4,6 +4,8 @@
 # include <cstring>
 # include <iostream>
 
+const char *CRLF = "\r\n";
+
 struct HttpResponse
 {
 	;
