@@ -1,5 +1,6 @@
 #include "server/connection.hpp"
 #include "config/parseConfig.hpp"
+#include "utils/utils.hpp"
 
 int main(int argc, char **argv)
 {
@@ -10,14 +11,14 @@ int main(int argc, char **argv)
 		config_path = argv[1];
 	else
 	{
-		std::cerr << RED << "引数が多すぎます" << NORMAL << std::endl;
+		utils::printError("引数が多すぎます");
 		return 1;
 	}
 
 	ParseResult result = ParseConfig(config_path);
 	if (!result.ok())
 	{
-		std::cerr << RED << result.unwrapErr() << NORMAL << std::endl;
+		utils::printError(result.unwrapErr());
 		return 1;
 	}
 	std::vector<Server> servers = result.unwrap();

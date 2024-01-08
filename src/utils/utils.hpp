@@ -31,7 +31,19 @@ template <typename Key, typename Value> Value value(const std::map<Key, Value> m
         return Value();
     }
 }
-template <typename T> void printError(const T &message);
+
+template <typename T>
+void printError(const T &message)
+{
+    std::cerr << "\033[31m" << message << "\033[0m" << std::endl;
+}
+
+template <class T>
+std::string to_string(const T& value) {
+    std::ostringstream oss;
+    oss << value;
+    return oss.str();
+}
 
 } // namespace utils
 

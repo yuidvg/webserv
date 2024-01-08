@@ -1,5 +1,6 @@
 #include "connection.hpp"
 #include "../HttpRequest/RequestParser.hpp"
+#include "../utils/utils.hpp"
 
 Connection::Connection()
 {
@@ -85,7 +86,7 @@ void Connection::ProcessConnection(int sd, Socket &socket)
 	rc = recv(sd, buffer, sizeof(buffer) - 1, 0);
 	if (rc < 0)
 	{
-		std::cerr << "recv() failed " << strerror(errno) << std::endl;
+		utils::printError(std::string("recv() failed: " + std::string(strerror(errno))));
 		CloseConnection(sd);
 		return;
 	}
@@ -103,7 +104,7 @@ void Connection::ProcessConnection(int sd, Socket &socket)
 	HttpParseResult	parserResult = parseHttpRequest(buf, socket.getServer());
 	if (!parserResult.ok())
 	{
-		std::cerr << RED << "error_code: " << parserResult.unwrapErr() << NORMAL << std::endl;
+		utils::printError(std::string("parseHttpRequest() failed: " + utils::to_string(parserResult.unwrapErr())));
 		CloseConnection(sd);
 		return;
 	}
@@ -114,7 +115,7 @@ void Connection::ProcessConnection(int sd, Socket &socket)
 	rc = send(sd, response.c_str(), response.length(), 0);
 	if (rc < 0)
 	{
-		std::cerr << "send() failed: " << std::endl;
+		utils::printError("send() failed: ");
 		CloseConnection(sd);
 		return;
 	}
@@ -151,7 +152,7 @@ void Connection::Start(std::vector<Server> servers)
 		int rc = select(max_sd + 1, &working_set, NULL, NULL, &timeout);
 		if (rc < 0)
 		{
-			std::cerr << "select() failed: " << strerror(errno) << std::endl;
+			utils::printError(std::string("select() failed: " + std::string(strerror(errno))));
 			break;
 		}
 		else if (rc == 0)
@@ -173,7 +174,7 @@ void Connection::Start(std::vector<Server> servers)
 					NewSDResult newSDResult = AcceptNewConnection(i);
 					if (!newSDResult.ok())
 					{
-						std::cerr << newSDResult.unwrapErr() << std::endl;
+						utils::printError(newSDResult.unwrapErr());
 						AllCloseConnection();
 						return;
 					}

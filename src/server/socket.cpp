@@ -41,8 +41,7 @@ InitializeResult Socket::initialize() const
     if (bind(sd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
         close(sd);
-        std::cout << errno << std::endl;
-        return (InitializeResult::Err("bind() failed"));
+        return (InitializeResult::Err(std::string("bind() failed: " + std::string(strerror(errno)) + "\nポート番号" + utils::to_string(server.port))));
     }
 
     if (listen(sd, 5) < 0)
@@ -50,7 +49,6 @@ InitializeResult Socket::initialize() const
         close(sd);
         return (InitializeResult::Err("listen() failed"));
     }
-
     return InitializeResult::Ok(sd);
 }
 
