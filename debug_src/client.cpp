@@ -31,13 +31,13 @@ int main(int argc, char** argv)
 		}
 		else
 		{
-			std::cerr << "HTTPリクエストファイルを開けません: " << argv[2] << std::endl;
+			utils::printError(std::string("HTTPリクエストファイルを開けません: " + std::string(argv[2])));
 			return -1;
 		}
 	}
 	else if (argc < 2)
 	{
-		std::cerr << "ポート番号を指定してください" << std::endl;
+		utils::printError("ポート番号を指定してください");
 		return -1;
 	}
 	int sock = 0;
@@ -45,14 +45,14 @@ int main(int argc, char** argv)
 	// ソケットの作成
 	if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0)
 	{
-		std::cerr << "Socket creation error" << std::endl;
+		utils::printError("Socket creation error");
 		return -1;
 	}
 
 	serv_addr.sin_family = PF_INET;
 	if (!is_digits_only(argv[1]))
 	{
-		std::cerr << "Invalid port number" << std::endl;
+		utils::printError("Invalid port number");
 		return -1;
 	}
 	int port = atoi(argv[1]);
@@ -61,14 +61,14 @@ int main(int argc, char** argv)
 	// IPv4アドレスへの変換
 	if (inet_pton(PF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0)
 	{
-		std::cerr << "Invalid address / Address not supported" << std::endl;
+		utils::printError("Invalid address / Address not supported");
 		return -1;
 	}
 
 	// サーバーへの接続
 	if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0)
 	{
-		std::cerr << "Connection failed" << std::endl;
+		utils::printError("Connection failed");
 		return -1;
 	}
 
@@ -97,8 +97,7 @@ int main(int argc, char** argv)
 		int valread = read(sock, buffer, 1024);
 		if (valread < 0)
 		{
-			// std::cerr << "Read error" << std::endl;
-			std::cerr << "Read error: " << strerror(errno) << std::endl;
+			utils::printError(std::string("Read error: " + std::string(strerror(errno))));
 			return -1;
 		}
 		std::cout << "Server: " << buffer << std::endl;
