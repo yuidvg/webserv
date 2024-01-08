@@ -6,19 +6,24 @@
 # include <iostream>
 # include <sstream>
 # include <map>
+# include <vector>
 
 # include "utils.hpp"
-# include "Result.hpp"
+# include "../Result/Result.hpp"
+# include "../config/parse_config.hpp"
 
 # define SUCCESS 0
 # define FAILURE 1
 
 # define MAX_LEN 8192
 
-# define HTTP_STATUS_OK 200
-# define HTTP_STATUS_BAD_REQUEST 400
-# define HTTP_STATUS_CONTENT_TOO_LARGE 413
-# define HTTP_STATUS_REQUEST_URI_TOO_LONG 414
+# define OK 200
+# define BAD_REQUEST 400
+# define METHOD_NOT_ALLOWED 405
+# define CONTENT_TOO_LARGE 413
+# define REQUEST_URI_TOO_LONG 414
+# define NOT_IMPLEMENTED 501
+# define HTTP_VERSION_NOT_SUPPORTED 505
 
 struct ParsedRequest
 {
@@ -39,13 +44,14 @@ struct RequestLine
 	std::string	version;
 };
 
-typedef Result<ParsedRequest, int>						ParseResult;
+typedef Result<ParsedRequest, int>						HTTPParseResult;
 typedef Result<RequestLine, int>						ParseRequestLineResult;
 typedef Result<std::map<std::string, std::string>, int>	ParseHeaderResult;
 typedef Result<std::string, int>						ParseBodyResult;
 
-ParseRequestLineResult	parseHTTPRequestLine(std::string &httpRequest);
+ParseRequestLineResult	parseHTTPRequestLine(std::string &httpRequest, const Server &server);
 ParseHeaderResult		parseHTTPHeaders(std::string &httpRequest);
 ParseBodyResult			parseHTTPBody(std::string &httpRequest, std::map<std::string, std::string> &header);
+HTTPParseResult			parseHTTPRequest(std::string &httpRequest, const Server &server);
 
 #endif

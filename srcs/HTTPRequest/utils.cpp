@@ -31,3 +31,13 @@ std::string	toLower(std::string str)
 	std::transform(&str[0], &str[0] + str.size(), &str[0], ::tolower);
 	return (str);
 }
+
+bool	isNumber(const std::string &str)
+{
+	for (int i = 0; str[i]; i++)
+	{
+		if (!std::isdigit(str[i]))
+			return (false);
+	}
+	return (true);
+}

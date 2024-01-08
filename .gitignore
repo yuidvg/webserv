@@ -6,9 +6,12 @@
 .sample
 client
 webserv
+*/*.txt
+*/main.cppclient
+webserv
 srcs/Makefile
 srcs/*/main.cpp
-obj
+objs
 *.txt
 client
 */main.cpp
