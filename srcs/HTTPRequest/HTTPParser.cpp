@@ -20,20 +20,20 @@ static bool checkRequestLine(std::string &method, std::string &uri, std::string 
     std::vector<Location>::const_iterator it;
     for (it = server.locations.begin(); it != server.locations.end(); ++it)
     {
-        if (!it->front_path.empty() && uri.find(it->front_path) != std::string::npos)
+        if (!it->path.empty() && uri.find(it->path) != std::string::npos)
         {
-            if (uri.find(it->front_path) != std::string::npos)
+            if (uri.find(it->path) != std::string::npos)
             {
-                allowed_methods = it->allow_method;
+                allowed_methods = it->allowMethod;
                 break; // マッチしたらループを抜ける
             }
-            if (uri.find(it->front_path) == std::string::npos)
+            if (uri.find(it->path) == std::string::npos)
             {
                 error_code = BAD_REQUEST;
                 return (false);
             }
         }
-        // else if (!it.back_path.empty() && uri.rfind(it.back_path) != std::string::npos)
+        // else if (!it.backPath.empty() && uri.rfind(it.backPath) != std::string::npos)
         // {
         // 	// マッチしなかった場合は、後方一致のパスをチェックする
         // }
@@ -112,7 +112,7 @@ ParseHeaderResult parseHTTPHeaders(std::istream &httpRequest)
         std::getline(header_line, key, ':');
         std::getline(header_line, value);
         trim(value); // valueの前後の空白を削除する
-	
+
         if (key.empty() || std::isspace(*(key.end() - 1)) || value.empty())
             return (ParseHeaderResult::Err(BAD_REQUEST));
 
