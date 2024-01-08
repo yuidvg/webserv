@@ -1,5 +1,5 @@
 #include "connection.hpp"
-#include "../HTTPRequest/HTTPParser.hpp"
+#include "../HttpRequest/RequestParser.hpp"
 
 Connection::Connection()
 {
@@ -100,7 +100,7 @@ void Connection::ProcessConnection(int sd, Socket &socket)
 
 	// TODO: 受け取ったHTTPリクエストを解析する
 	std::istringstream	buf(buffer);
-	HTTPParseResult	parserResult = parseHTTPRequest(buf, socket.getServer());
+	HttpParseResult	parserResult = parseHttpRequest(buf, socket.getServer());
 	if (!parserResult.ok())
 	{
 		std::cerr << RED << "error_code: " << parserResult.unwrapErr() << NORMAL << std::endl;
