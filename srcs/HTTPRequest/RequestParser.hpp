@@ -10,6 +10,7 @@
 
 #include "../config/parseConfig.hpp"
 #include "../utils/utils.hpp"
+#include "../utils/Result.hpp"
 
 #define SUCCESS 0
 #define FAILURE 1
