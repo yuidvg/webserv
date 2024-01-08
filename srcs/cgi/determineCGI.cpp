@@ -1,9 +1,10 @@
-#include "../HTTP/HTTPParser.hpp"
-#include "matchedRoute.cpp"
+#include "../HTTPRequest/HTTPParser.hpp"
+#include "../config/structure_config.hpp"
+#include "../utils/utils.hpp"
 
-const bool shouldUseCGI(const ParsedRequest request, const Server server)
+bool shouldUseCGI(const ParsedRequest request, const Server server)
 {
-    const Route route = matchedRoute(request.uri, server.routes);
+    const Route route = utils::matchedRoute(request.uri, server.routes);
     const std::vector<std::string> extensions = route.cgiExtensions;
     for (unsigned int i = 0; i < extensions.size(); i++)
     {
