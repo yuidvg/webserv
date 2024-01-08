@@ -10,14 +10,6 @@
 #include <string>
 #include <vector>
 
-#define RED "\x1b[31m"
-#define GREEN "\x1b[32m"
-#define YELLO "\x1b[33m"
-#define NORMAL "\x1b[0m"
-
-#define FRONT 0
-#define BACK 1
-
 typedef Result<std::vector<Server>, std::string> ParseResult;
 typedef Result<Server, std::string> ParseServerResult;
 typedef Result<std::string, std::string> ParseRoutesResult;
