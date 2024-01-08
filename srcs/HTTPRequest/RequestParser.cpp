@@ -7,15 +7,12 @@ static bool isLineTooLong(const std::string &line)
     return (false);
 }
 
-static bool checkMethod(const std::string &method)
+static bool checkMethod(const std::string &method, const std::string &uri, const Server &server)
 {
-    std::vector<std::string> allowedMethods;
-    allowedMethods.push_back("GET");
-    allowedMethods.push_back("POST");
-    allowedMethods.push_back("DELETE");
-    for (int i = 0; i < 3; i++)
+    Location matchedLocation = utils::matchedLocation(uri, server.locations);
+    for (unsigned int i = 0; i < matchedLocation.allowMethod.size(); i++)
     {
-        if (method == allowedMethods[i])
+        if (method == matchedLocation.allowMethod[i])
             return (true);
     }
     return (false);
@@ -31,7 +28,7 @@ static bool checkRequestLine(std::string &method, std::string &uri, std::string 
     }
 
     (void)server;
-    if (!checkMethod(method))
+    if (!checkMethod(method, uri, server))
     {
         errorCode = METHOD_NOT_ALLOWED;
         return (false);
