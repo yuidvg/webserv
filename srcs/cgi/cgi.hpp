@@ -9,7 +9,7 @@
 
 namespace cgi
 {
-using CGIResult = utils::Result<std::string, std::string>;
+typedef utils::Result<std::string, std::string> CGIResult;
 CGIResult execute(const ParsedRequest request, const Server server, const int clientSocket);
 bool shouldUse(const ParsedRequest request, const Server server);
 } // namespace cgi
