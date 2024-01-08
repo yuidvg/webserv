@@ -2,10 +2,12 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "make fclean and debug",
-			"command": "make fclean && make debug",
+			"label": "buildWithDebug",
+			"command": "make",
 			"type": "shell",
-			"args": [],
+			"args": [
+				"re"
+			],
 			"problemMatcher": [
 				"$tsc"
 			],
