@@ -1,5 +1,8 @@
 #include "cgi.hpp"
 
+namespace cgi
+{
+
 char *const *mapStringStringToCStringArray(const std::map<std::string, std::string> envMap)
 {
     char **envArray = new char *[envMap.size() + 1];
@@ -40,17 +43,17 @@ char *const *enviromentVariables(const ParsedRequest request, const Server serve
     return mapStringStringToCStringArray(env);
 }
 
-const std::string execute(const ParsedRequest request, const Server server, const int clientSocket)
+ResponseResult execute(const ParsedRequest request, const Server server)
 {
     int pipefds[2];
     if (pipe(pipefds) == -1)
     {
         std::cerr << "pipe failed" << std::endl;
-        return "Status: 500\n\n";
+        return ResponseResult::Err("Status: 500\n\n");
     }
     const pid_t pid = fork();
     if (pid == -1)
-        return false;
+        return ResponseResult::Err("Status: 500\n\n");
     else if (pid == 0) // child process
     {
         close(pipefds[IN]);
@@ -65,9 +68,11 @@ const std::string execute(const ParsedRequest request, const Server server, cons
         int status;
         waitpid(pid, &status, 0);
         if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
-            return Result<>::Err("Status: 200\n\n");
+            return ResponseResult::Err("Status: 200\n\n");
         else
-            return;
+            return ResponseResult::Err("Status: 500\n\n");
     }
-    return cgiResponse;
+    return ResponseResult::Ok("Status: 500\n\n");
 }
+
+} // namespace cgi

@@ -1,5 +1,8 @@
 #include "utils.hpp"
 
+namespace utils
+{
+
 std::string &trim(std::string &str)
 {
     while (std::isspace(str[0]))
@@ -32,3 +35,5 @@ unsigned int lengthOfPrefixMatch(const std::string string, const std::string pat
     else
         return 0;
 }
+
+} // namespace utils

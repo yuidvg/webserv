@@ -1,6 +1,7 @@
 *.vscode
 *.o
 *.a
+*.d
 *.out
 *.DS_Store
 .sample
@@ -9,8 +10,8 @@ webserv
 */*.txt
 */main.cppclient
 webserv
-srcs/Makefile
-srcs/*/main.cpp
+src/Makefile
+src/*/main.cpp
 obj
 *.txt
 client

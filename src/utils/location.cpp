@@ -1,5 +1,8 @@
 #include "utils.hpp"
 
+namespace utils
+{
+
 Location matchedLocation(const std::string uri, const std::vector<Location> routes)
 {
     Location matchedLocation = routes[0];
@@ -10,4 +13,6 @@ Location matchedLocation(const std::string uri, const std::vector<Location> rout
             matchedLocation = route;
     }
     return matchedLocation;
+}
+
 }

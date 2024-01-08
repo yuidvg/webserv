@@ -1,20 +1,20 @@
 #include "parseConfig.hpp"
 
-template <typename T> Result<T, std::string> PullWord(std::istringstream &iss)
+template <typename T> utils::Result<T, std::string> PullWord(std::istringstream &iss)
 {
     T word;
     if (!(iss >> word))
     {
-        return Result<T, std::string>::Err("Config: ディレクティブの引数が不正です");
+        return utils::Result<T, std::string>::Err("Config: ディレクティブの引数が不正です");
     }
     std::string tmp_str;
     if (iss >> tmp_str)
     {
         std::ostringstream oss;
         oss << "Config: " << word << " ディレクティブの引数が多いです";
-        return Result<T, std::string>::Err(oss.str());
+        return utils::Result<T, std::string>::Err(oss.str());
     }
-    return Result<T, std::string>::Ok(word);
+    return utils::Result<T, std::string>::Ok(word);
 }
 
 ErrorPageMapResult HandleErrorPageDirective(std::istringstream &iss, std::map<int, std::string> &errorPages)
@@ -47,28 +47,28 @@ ParseRoutesResult ParseLocation(std::ifstream &config_file, Location &location)
         iss >> key;
         if (key == "root")
         {
-            Result<std::string, std::string> result = PullWord<std::string>(iss);
+            utils::Result<std::string, std::string> result = PullWord<std::string>(iss);
             if (!result.ok())
                 return ParseRoutesResult::Err(result.unwrapErr());
             location.root = result.unwrap();
         }
         else if (key == "autoindex")
         {
-            Result<std::string, std::string> result = PullWord<std::string>(iss);
+            utils::Result<std::string, std::string> result = PullWord<std::string>(iss);
             if (!result.ok())
                 return ParseRoutesResult::Err(result.unwrapErr());
             location.autoindex = (result.unwrap() == "on");
         }
         else if (key == "index")
         {
-            Result<std::string, std::string> result = PullWord<std::string>(iss);
+            utils::Result<std::string, std::string> result = PullWord<std::string>(iss);
             if (!result.ok())
                 return ParseRoutesResult::Err(result.unwrapErr());
             location.index = result.unwrap();
         }
         else if (key == "clientMaxBodySize")
         {
-            Result<size_t, std::string> result = PullWord<size_t>(iss);
+            utils::Result<size_t, std::string> result = PullWord<size_t>(iss);
             if (!result.ok())
                 return ParseRoutesResult::Err(result.unwrapErr());
             location.clientMaxBodySize = result.unwrap();
@@ -98,14 +98,12 @@ ParseRoutesResult ParseLocation(std::ifstream &config_file, Location &location)
         else if (key == "cgiExtension")
         {
             std::string cgi_program;
-            while (iss >> cgi_program)
-            {
-                location.cgiExtension.push_back(cgi_program);
-            }
+            iss >> cgi_program;
+            location.cgiExtension = (cgi_program);
         }
         else if (key == "upload_path")
         {
-            Result<std::string, std::string> result = PullWord<std::string>(iss);
+            utils::Result<std::string, std::string> result = PullWord<std::string>(iss);
             if (!result.ok())
                 return ParseRoutesResult::Err(result.unwrapErr());
             location.uploadPath = result.unwrap();
@@ -173,21 +171,21 @@ ParseServerResult ParseServer(std::ifstream &config_file)
         }
         else if (key == "server_name")
         {
-            Result<std::string, std::string> result = PullWord<std::string>(iss);
+            utils::Result<std::string, std::string> result = PullWord<std::string>(iss);
             if (!result.ok())
                 return ParseServerResult::Err(result.unwrapErr());
             server.name = result.unwrap();
         }
         else if (key == "listen")
         {
-            Result<int, std::string> result = PullWord<int>(iss);
+            utils::Result<int, std::string> result = PullWord<int>(iss);
             if (!result.ok())
                 return ParseServerResult::Err(result.unwrapErr());
             server.port = result.unwrap();
         }
         else if (key == "root")
         {
-            Result<std::string, std::string> result = PullWord<std::string>(iss);
+            utils::Result<std::string, std::string> result = PullWord<std::string>(iss);
             if (!result.ok())
                 return ParseServerResult::Err(result.unwrapErr());
             server.root = result.unwrap();
@@ -200,14 +198,14 @@ ParseServerResult ParseServer(std::ifstream &config_file)
         }
         else if (key == "clientMaxBodySize")
         {
-            Result<size_t, std::string> result = PullWord<size_t>(iss);
+            utils::Result<size_t, std::string> result = PullWord<size_t>(iss);
             if (!result.ok())
                 return ParseServerResult::Err(result.unwrapErr());
             server.clientMaxBodySize = result.unwrap();
         }
         else if (key == "autoindex")
         {
-            Result<std::string, std::string> result = PullWord<std::string>(iss);
+            utils::Result<std::string, std::string> result = PullWord<std::string>(iss);
             if (!result.ok())
                 return ParseServerResult::Err(result.unwrapErr());
             std::string autoindex_value = result.unwrap();
@@ -215,7 +213,7 @@ ParseServerResult ParseServer(std::ifstream &config_file)
         }
         else if (key == "index")
         {
-            Result<std::string, std::string> result = PullWord<std::string>(iss);
+            utils::Result<std::string, std::string> result = PullWord<std::string>(iss);
             if (!result.ok())
                 return ParseServerResult::Err(result.unwrapErr());
             server.index = result.unwrap();
