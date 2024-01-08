@@ -33,7 +33,7 @@ $(OBJS_DIR)%.o: $(SRCS_DIR)%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	$(RM) $(OBJS_DIR) $(DEBUG_OBJS_DIR) $(DEBUG_CLIENT_OBJS)
+	$(RM) $(OBJS_DIR) $(DEBUG_OBJS_DIR) $(DEBUG_CLIENT_OBJS) client.d
 
 fclean: clean
 	$(RM) $(NAME) $(DEBUG_NAME) $(DEBUG_CLIENT_NAME)
@@ -45,12 +45,12 @@ re: fclean all
 debug: $(DEBUG_NAME) $(DEBUG_CLIENT_NAME)
 
 $(DEBUG_NAME): $(DEBUG_OBJS)
-	$(CXX) $(DEBUG_CXXFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) -o $@ $^
 
 # オブジェクトファイルの生成ルール
 $(DEBUG_OBJS_DIR)%.o: $(SRCS_DIR)%.cpp
 	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(DEBUG_CXXFLAGS) -c $< -o $@
 
 $(DEBUG_CLIENT_NAME): $(DEBUG_CLIENT_OBJS)
 	$(CXX) -o $@ $^
