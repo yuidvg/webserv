@@ -7,8 +7,8 @@ template <typename T> utils::Result<T, std::string> PullWord(std::istringstream 
     {
         return utils::Result<T, std::string>::Err("Config: ディレクティブの引数が不正です");
     }
-    std::string tmp_str;
-    if (iss >> tmp_str)
+    std::string tmpStr;
+    if (iss >> tmpStr)
     {
         std::ostringstream oss;
         oss << "Config: " << word << " ディレクティブの引数が多いです";
@@ -19,16 +19,16 @@ template <typename T> utils::Result<T, std::string> PullWord(std::istringstream 
 
 ErrorPageMapResult HandleErrorPageDirective(std::istringstream &iss, std::map<int, std::string> &errorPages)
 {
-    int error_code; // ステータスコードを取得
-    std::string error_page_path;
+    int errorCode; // ステータスコードを取得
+    std::string errorPagePath;
 
-    if (!(iss >> error_code))
+    if (!(iss >> errorCode))
         return ErrorPageMapResult::Err("Config: error_code引数が不正です");
-    if (!(iss >> error_page_path))
+    if (!(iss >> errorPagePath))
         return ErrorPageMapResult::Err("Config: error_page_path");
-    errorPages[error_code] = error_page_path;
-    std::string tmp_str;
-    if (iss >> tmp_str)
+    errorPages[errorCode] = errorPagePath;
+    std::string tmpStr;
+    if (iss >> tmpStr)
         return ErrorPageMapResult::Err("Config: error_pageの引数が多いです");
     return ErrorPageMapResult::Ok("OK");
 }
@@ -89,7 +89,7 @@ ParseRoutesResult ParseLocation(std::ifstream &config_file, Location &location)
             {
                 if (method != "GET" && method != "POST" && method != "DELETE")
                     return (ParseRoutesResult::Err("Config: 許可されないHTTPメソッドが指定されています"));
-                location.allowMethod.push_back(method);
+                location.allowMethods.push_back(method);
                 i++;
             }
             if (i > 3)
@@ -97,9 +97,9 @@ ParseRoutesResult ParseLocation(std::ifstream &config_file, Location &location)
         }
         else if (key == "cgiExtension")
         {
-            std::string cgi_program;
-            iss >> cgi_program;
-            location.cgiExtension = (cgi_program);
+            std::string cgiProgram;
+            iss >> cgiProgram;
+            location.cgiExtension = (cgiProgram);
         }
         else if (key == "upload_path")
         {
@@ -110,17 +110,17 @@ ParseRoutesResult ParseLocation(std::ifstream &config_file, Location &location)
         }
         else if (key == "return")
         {
-            int status_code; // ステータスコードを取得
-            if (!(iss >> status_code))
+            int statusCode; // ステータスコードを取得
+                if (!(iss >> statusCode))
                 return ParseRoutesResult::Err("Config: returnの引数が不正です");
-            std::string redirect_url;
-            if (!(iss >> redirect_url))
+            std::string redirectUrl;
+            if (!(iss >> redirectUrl))
                 return ParseRoutesResult::Err("Config: returnの引数が不正です");
-            std::string tmp_str;
-            if (iss >> tmp_str)
+            std::string tmpStr;
+            if (iss >> tmpStr)
                 return ParseRoutesResult::Err("Config: returnの引数が多いです");
-            location.redirect[status_code] = redirect_url;
-        }
+            location.redirect[statusCode] = redirectUrl;
+}
         else if (key == "}")
         {
             break;
@@ -154,15 +154,15 @@ ParseServerResult ParseServer(std::ifstream &config_file)
         {
 
             Location location;
-            std::string tmp_str;
+            std::string tmpStr;
             if (key == "location")
             {
                 if (!(iss >> location.path))
                     return ParseServerResult::Err("location.front_pathが指定されていません");
             }
-            if (!(iss >> tmp_str) || tmp_str != "{")
+            if (!(iss >> tmpStr) || tmpStr != "{")
                 return ParseServerResult::Err("Config: locationブロックの開始が不正です");
-            if (iss >> tmp_str)
+            if (iss >> tmpStr)
                 return ParseServerResult::Err("Config: locationの引数が多いです");
             ParseLocation(config_file, location);
             server.locations.push_back(location);
@@ -239,15 +239,15 @@ ParseServerResult ParseServer(std::ifstream &config_file)
 }
 
 // 設定ファイルを解析するメインの関数
-ParseResult ParseConfig(const char *config_path)
+ParseResult ParseConfig(const char *configPath)
 {
-    std::ifstream config_file(config_path);
+    std::ifstream configFile(configPath);
     std::string line;
     std::vector<Server> servers;
 
-    if (!config_file.is_open())
-        return ParseResult::Err("Failed to open file: " + std::string(config_path));
-    while (std::getline(config_file, line))
+    if (!configFile.is_open())
+        return ParseResult::Err("Failed to open file: " + std::string(configPath));
+    while (std::getline(configFile, line))
     {
         std::istringstream iss(line);
         std::string key;
@@ -255,12 +255,12 @@ ParseResult ParseConfig(const char *config_path)
 
         if (key == "server")
         {
-            std::string tmp_str;
-            if (!(iss >> tmp_str) || tmp_str != "{")
+            std::string tmpStr;
+            if (!(iss >> tmpStr) || tmpStr != "{")
                 return ParseResult::Err("Config: serverブロックの開始が不正です");
-            if (iss >> tmp_str)
+            if (iss >> tmpStr)
                 return ParseResult::Err("Config: serverの引数が多いです");
-            ParseServerResult serverResult = ParseServer(config_file);
+            ParseServerResult serverResult = ParseServer(configFile);
             if (!serverResult.ok())
                 return ParseResult::Err(serverResult.unwrapErr());
             servers.push_back(serverResult.unwrap());

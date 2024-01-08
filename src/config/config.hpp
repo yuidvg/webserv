@@ -14,7 +14,7 @@ struct Location
     std::string index;                     // デフォルトファイル名
     size_t clientMaxBodySize;              // リクエストボディの最大サイズ
     std::map<int, std::string> errorPages;
-    std::vector<std::string> allowMethod;  // 許可されるHTTPメソッド（GET, POST, DELETE）
+    std::vector<std::string> allowMethods;  // 許可されるHTTPメソッド（GET, POST, DELETE）
     std::string cgiExtension;
     std::string uploadPath;
     std::map<int, std::string> redirect; // リダイレクト先のURL
@@ -26,7 +26,9 @@ struct Location
         index = "index.html";
         clientMaxBodySize = 0;
         errorPages.clear();
-        allowMethod.clear();
+        allowMethods.push_back("GET");
+        allowMethods.push_back("POST");
+        allowMethods.push_back("DELETE");
         cgiExtension.clear();
         uploadPath = "";
         redirect.clear();

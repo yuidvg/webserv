@@ -54,7 +54,7 @@ InitializeResult Socket::initialize() const
 
 int Socket::getListenSocket() const
 {
-    return (listen_socket);
+    return (listenSocket);
 }
 
 Server Socket::getServer() const
@@ -71,5 +71,5 @@ Socket::Socket(Server server)
         std::cout << initializedResult.unwrapErr() << std::endl;
         _exit(1);
     }
-    listen_socket = initializedResult.unwrap();
+    listenSocket = initializedResult.unwrap();
 }
