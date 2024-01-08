@@ -30,76 +30,6 @@ static bool checkRequestLine(std::string &method, std::string &uri, std::string 
         return (false);
     }
 
-<<<<<<<< HEAD:srcs/HTTPRequest/RequestParser.cpp
-    // std::vector<std::string>	allowedMethods;
-    // std::vector<Location>::const_iterator it;
-    // for (it = server.locations.begin(); it != server.locations.end(); ++it)
-    // {
-    // 	if (!it->front_path.empty() && uri.find(it->front_path) !=
-    // std::string::npos)
-    // 	{
-    // 		if (uri.find(it->front_path) != std::string::npos)
-    // 		{
-    // 			allowedMethods = it->allowMethod;
-    // 			break; // マッチしたらループを抜ける
-    // 		}
-    // 		if (uri.find(it->front_path) == std::string::npos)
-    // 		{
-    // 			errorCode = BAD_REQUEST;
-    // 			return (false);
-    // 		}
-    // 	}
-    // 	// else if (!it.back_path.empty() && uri.rfind(it.back_path) !=
-    // std::string::npos)
-    // 	// {
-    // 	// 	// マッチしなかった場合は、後方一致のパスをチェックする
-    // 	// }
-    // 	else
-    // 	{
-    // 		errorCode = BAD_REQUEST;
-    // 		return (false);
-    // 	}
-    // }
-========
-    std::vector<std::string> allowed_methods;
-    std::vector<Location>::const_iterator it;
-    for (it = server.locations.begin(); it != server.locations.end(); ++it)
-    {
-        if (!it->path.empty() && uri.find(it->path) != std::string::npos)
-        {
-            if (uri.find(it->path) != std::string::npos)
-            {
-                allowed_methods = it->allowMethod;
-                break; // マッチしたらループを抜ける
-            }
-            if (uri.find(it->path) == std::string::npos)
-            {
-                error_code = BAD_REQUEST;
-                return (false);
-            }
-        }
-        // else if (!it.backPath.empty() && uri.rfind(it.backPath) != std::string::npos)
-        // {
-        // 	// マッチしなかった場合は、後方一致のパスをチェックする
-        // }
-        else
-        {
-            error_code = BAD_REQUEST;
-            return (false);
-        }
-    }
->>>>>>>> origin/develop:srcs/HTTPRequest/HTTPParser.cpp
-
-    // for (int i = 0; i < 3; i++)
-    // {
-    // 	std::cout << "method: " << method << ", allowedMethods[i]: " <<
-    // allowedMethods[i] << std::endl; // debug 	if (method ==
-    // allowedMethods[i]) 		break ; 	if (i == 2)
-    // 	{
-    // 		errorCode = METHOD_NOT_ALLOWED;
-    // 		return (false);
-    // 	}
-    // }
     (void)server;
     if (!checkMethod(method))
     {
@@ -162,13 +92,13 @@ ParseHeaderResult parseHttpHeaders(std::istream &httpRequest)
 
         std::getline(headerLine, key, ':');
         std::getline(headerLine, value);
-        trim(value); // valueの前後の空白を削除する
+        utils::trim(value); // valueの前後の空白を削除する
 
         if (key.empty() || std::isspace(*(key.end() - 1)) || value.empty())
             return (ParseHeaderResult::Err(BAD_REQUEST));
 
-        header[toLower(key)] = value; // keyを小文字に変換して格納する
-        std::cout << "[key]: " << key << ", [value]: " << header[toLower(key)] << std::endl; // debug
+        header[utils::toLower(key)] = value; // keyを小文字に変換して格納する
+        std::cout << "[key]: " << key << ", [value]: " << header[utils::toLower(key)] << std::endl; // debug
     }
     if (!line.empty() || header.empty())
         return (ParseHeaderResult::Err(BAD_REQUEST));
@@ -219,7 +149,7 @@ ParseBodyResult parsePlainBody(std::istream &httpRequest, std::map<std::string, 
     std::cout << "====parsePlainBody====" << std::endl; // debug
     std::string line;
 
-    if (header["content-length"].empty() || !isNumber(header["content-length"]))
+    if (header["content-length"].empty() || !utils::isNumber(header["content-length"]))
         return (ParseBodyResult::Err(BAD_REQUEST));
 
     size_t contentLength = std::stoul(header["content-length"]);
