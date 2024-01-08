@@ -44,21 +44,30 @@ char *const *enviromentVariables(const ParsedRequest request, const Server serve
 
 const std::string executeCGI(const ParsedRequest request, const Server server, const int clientSocket)
 {
+    int pipefds[2];
+    if (pipe(pipefds) == -1)
+    {
+        std::cerr << "pipe failed" << std::endl;
+        return "Status: 500\n\n";
+    }
     const pid_t pid = fork();
     if (pid == -1)
         return false;
     else if (pid == 0) // child process
     {
+        close(pipefds[IN]);
         execve(request.uri.c_str(), NULL, enviromentVariables(request, server));
         std::cerr << "execve failed" << std::endl;
         write(STDOUT_FILENO, "Status: 500\n\n", 13);
     }
     else // parent process
     {
+        close(pipefds[OUT]);
+        write(pipefds[IN], request.body.c_str(), request.body.size());
         int status;
         waitpid(pid, &status, 0);
         if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
-            return;
+            return Result::Err("Status: 200\n\n");
         else
             return;
     }
