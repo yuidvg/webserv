@@ -1,4 +1,4 @@
-#include "srcs/server/connection.hpp"
+#include "src/server/connection.hpp"
 #include <stdio.h>
 #include <stdbool.h>
 #include <ctype.h>
