@@ -134,8 +134,8 @@ ParseBodyResult	parseChunkedBody(std::istream &httpRequest, std::map<std::string
 	std::string		body;
 	while (std::getline(httpRequest, line))
 	{
-		if (line.empty())
-			break ;
+		// if (line.empty())
+		// 	break ;
 		if (isLineTooLong(line) == true)
 			return (ParseBodyResult::Err(REQUEST_URI_TOO_LONG));
 
@@ -144,14 +144,19 @@ ParseBodyResult	parseChunkedBody(std::istream &httpRequest, std::map<std::string
 		if (!(chunk_size_line >> std::hex >> chunk_size) || !chunk_size_line.eof())
 			return (ParseBodyResult::Err(BAD_REQUEST));
 
-		std::string	chunk;
-		if (!std::getline(httpRequest, chunk) || chunk.length() != static_cast<size_t>(chunk_size))
-			return (ParseBodyResult::Err(BAD_REQUEST));
+		// チャンクのサイズを読み取り、0でない限り続ける
+		if (chunk_size == 0)
+			break ;
 
-		body += chunk;
+		char*	buffer = new char[chunk_size];
+		httpRequest.read(buffer, chunk_size);
+		body.append(buffer, chunk_size);
+		delete[] buffer;
+
+		// チャンクの末尾のCRLFを読み飛ばす
+		std::getline(httpRequest, line);
 	}
-	if (!line.empty())
-		return (ParseBodyResult::Err(BAD_REQUEST));
+	std::cout << "Processed body: " << body << std::endl;
 
 	return (ParseBodyResult::Ok(body));
 }
