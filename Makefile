@@ -44,7 +44,7 @@ re: fclean all
 #DEBUG
 debug: $(DEBUG_NAME) $(DEBUG_CLIENT_NAME)
 
-$(DEBUG_NAME): $(DEBUG_OBJS) $(DEBUG_CLIENT_OBJS)
+$(DEBUG_NAME): $(DEBUG_OBJS)
 	$(CXX) $(DEBUG_CXXFLAGS) -o $@ $^
 
 # オブジェクトファイルの生成ルール
