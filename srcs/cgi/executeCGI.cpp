@@ -58,9 +58,9 @@ const std::string executeCGI(const ParsedRequest request, const Server server, c
         int status;
         waitpid(pid, &status, 0);
         if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
-            return ;
+            return;
         else
-            return ;
+            return;
     }
     return cgiResponse;
 }
