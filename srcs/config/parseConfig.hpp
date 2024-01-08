@@ -1,6 +1,7 @@
 #ifndef parseConfig_HPP
 #define parseConfig_HPP
 
+#include "../utils/utils.hpp"
 #include "config.hpp"
 #include <fstream>
 #include <iostream>
