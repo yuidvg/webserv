@@ -5,7 +5,7 @@ int main(int argc, char **argv)
 {
 	const char *config_path;
 	if (argc < 2)
-		config_path = "../config/default.conf";
+	    config_path = "config/default.conf";
 	else if (argc == 2)
 		config_path = argv[1];
 	else
@@ -21,7 +21,6 @@ int main(int argc, char **argv)
 		return 1;
 	}
 	std::vector<Server> servers = result.unwrap();
-	// DebugPrint(servers);
 
 	Connection connection;
 	connection.Start(servers);
