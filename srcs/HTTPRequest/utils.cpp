@@ -1,22 +1,5 @@
 #include "utils.hpp"
 
-bool	customGetLine(std::string &data, std::string &line)
-{
-	std::istringstream	iss(data);
-	size_t				read_length;
-
-	if (std::getline(iss, line))
-	{
-		read_length = line.length();
-		if (data[line.length()] != '\n')
-			return (false);
-		read_length++;
-		data.erase(0, read_length);
-		return (true);
-	}
-	return (false);
-}
-
 std::string	&trim(std::string &str)
 {
 	while (std::isspace(str[0]))

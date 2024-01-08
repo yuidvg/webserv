@@ -99,7 +99,7 @@ void Connection::ProcessConnection(int sd, Socket &socket)
 			  << GREEN << rc << " bytes: " << buffer << NORMAL << std::endl;
 
 	// TODO: 受け取ったHTTPリクエストを解析する
-	std::string	buf(buffer);
+	std::istringstream	buf(buffer);
 	HTTPParseResult	parserResult = parseHTTPRequest(buf, socket.getServer());
 	if (!parserResult.ok())
 	{

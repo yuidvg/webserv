@@ -62,12 +62,12 @@ static bool	checkRequestLine(std::string &method, std::string &uri, std::string 
 	return (true);
 }
 
-ParseRequestLineResult	parseHTTPRequestLine(std::string &httpRequest, const Server &server)
+ParseRequestLineResult	parseHTTPRequestLine(std::istream &httpRequest, const Server &server)
 {
 	std::string		line;
 	std::string		method, uri, version;
 
-	while (customGetLine(httpRequest, line) && line.empty())
+	while (std::getline(httpRequest, line) && line.empty())
 		; // 空行を読み飛ばす
 
 	// 有効なリクエストラインがない場合
@@ -89,12 +89,12 @@ ParseRequestLineResult	parseHTTPRequestLine(std::string &httpRequest, const Serv
 	return (ParseRequestLineResult::Ok(request_line_data));
 }
 
-ParseHeaderResult	parseHTTPHeaders(std::string &httpRequest)
+ParseHeaderResult	parseHTTPHeaders(std::istream &httpRequest)
 {
 	std::string		line;
 	std::map<std::string, std::string>	header;
 
-	while (customGetLine(httpRequest, line))
+	while (std::getline(httpRequest, line))
 	{
 		if (line.empty())
 			break ;
@@ -123,7 +123,7 @@ ParseHeaderResult	parseHTTPHeaders(std::string &httpRequest)
 	return (ParseHeaderResult::Ok(header));
 }
 
-ParseBodyResult	parseChunkedBody(std::string &httpRequest, std::map<std::string, std::string> &header)
+ParseBodyResult	parseChunkedBody(std::istream &httpRequest, std::map<std::string, std::string> &header)
 {
 	std::cout << "====parseChunkedBody====" << std::endl; // debug
 	std::string		line;
@@ -132,10 +132,10 @@ ParseBodyResult	parseChunkedBody(std::string &httpRequest, std::map<std::string,
 		return (ParseBodyResult::Err(NOT_IMPLEMENTED));
 
 	std::string		body;
-	while (customGetLine(httpRequest, line))
+	while (std::getline(httpRequest, line))
 	{
-		if (line.empty())
-			break ;
+		// if (line.empty())
+		// 	break ;
 		if (isLineTooLong(line) == true)
 			return (ParseBodyResult::Err(REQUEST_URI_TOO_LONG));
 
@@ -144,19 +144,24 @@ ParseBodyResult	parseChunkedBody(std::string &httpRequest, std::map<std::string,
 		if (!(chunk_size_line >> std::hex >> chunk_size) || !chunk_size_line.eof())
 			return (ParseBodyResult::Err(BAD_REQUEST));
 
-		std::string	chunk;
-		if (!customGetLine(httpRequest, chunk) || chunk.length() != static_cast<size_t>(chunk_size))
-			return (ParseBodyResult::Err(BAD_REQUEST));
+		// チャンクのサイズを読み取り、0でない限り続ける
+		if (chunk_size == 0)
+			break ;
 
-		body += chunk;
+		char*	buffer = new char[chunk_size];
+		httpRequest.read(buffer, chunk_size);
+		body.append(buffer, chunk_size);
+		delete[] buffer;
+
+		// チャンクの末尾のCRLFを読み飛ばす
+		std::getline(httpRequest, line);
 	}
-	if (!line.empty())
-		return (ParseBodyResult::Err(BAD_REQUEST));
+	std::cout << "Processed body: " << body << std::endl;
 
 	return (ParseBodyResult::Ok(body));
 }
 
-ParseBodyResult	parsePlainBody(std::string &httpRequest, std::map<std::string, std::string> &header)
+ParseBodyResult	parsePlainBody(std::istream &httpRequest, std::map<std::string, std::string> &header)
 {
 	std::cout << "====parsePlainBody====" << std::endl; // debug
 	std::string		line;
@@ -168,16 +173,14 @@ ParseBodyResult	parsePlainBody(std::string &httpRequest, std::map<std::string, s
 	if (content_length > MAX_LEN)
 		return (ParseBodyResult::Err(CONTENT_TOO_LARGE));
 
-	std::string	body;
-	if (httpRequest.length() < content_length)
+	std::string	body(content_length, '\0');
+	if (httpRequest.read(&body[0], content_length))
 		return (ParseBodyResult::Err(BAD_REQUEST));
 
-	body = httpRequest.substr(0, content_length);
-	httpRequest.erase(0, content_length);
 	return (ParseBodyResult::Ok(body));
 }
 
-ParseBodyResult	parseHTTPBody(std::string &httpRequest, std::map<std::string, std::string> &header)
+ParseBodyResult	parseHTTPBody(std::istream &httpRequest, std::map<std::string, std::string> &header)
 {
 	std::cout << "====parseBody====" << std::endl; // debug
 	std::string		line;
@@ -190,7 +193,7 @@ ParseBodyResult	parseHTTPBody(std::string &httpRequest, std::map<std::string, st
 		return (ParseBodyResult::Ok(""));
 }
 
-HTTPParseResult	parseHTTPRequest(std::string &httpRequest, const Server &server)
+HTTPParseResult	parseHTTPRequest(std::istream &httpRequest, const Server &server)
 {
 	ParseRequestLineResult	request_line = parseHTTPRequestLine(httpRequest, server);
 	if (!request_line.ok())
