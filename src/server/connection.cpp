@@ -16,59 +16,59 @@ void Connection::CloseConnection(int sd)
 
 	deleteConnSock(sd);
 	close(sd);
-	FD_CLR(sd, &master_set);
-	if (sd == max_sd)
+	FD_CLR(sd, &masterSet);
+	if (sd == maxSd)
 	{
-		while (max_sd > 0 && !FD_ISSET(max_sd, &master_set))
+		while (maxSd > 0 && !FD_ISSET(maxSd, &masterSet))
 		{
-			max_sd -= 1;
+			maxSd -= 1;
 		}
-		if (max_sd == 0 && !FD_ISSET(0, &master_set))
+		if (maxSd == 0 && !FD_ISSET(0, &masterSet))
 		{
 			// 有効なディスクリプタが残っていない
-			max_sd = -1;
+			maxSd = -1;
 		}
 	}
 }
 
 void Connection::AllCloseConnection()
 {
-	for (int i = 0; i <= max_sd; ++i)
+	for (int i = 0; i <= maxSd; ++i)
 	{
-		if (FD_ISSET(i, &master_set))
+		if (FD_ISSET(i, &masterSet))
 		{
 			CloseConnection(i);
 		}
 	}
 }
 
-NewSDResult Connection::AcceptNewConnection(const int listen_sd)
+NewSDResult Connection::AcceptNewConnection(const int listenSd)
 {
-	int new_sd = -1;
-	new_sd = accept(listen_sd, NULL, NULL);
-	if (new_sd < 0)
+	int newSd = -1;
+	newSd = accept(listenSd, NULL, NULL);
+	if (newSd < 0)
 	{
 		if (errno != EWOULDBLOCK)
 		{
 			// エラーメッセージを返す
-			std::string error_msg = "accept() failed on socket ";
-			return NewSDResult::Err(error_msg);
+			std::string errorMsg = "accept() failed on socket ";
+			return NewSDResult::Err(errorMsg);
 		}
 	}
-	std::cout << GREEN << "New incoming connection " << new_sd << NORMAL << std::endl;
-	FD_SET(new_sd, &master_set);
-	if (new_sd > max_sd)
+	std::cout << GREEN << "New incoming connection " << newSd << NORMAL << std::endl;
+	FD_SET(newSd, &masterSet);
+	if (newSd > maxSd)
 	{
-		max_sd = new_sd;
+		maxSd = newSd;
 	}
 	// 新しい接続を受け入れた
-	return NewSDResult::Ok(new_sd);
+	return NewSDResult::Ok(newSd);
 }
 
 void Connection::deleteConnSock(int sd)
 {
 	// c++98で使用可能 https://en.cppreference.com/w/cpp/container/map/erase
-	conn_socks.erase(sd);
+	connSocks.erase(sd);
 }
 
 // 接続が確立されたソケットと通信する
@@ -124,32 +124,32 @@ void Connection::ProcessConnection(int sd, Socket &socket)
 void Connection::Start(std::vector<Server> servers)
 {
 	// 各仮想サーバーのソケットを初期化し、監視セットに追加
-	FD_ZERO(&master_set);
+	FD_ZERO(&masterSet);
 	for (size_t i = 0; i < servers.size(); ++i)
 	{
 		Socket socket(servers[i]);
 		sockets.push_back(socket); // 新しいリスニングソケットを追加
-		int listen_sd = socket.getListenSocket();
-		listen_sockets.push_back(listen_sd); // 新しいリスニングソケットを追加
-		FD_SET(listen_sd, &master_set);
-		if (listen_sd > max_sd)
+		int listenSd = socket.getListenSocket();
+		listenSockets.push_back(listenSd); // 新しいリスニングソケットを追加
+		FD_SET(listenSd, &masterSet);
+		if (listenSd > maxSd)
 		{
-			max_sd = listen_sd;
+			maxSd = listenSd;
 		}
 	}
 
-	fd_set working_set;
+	fd_set workingSet;
 	struct timeval timeout;
-	int end_server = FALSE;
+	int endServer = FALSE;
 	timeout.tv_sec = 30;
 	timeout.tv_usec = 0;
 
-	while (end_server == FALSE)
+	while (endServer == FALSE)
 	{
-		memcpy(&working_set, &master_set, sizeof(master_set));
+		memcpy(&workingSet, &masterSet, sizeof(masterSet));
 
 		std::cout << "Waiting on select()..." << std::endl;
-		int rc = select(max_sd + 1, &working_set, NULL, NULL, &timeout);
+		int rc = select(maxSd + 1, &workingSet, NULL, NULL, &timeout);
 		if (rc < 0)
 		{
 			utils::printError(std::string("select() failed: " + std::string(strerror(errno))));
@@ -161,15 +161,15 @@ void Connection::Start(std::vector<Server> servers)
 			break;
 		}
 
-		int desc_ready = rc;
-		for (int i = 0; i <= max_sd && desc_ready > 0; ++i)
+		int descReady = rc;
+		for (int i = 0; i <= maxSd && descReady > 0; ++i)
 		{
-			if (FD_ISSET(i, &working_set))
+			if (FD_ISSET(i, &workingSet))
 			{
 				// 読み取り可能なfdが見つかったら、検索を停止するため。
-				desc_ready -= 1;
+				descReady -= 1;
 				// リスニングソケットの確認
-				if (std::find(listen_sockets.begin(), listen_sockets.end(), i) != listen_sockets.end())
+				if (std::find(listenSockets.begin(), listenSockets.end(), i) != listenSockets.end())
 				{
 					NewSDResult newSDResult = AcceptNewConnection(i);
 					if (!newSDResult.ok())
@@ -183,22 +183,22 @@ void Connection::Start(std::vector<Server> servers)
 						if (sockets[index].getListenSocket() == i)
 						{
 							std::cout << "新しい接続を受け入れた" << std::endl;
-							conn_socks.insert(std::make_pair(newSDResult.unwrap(), sockets[index]));
+							connSocks.insert(std::make_pair(newSDResult.unwrap(), sockets[index]));
 						}
 					}
 				}
 				else
 				{
-					ProcessConnection(i, conn_socks[i]);
+					ProcessConnection(i, connSocks[i]);
 				}
 
 
 				// Debug用
-				for (std::vector<int>::iterator it = listen_sockets.begin(); it != listen_sockets.end(); ++it)
+				for (std::vector<int>::iterator it = listenSockets.begin(); it != listenSockets.end(); ++it)
 				{
 					std::cout << *it << " :Listen socket" << std::endl;
 				}
-				for (std::map<int, Socket>::iterator it = conn_socks.begin(); it != conn_socks.end(); ++it)
+				for (std::map<int, Socket>::iterator it = connSocks.begin(); it != connSocks.end(); ++it)
 				{
 					std::cout << it->first << " :" << it->second.getServer().name << std::endl;
 				}

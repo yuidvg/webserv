@@ -17,11 +17,11 @@ typedef utils::Result<std::string, std::string> ErrorPageMapResult;
 
 template <typename T> utils::Result<T, std::string> PullWord(std::istringstream &iss);
 
-ParseServerResult ParseServer(std::ifstream &config_file);
-ParseRoutesResult ParseLocation(std::ifstream &config_file, Location &location);
+ParseServerResult ParseServer(std::ifstream &configFile);
+ParseRoutesResult ParseLocation(std::ifstream &configFile, Location &location);
 ErrorPageMapResult HandleErrorPageDirective(std::istringstream &iss, std::map<int, std::string> &errorPages);
-void HandleLocationDirective(std::istringstream &iss, std::ifstream &config_file, Server &server, int type);
+void HandleLocationDirective(std::istringstream &iss, std::ifstream &configFile, Server &server, int type);
 
-ParseResult ParseConfig(const char *config_path);
+ParseResult ParseConfig(const char *configPath);
 
 #endif
