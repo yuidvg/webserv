@@ -31,6 +31,7 @@ template <typename Key, typename Value> Value value(const std::map<Key, Value> m
         return Value();
     }
 }
+template <typename T> void printError(const T &message);
 
 } // namespace utils
 
