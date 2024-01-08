@@ -28,7 +28,7 @@ char *const *enviromentVariables(const ParsedRequest request, const Server serve
     env["PATH_INFO"] = request.uri;
     env["PATH_TRANSLATED"] = request.uri;
     // To be implemented
-    // env["QUERY_STRING"] = ;
+    env["QUERY_STRING"] = request.uri.substr(request.uri.find("?") + 1);
     // env["REMOTE_ADDR"] = ;
     // env["REMOTE_HOST"] = ;
     // env["REMOTE_IDENT"] = ;
@@ -42,7 +42,7 @@ char *const *enviromentVariables(const ParsedRequest request, const Server serve
     return mapStringStringToCStringArray(env);
 }
 
-const std::string executeCGI(const ParsedRequest request, const Server server, const int clientSocket)
+const std::string executeCgi(const ParsedRequest request, const Server server, const int clientSocket)
 {
     int pipefds[2];
     if (pipe(pipefds) == -1)
