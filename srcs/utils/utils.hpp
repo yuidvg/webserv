@@ -8,7 +8,7 @@
 
 namespace utils
 {
-const Location matchedLocation(const std::string uri, const std::vector<Location> routes);
+const Location matchedLocation(const std::string uri, const std::vector<Location> locations);
 const unsigned int lengthOfPrefixMatch(const std::string string, const std::string pattern);
 
 std::string &trim(std::string &str);

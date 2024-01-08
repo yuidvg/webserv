@@ -1,8 +1,7 @@
-#include "../consts.hpp"
-#include "../map/value.cpp"
-#include "determineCGI.cpp"
+#include "<map>"
+#include "<string>"
 
-char *const *mapStringStringToCStringArray(const std::map<std::string, std::string> &envMap)
+char *const *mapStringStringToCStringArray(const std::map<std::string, std::string> envMap)
 {
     char **envArray = new char *[envMap.size() + 1];
     int i = 0;
