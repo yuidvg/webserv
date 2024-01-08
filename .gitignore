@@ -8,11 +8,9 @@
 client
 webserv
 */*.txt
-*/main.cppclient
 webserv
 src/Makefile
 src/*/main.cpp
 obj
 *.txt
 client
-*/main.cpp
