@@ -1,5 +1,5 @@
 #include "../HTTPRequest/HTTPParser.hpp"
-#include "../config/structure_config.hpp"
+#include "../config/config.hpp"
 
 bool shouldUseCgi(const ParsedRequest request, const Server server)
 {

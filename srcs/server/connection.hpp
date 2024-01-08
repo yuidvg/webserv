@@ -2,7 +2,7 @@
 #define CONNECTION_HPP
 
 #include "socket.hpp"
-#include "../config/parse_config.hpp"
+#include "../config/parseConfig.hpp"
 #include <arpa/inet.h>
 #include <cstring>
 #include <errno.h>

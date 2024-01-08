@@ -1,10 +1,9 @@
-#ifndef STRUCTURE_CONFIG_HPP
-#define STRUCTURE_CONFIG_HPP
+#ifndef CONFIG_HPP
+#define CONFIG_HPP
 
+#include <iostream>
 #include <map>
 #include <string>
-#include <vector>
-#include <iostream>
 #include <vector>
 
 /*

@@ -1,4 +1,4 @@
-#include "parse_config.hpp"
+#include "parseConfig.hpp"
 
 template <typename T> Result<T, std::string> PullWord(std::istringstream &iss)
 {

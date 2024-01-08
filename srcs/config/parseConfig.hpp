@@ -1,8 +1,8 @@
-#ifndef PARSE_CONFIG_HPP
-#define PARSE_CONFIG_HPP
+#ifndef parseConfig_HPP
+#define parseConfig_HPP
 
 #include "../Result/Result.hpp"
-#include "structure_config.hpp"
+#include "config.hpp"
 #include <fstream>
 #include <iostream>
 #include <map>
