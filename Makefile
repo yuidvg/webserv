@@ -39,10 +39,10 @@ $(OBJS_DIR):
 	mkdir -p $(OBJS_DIR)
 
 clean:
-	$(RM) $(OBJS_DIR) $(DEBUG_CLIENT_OBJS)
+	$(RM) $(OBJS_DIR) $(DEBUG_OBJS_DIR) $(DEBUG_CLIENT_OBJS)
 
 fclean: clean
-	$(RM) $(NAME) $(DEBUG_CLIENT_NAME)
+	$(RM) $(NAME) $(DEBUG_NAME) $(DEBUG_CLIENT_NAME)
 
 re: fclean all
 

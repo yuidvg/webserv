@@ -162,11 +162,6 @@ ParseServerResult ParseServer(std::ifstream &config_file)
                 if (!(iss >> location.path))
                     return ParseServerResult::Err("location.front_pathが指定されていません");
             }
-            else if (key == "location_back")
-            {
-                if (!(iss >> location.backPath))
-                    return ParseServerResult::Err("location.back_pathが指定されていません");
-            }
             if (!(iss >> tmp_str) || tmp_str != "{")
                 return ParseServerResult::Err("Config: locationブロックの開始が不正です");
             if (iss >> tmp_str)

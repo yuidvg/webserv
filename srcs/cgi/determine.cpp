@@ -1,7 +1,6 @@
-#include "../HttpRequest/RequestParser.hpp"
-#include "../utils/utils.hpp"
+#include "cgi.hpp"
 
-bool shouldUseCgi(const ParsedRequest request, const Server server)
+bool shouldUse(const ParsedRequest request, const Server server)
 {
     const Location location = utils::matchedLocation(request.uri, server.locations);
     const std::string uriExtension = request.uri.substr(request.uri.find_last_of(".") + 1);

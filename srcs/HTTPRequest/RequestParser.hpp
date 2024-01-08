@@ -8,7 +8,6 @@
 #include <unistd.h>
 #include <vector>
 
-#include "../Result/Result.hpp"
 #include "../config/parseConfig.hpp"
 #include "../utils/utils.hpp"
 

@@ -1,5 +1,4 @@
-#include "<map>"
-#include "<string>"
+#include "cgi.hpp"
 
 char *const *mapStringStringToCStringArray(const std::map<std::string, std::string> envMap)
 {
@@ -20,9 +19,9 @@ char *const *mapStringStringToCStringArray(const std::map<std::string, std::stri
 char *const *enviromentVariables(const ParsedRequest request, const Server server)
 {
     std::map<std::string, std::string> env;
-    env["AUTH_TYPE"] = map::value(request.header, std::string("Authorization"));
-    env["CONTENT_LENGTH"] = map::value(request.header, std::string("Content-Length"));
-    env["CONTENT_TYPE"] = map::value(request.header, std::string("Content-Type"));
+    env["AUTH_TYPE"] = utils::value(request.header, std::string("Authorization"));
+    env["CONTENT_LENGTH"] = utils::value(request.header, std::string("Content-Length"));
+    env["CONTENT_TYPE"] = utils::value(request.header, std::string("Content-Type"));
     env["GATEWAY_INTERFACE"] = GATEWAY_INTERFACE;
     env["PATH_INFO"] = request.uri;
     env["PATH_TRANSLATED"] = request.uri;
@@ -33,15 +32,15 @@ char *const *enviromentVariables(const ParsedRequest request, const Server serve
     // env["REMOTE_IDENT"] = ;
     // env["REMOTE_USER"] = ;
     env["REQUEST_METHOD"] = request.method;
-    env["SCRIPT_NAME"] = map::value(request.header, request.uri);
-    env["SERVER_NAME"] = server.server_name;
+    env["SCRIPT_NAME"] = utils::value(request.header, request.uri);
+    env["SERVER_NAME"] = server.name;
     env["SERVER_PORT"] = server.port;
     env["SERVER_PROTOCOL"] = SERVER_PROTOCOL;
     env["SERVER_SOFTWARE"] = SERVER_SOFTWARE;
     return mapStringStringToCStringArray(env);
 }
 
-const std::string executeCgi(const ParsedRequest request, const Server server, const int clientSocket)
+const std::string execute(const ParsedRequest request, const Server server, const int clientSocket)
 {
     int pipefds[2];
     if (pipe(pipefds) == -1)
@@ -66,7 +65,7 @@ const std::string executeCgi(const ParsedRequest request, const Server server, c
         int status;
         waitpid(pid, &status, 0);
         if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
-            return Result::Err("Status: 200\n\n");
+            return Result<>::Err("Status: 200\n\n");
         else
             return;
     }

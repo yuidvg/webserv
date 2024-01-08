@@ -25,7 +25,7 @@ bool isNumber(const std::string &str)
     return (true);
 }
 
-const unsigned int lengthOfPrefixMatch(const std::string string, const std::string pattern)
+unsigned int lengthOfPrefixMatch(const std::string string, const std::string pattern)
 {
     if (string.find(pattern) == 0)
         return pattern.length();
