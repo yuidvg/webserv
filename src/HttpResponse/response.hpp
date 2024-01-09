@@ -1,11 +1,10 @@
 #ifndef HTTPRESPONSE_HPP
 #define HTTPRESPONSE_HPP
 
+#include "../HttpRequest/RequestParser.hpp"
 #include <cstring>
 #include <iostream>
 #include <map>
-
-const char *CRLF = "\r\n";
 
 struct HttpResponse
 {

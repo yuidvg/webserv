@@ -1,4 +1,4 @@
-#include "HttpResponse.hpp"
+#include "response.hpp"
 
 size_t createResponse(char *buffer, size_t size, int status)
 {
@@ -13,4 +13,13 @@ size_t createResponse(char *buffer, size_t size, int status)
     response += buffer;
     std::memcpy(buffer, response.c_str(), response.size());
     return response.size();
+}
+
+HttpResponse response(const ParsedRequest request, const )
+{
+    HttpResponse res;
+    res.statusCode = 200;
+    res.headers["Content-Type"] = "text/html";
+    res.body = "<h1>hello world</h1>";
+    return res;
 }

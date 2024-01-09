@@ -18,4 +18,7 @@ const std::string YELLO = "\x1b[33m";
 
 const std::string NORMAL = "\x1b[0m";
 
+// charsets
+const std::string CRLF = "\r\n";
+
 #endif
