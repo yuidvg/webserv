@@ -35,9 +35,38 @@ ErrorPageMapResult HandleErrorPageDirective(std::istringstream &iss, std::map<in
     return ErrorPageMapResult::Ok("OK");
 }
 
+// TODO: 下記のようにコードを短くする。
+// parsedLocation(std::ifstream &config_file)
+// {
+//     const std::vector<const std::string> lines = readLines(config_file);
+//     const Result<std::string> nameResult = parseName(config_file, lines);
+//     const Result<size_t> portResult = parsePort(config_file, lines);
+
+//     if (!nameResult.ok() || !portResult.ok()
+//         return ParseServerResult::Err(nameResult.unwrapErr());
+//     return {
+
+//         ,
+//     }
+// }
+
 // ロケーションブロックの設定を解析
-ParseRoutesResult ParseLocation(std::ifstream &config_file, Location &location)
+ParseLocationResult ParseLocation(std::ifstream &config_file, std::string &locationPath)
 {
+    std::string path = locationPath;                      
+    std::string root = "";                      
+    bool autoindex = false;                        
+    std::string index = "index.html";                     
+    size_t clientMaxBodySize = 0;              
+    std::map<int, std::string> errorPages;
+    std::vector<std::string> allowMethods;
+    allowMethods.push_back("GET");
+    allowMethods.push_back("POST");
+    allowMethods.push_back("DELETE");
+    std::string cgiExtension = "";
+    std::string uploadPath = "";
+    std::map<int, std::string> redirect;
+    
     std::string line;
 
     while (std::getline(config_file, line))
@@ -51,36 +80,36 @@ ParseRoutesResult ParseLocation(std::ifstream &config_file, Location &location)
         {
             utils::Result<std::string, std::string> result = PullWord<std::string>(iss);
             if (!result.ok())
-                return ParseRoutesResult::Err(result.unwrapErr());
-            location.root = result.unwrap();
+                return ParseLocationResult::Err(result.unwrapErr());
+            root = result.unwrap();
         }
         else if (key == "autoindex")
         {
             utils::Result<std::string, std::string> result = PullWord<std::string>(iss);
             if (!result.ok())
-                return ParseRoutesResult::Err(result.unwrapErr());
-            location.autoindex = (result.unwrap() == "on");
+                return ParseLocationResult::Err(result.unwrapErr());
+            autoindex = (result.unwrap() == "on");
         }
         else if (key == "index")
         {
             utils::Result<std::string, std::string> result = PullWord<std::string>(iss);
             if (!result.ok())
-                return ParseRoutesResult::Err(result.unwrapErr());
-            location.index = result.unwrap();
+                return ParseLocationResult::Err(result.unwrapErr());
+            index = result.unwrap();
         }
         else if (key == "client_max_body_size")
         {
             utils::Result<size_t, std::string> result = PullWord<size_t>(iss);
             if (!result.ok())
-                return ParseRoutesResult::Err(result.unwrapErr());
-            location.clientMaxBodySize = result.unwrap();
+                return ParseLocationResult::Err(result.unwrapErr());
+            clientMaxBodySize = result.unwrap();
         }
         else if (key == "error_page")
         {
 
-            ErrorPageMapResult errorPageMapResult = HandleErrorPageDirective(iss, location.errorPages);
+            ErrorPageMapResult errorPageMapResult = HandleErrorPageDirective(iss, errorPages);
             if (!errorPageMapResult.ok())
-                return ParseRoutesResult::Err(errorPageMapResult.unwrapErr());
+                return ParseLocationResult::Err(errorPageMapResult.unwrapErr());
         }
         else if (key == "allow_method")
         {
@@ -90,42 +119,42 @@ ParseRoutesResult ParseLocation(std::ifstream &config_file, Location &location)
             while (iss >> method)
             {
                 if (method != "GET" && method != "POST" && method != "DELETE")
-                    return (ParseRoutesResult::Err("Config: 許可されないHTTPメソッドが指定されています"));
-                location.allowMethods.push_back(method);
+                    return (ParseLocationResult::Err("Config: 許可されないHTTPメソッドが指定されています"));
+                allowMethods.push_back(method);
                 i++;
             }
             if (i > 3)
-                return (ParseRoutesResult::Err("Config: 許可されるHTTPメソッドが多すぎます"));
+                return (ParseLocationResult::Err("Config: 許可されるHTTPメソッドが多すぎます"));
         }
         else if (key == "cgi_executor")
         {
             std::string cgiProgram;
             iss >> cgiProgram;
-            location.cgiExtension = (cgiProgram);
+            cgiExtension = (cgiProgram);
         }
         else if (key == "upload_path")
         {
             utils::Result<std::string, std::string> result = PullWord<std::string>(iss);
             if (!result.ok())
-                return ParseRoutesResult::Err(result.unwrapErr());
-            location.uploadPath = result.unwrap();
+                return ParseLocationResult::Err(result.unwrapErr());
+            uploadPath = result.unwrap();
         }
         else if (key == "return")
         {
             int statusCode; // ステータスコードを取得
                 if (!(iss >> statusCode))
-                return ParseRoutesResult::Err("Config: returnの引数が不正です");
+                return ParseLocationResult::Err("Config: returnの引数が不正です");
             std::string redirectUrl;
             if (!(iss >> redirectUrl))
-                return ParseRoutesResult::Err("Config: returnの引数が不正です");
+                return ParseLocationResult::Err("Config: returnの引数が不正です");
             std::string tmpStr;
             if (iss >> tmpStr)
-                return ParseRoutesResult::Err("Config: returnの引数が多いです");
-            location.redirect[statusCode] = redirectUrl;
+                return ParseLocationResult::Err("Config: returnの引数が多いです");
+            redirect[statusCode] = redirectUrl;
 }
         else if (key == "}")
         {
-            break;
+            return ParseLocationResult::Ok(Location(path, root, autoindex, index, clientMaxBodySize, errorPages, allowMethods, cgiExtension, uploadPath, redirect));
         }
         else if (key.empty() || key == "\t" || key == "\n")
         {
@@ -133,17 +162,25 @@ ParseRoutesResult ParseLocation(std::ifstream &config_file, Location &location)
         }
         else
         {
-            return ParseRoutesResult::Err("不正なディレクティブ");
+            return ParseLocationResult::Err("Location: 不正なディレクティブ");
         }
     }
-    return ParseRoutesResult::Ok("OK");
+    return ParseLocationResult::Err("Locationブロックで文字列が見つかりませんでした");
 }
 
 // サーバーブロックの設定を解析
 ParseServerResult ParseServer(std::ifstream &config_file)
 {
     std::string line;
-    Server server;
+    std::string name = "";
+    size_t port = 80;
+    std::string root = "";
+    std::map<int, std::string> errorPages;
+    size_t clientMaxBodySize = 1048576;
+    bool autoindex = false;
+    std::string index = "index.html";
+    std::vector<Location> locations;
+
     while (std::getline(config_file, line))
     {
         std::istringstream tmp_iss(line);
@@ -151,23 +188,24 @@ ParseServerResult ParseServer(std::ifstream &config_file)
         std::istringstream iss(line);
         std::string key;
         iss >> key;
-        // 各ディレクティブに対する処理を記述
-        if (key == "location" || key == "location_back")
+        if (key == "location")
         {
 
-            Location location;
+            std::string locationPath;
             std::string tmpStr;
             if (key == "location")
             {
-                if (!(iss >> location.path))
+                if (!(iss >> locationPath))
                     return ParseServerResult::Err("location.front_pathが指定されていません");
             }
             if (!(iss >> tmpStr) || tmpStr != "{")
                 return ParseServerResult::Err("Config: locationブロックの開始が不正です");
             if (iss >> tmpStr)
                 return ParseServerResult::Err("Config: locationの引数が多いです");
-            ParseLocation(config_file, location);
-            server.locations.push_back(location);
+            ParseLocationResult location = ParseLocation(config_file, locationPath);
+            if(!location.ok())
+                return ParseServerResult::Err(location.unwrapErr());
+            locations.push_back(location.unwrap());
             if (config_file.eof())
                 return ParseServerResult::Err("Config: サーバーブロックが終了していない");
         }
@@ -176,25 +214,25 @@ ParseServerResult ParseServer(std::ifstream &config_file)
             utils::Result<std::string, std::string> result = PullWord<std::string>(iss);
             if (!result.ok())
                 return ParseServerResult::Err(result.unwrapErr());
-            server.name = result.unwrap();
+            name = result.unwrap();
         }
         else if (key == "listen")
         {
             utils::Result<int, std::string> result = PullWord<int>(iss);
             if (!result.ok())
                 return ParseServerResult::Err(result.unwrapErr());
-            server.port = result.unwrap();
+            port = result.unwrap();
         }
         else if (key == "root")
         {
             utils::Result<std::string, std::string> result = PullWord<std::string>(iss);
             if (!result.ok())
                 return ParseServerResult::Err(result.unwrapErr());
-            server.root = result.unwrap();
+            root = result.unwrap();
         }
         else if (key == "error_page")
         {
-            ErrorPageMapResult errorPageMapResult = HandleErrorPageDirective(iss, server.errorPages);
+            ErrorPageMapResult errorPageMapResult = HandleErrorPageDirective(iss, errorPages);
             if (!errorPageMapResult.ok())
                 return ParseServerResult::Err(errorPageMapResult.unwrapErr());
         }
@@ -203,7 +241,7 @@ ParseServerResult ParseServer(std::ifstream &config_file)
             utils::Result<size_t, std::string> result = PullWord<size_t>(iss);
             if (!result.ok())
                 return ParseServerResult::Err(result.unwrapErr());
-            server.clientMaxBodySize = result.unwrap();
+            clientMaxBodySize = result.unwrap();
         }
         else if (key == "autoindex")
         {
@@ -211,18 +249,18 @@ ParseServerResult ParseServer(std::ifstream &config_file)
             if (!result.ok())
                 return ParseServerResult::Err(result.unwrapErr());
             std::string autoindex_value = result.unwrap();
-            server.autoindex = (autoindex_value == "on");
+            autoindex = (autoindex_value == "on");
         }
         else if (key == "index")
         {
             utils::Result<std::string, std::string> result = PullWord<std::string>(iss);
             if (!result.ok())
                 return ParseServerResult::Err(result.unwrapErr());
-            server.index = result.unwrap();
+            index = result.unwrap();
         }
         else if (key == "}")
         {
-            return (ParseServerResult::Ok(server));
+            return ParseServerResult::Ok(Server(name, port, root, errorPages, clientMaxBodySize, autoindex, index, locations));
         }
         else if (config_file.eof())
         {
@@ -234,10 +272,10 @@ ParseServerResult ParseServer(std::ifstream &config_file)
         }
         else
         {
-            ParseServerResult::Err("Config: 不正なディレクティブ");
+            ParseServerResult::Err("Server: 不正なディレクティブ");
         }
     }
-    return ParseServerResult::Ok(server);
+    return ParseServerResult::Err("Serverブロックで文字列が見つかりませんでした");
 }
 
 // 設定ファイルを解析するメインの関数

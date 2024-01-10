@@ -99,7 +99,6 @@ void Connection::ProcessConnection(int sd, Socket &socket)
 	std::cout << "Received \n"
 			  << GREEN << rc << " bytes: " << buffer << NORMAL << std::endl;
 
-	// TODO: 受け取ったHTTPリクエストを解析する
 	std::istringstream	buf(buffer);
 	HttpParseResult	parserResult = parseHttpRequest(buf, socket.getServer());
 	if (!parserResult.ok())
@@ -121,7 +120,7 @@ void Connection::ProcessConnection(int sd, Socket &socket)
 	}
 }
 
-void Connection::Start(std::vector<Server> servers)
+void Connection::Start(const std::vector<Server> servers)
 {
 	// 各仮想サーバーのソケットを初期化し、監視セットに追加
 	FD_ZERO(&masterSet);

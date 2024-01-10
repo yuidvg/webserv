@@ -21,7 +21,7 @@ int main(int argc, char **argv)
         utils::printError(result.unwrapErr());
         return 1;
     }
-    std::vector<Server> servers = result.unwrap();
+    const std::vector<Server> servers = result.unwrap();
 
     Connection connection;
     connection.Start(servers);
