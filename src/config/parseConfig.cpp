@@ -1,5 +1,7 @@
 #include "parseConfig.hpp"
 
+//TODO: camelCaseに変更
+
 template <typename T> utils::Result<T, std::string> PullWord(std::istringstream &iss)
 {
     T word;
@@ -66,21 +68,21 @@ ParseRoutesResult ParseLocation(std::ifstream &config_file, Location &location)
                 return ParseRoutesResult::Err(result.unwrapErr());
             location.index = result.unwrap();
         }
-        else if (key == "clientMaxBodySize")
+        else if (key == "client_max_body_size")
         {
             utils::Result<size_t, std::string> result = PullWord<size_t>(iss);
             if (!result.ok())
                 return ParseRoutesResult::Err(result.unwrapErr());
             location.clientMaxBodySize = result.unwrap();
         }
-        else if (key == "errorPages")
+        else if (key == "error_page")
         {
 
             ErrorPageMapResult errorPageMapResult = HandleErrorPageDirective(iss, location.errorPages);
             if (!errorPageMapResult.ok())
                 return ParseRoutesResult::Err(errorPageMapResult.unwrapErr());
         }
-        else if (key == "allowMethod")
+        else if (key == "allow_method")
         {
             // 許可されるHTTPメソッドをvectorに追加
             std::string method;
@@ -95,7 +97,7 @@ ParseRoutesResult ParseLocation(std::ifstream &config_file, Location &location)
             if (i > 3)
                 return (ParseRoutesResult::Err("Config: 許可されるHTTPメソッドが多すぎます"));
         }
-        else if (key == "cgiExtension")
+        else if (key == "cgi_executor")
         {
             std::string cgiProgram;
             iss >> cgiProgram;
@@ -190,13 +192,13 @@ ParseServerResult ParseServer(std::ifstream &config_file)
                 return ParseServerResult::Err(result.unwrapErr());
             server.root = result.unwrap();
         }
-        else if (key == "errorPages")
+        else if (key == "error_page")
         {
             ErrorPageMapResult errorPageMapResult = HandleErrorPageDirective(iss, server.errorPages);
             if (!errorPageMapResult.ok())
                 return ParseServerResult::Err(errorPageMapResult.unwrapErr());
         }
-        else if (key == "clientMaxBodySize")
+        else if (key == "client_max_body_size")
         {
             utils::Result<size_t, std::string> result = PullWord<size_t>(iss);
             if (!result.ok())

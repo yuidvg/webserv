@@ -18,6 +18,7 @@ struct Location
     std::string cgiExtension;
     std::string uploadPath;
     std::map<int, std::string> redirect; // リダイレクト先のURL
+    // TODO:constに変更,初期化されてない値は下記に設定する
     Location()
     {
         path = "";
@@ -39,12 +40,12 @@ struct Server
 {
     std::string name;                      // サーバー名
     size_t port;                           
-    std::vector<Location> locations;       // ロケーションの設定
     std::string root;                      // サーバー全体のルートディレクトリ
     std::map<int, std::string> errorPages;
     size_t clientMaxBodySize;              // リクエストボディ最大サイズ
     bool autoindex;                        // ディレクトリリスティングの有効/無効
     std::string index;                     // デフォルトファイル名
+    std::vector<Location> locations;       // ロケーションの設定
     Server()
     {
         name = "";
