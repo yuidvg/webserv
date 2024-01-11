@@ -110,12 +110,12 @@ void Connection::ProcessConnection(int sd, Socket &socket)
     }
 
     // TODO: HTTPレスポンスを作成する
-    // HTTPレスポンス作成のロジックをここに実装
-    std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 22\r\n\r\n<h1>Hello Webserv</h1>";
-    rc = send(sd, response.c_str(), response.length(), 0);
+    HttpResponse httpResponse = response(parserResult.unwrap(), socket.getServer());
+    std::string responseMessage = makeResponseMessage(httpResponse);
+    rc = send(sd, responseMessage.c_str(), responseMessage.size(), 0);
     if (rc < 0)
     {
-        utils::printError("send() failed: ");
+        utils::printError(std::string("send() failed: " + std::string(strerror(errno))));
         CloseConnection(sd);
         return;
     }

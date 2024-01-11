@@ -3,8 +3,10 @@
 
 #include "../config/config.hpp"
 #include <cstring>
+#include <fstream>
 #include <iostream>
 #include <sstream>
+#include <string>
 
 #include "consts.hpp"
 
@@ -17,6 +19,9 @@ unsigned int lengthOfPrefixMatch(const std::string string, const std::string pat
 std::string &trim(std::string &str);
 std::string toLower(std::string str);
 bool isNumber(const std::string &str);
+
+std::string content(std::ifstream &file);
+std::string contentType(std::string path);
 
 // map
 template <typename Key, typename Value> Value value(const std::map<Key, Value> myMap, const Key key)
@@ -32,14 +37,13 @@ template <typename Key, typename Value> Value value(const std::map<Key, Value> m
     }
 }
 
-template <typename T>
-void printError(const T &message)
+template <typename T> void printError(const T &message)
 {
     std::cerr << "\033[31m" << message << "\033[0m" << std::endl;
 }
 
-template <class T>
-std::string to_string(const T& value) {
+template <class T> std::string to_string(const T &value)
+{
     std::ostringstream oss;
     oss << value;
     return oss.str();

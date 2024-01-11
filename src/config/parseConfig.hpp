@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-typedef utils::Result<std::vector<Server>, std::string> ParseResult;
+typedef utils::Result<std::vector<Server>, std::string> ConfigResult;
 typedef utils::Result<Server, std::string> ParseServerResult;
 typedef utils::Result<std::string, std::string> ParseRoutesResult;
 typedef utils::Result<std::string, std::string> ErrorPageMapResult;
@@ -22,6 +22,6 @@ ParseRoutesResult ParseLocation(std::ifstream &configFile, Location &location);
 ErrorPageMapResult HandleErrorPageDirective(std::istringstream &iss, std::map<int, std::string> &errorPages);
 void HandleLocationDirective(std::istringstream &iss, std::ifstream &configFile, Server &server, int type);
 
-ParseResult ParseConfig(const char *configPath);
+ConfigResult parsedConfig(const char *configPath);
 
 #endif

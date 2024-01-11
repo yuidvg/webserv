@@ -1,25 +1,30 @@
 #include "response.hpp"
 
-size_t createResponse(char *buffer, size_t size, int status)
+HttpResponse response(const ParsedRequest request, const Server server)
 {
-    std::string response = "HTTP/1.1 ";
-    std::string statusStr = std::to_string(status);
-    response += statusStr;
-    response += " ";
-    response += getStatusMessage(status);
-    response += "Content-Length: ";
-    response += std::to_string(size);
-    response += "Content-Type: text/html\n";
-    response += buffer;
-    std::memcpy(buffer, response.c_str(), response.size());
-    return response.size();
+    std::map<std::string, std::string> headers;
+    // Locate the requested resource
+    std::string resourcePath = server.root + request.uri;
+    std::ifstream ifs(resourcePath);
+    if (!ifs.is_open())
+    {
+        // If the resource is not found, return a 404 response";
+        HttpResponse response = HttpResponse(BAD_REQUEST, headers, "");
+        return response;
+    }
+    const std::string content = utils::content(ifs);
+    headers["Content-Type"] = utils::contentType(resourcePath);
+
+    return HttpResponse(200, headers, content);
 }
 
-HttpResponse response(const ParsedRequest request, const )
+std::string makeResponseMessage(const HttpResponse &response)
 {
-    HttpResponse res;
-    res.statusCode = 200;
-    res.headers["Content-Type"] = "text/html";
-    res.body = "<h1>hello world</h1>";
-    return res;
+    std::string httpResponse = "HTTP/1.1 " + std::to_string(response.statusCode) + "\r\n";
+    for (std::map<std::string, std::string>::const_iterator it = response.headers.begin(); it != response.headers.end();
+         ++it)
+        httpResponse += it->first + ": " + it->second + "\r\n";
+    httpResponse += "\r\n";
+    httpResponse += response.body;
+    return httpResponse;
 }
