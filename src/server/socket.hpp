@@ -25,12 +25,12 @@ class Socket
   private:
     InitializeResult initialize() const;
     int listenSocket;
-    Server server;
+    const Server server;
 
   public:
     Socket();
-    ~Socket();
     Socket(Server server);
+    ~Socket();
     Server getServer() const;
     int getListenSocket() const;
 };
