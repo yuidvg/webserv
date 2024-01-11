@@ -1,5 +1,5 @@
-#ifndef REQUESTPARSER_HPP
-#define REQUESTPARSER_HPP
+#ifndef PARSEREQUEST_HPP
+#define PARSEREQUEST_HPP
 
 #include <cstring>
 #include <iostream>
@@ -16,14 +16,6 @@
 #define FAILURE 1
 
 #define MAX_LEN 8192
-
-#define OK 200
-#define BAD_REQUEST 400
-#define METHOD_NOT_ALLOWED 405
-#define CONTENT_TOO_LARGE 413
-#define REQUEST_URI_TOO_LONG 414
-#define NOT_IMPLEMENTED 501
-#define Http_VERSION_NOT_SUPPORTED 505
 
 struct ParsedRequest
 {

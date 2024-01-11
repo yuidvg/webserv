@@ -4,7 +4,6 @@
 *.out
 *.DS_Store
 .sample
-client
 webserv
 */*.txt
 webserv
@@ -12,4 +11,4 @@ src/Makefile
 src/*/main.cpp
 obj
 *.txt
-client
+client_app

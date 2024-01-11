@@ -7,7 +7,7 @@
 			"request": "launch",
 			"program": "${workspaceFolder}/webserv",
 			"args": [
-				"8080"
+				"config/default.conf"
 			],
 			"stopAtEntry": false,
 			"cwd": "${workspaceFolder}",

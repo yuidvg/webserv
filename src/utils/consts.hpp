@@ -18,4 +18,16 @@ const std::string YELLO = "\x1b[33m";
 
 const std::string NORMAL = "\x1b[0m";
 
+// charsets
+const std::string CRLF = "\r\n";
+
+// status code classes
+enum STATUS_CODE_CLASSES
+{
+    SUCCESS = 200,
+    REDIRECTION = 300,
+    BAD_REQUEST = 400,
+    SERVER_ERROR = 500
+};
+
 #endif

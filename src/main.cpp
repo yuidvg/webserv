@@ -1,33 +1,29 @@
+#include "config/config.hpp"
 #include "server/connection.hpp"
-#include "config/parseConfig.hpp"
 #include "utils/utils.hpp"
 
 int main(int argc, char **argv)
 {
-	const char *config_path;
-	if (argc < 2)
-	    config_path = "config/default.conf";
-	else if (argc == 2)
-		config_path = argv[1];
-	else
-	{
-		utils::printError("引数が多すぎます");
-		return 1;
-	}
+    if (argc > 2)
+    {
+        utils::printError("引数が多すぎます");
+        return 1;
+    }
+    const std::string configPath = argc == 2 ? argv[1] : "config/default.conf";
 
-	ParseResult result = ParseConfig(config_path);
-	if (!result.ok())
-	{
-		utils::printError(result.unwrapErr());
-		return 1;
-	}
-	std::vector<Server> servers = result.unwrap();
+    ConfigResult configResult = parsedConfig(configPath.c_str());
+    if (!configResult.ok())
+    {
+        utils::printError(configResult.unwrapErr());
+        return 1;
+    }
+    const std::vector<Server> servers = configResult.unwrap();
 
-	Connection connection;
-	connection.Start(servers);
+    Connection connection;
+    connection.Start(servers);
 }
 
 __attribute__((destructor)) static void destructor(void)
 {
-	system("leaks -q webserv");
+    system("leaks -q webserv");
 }
