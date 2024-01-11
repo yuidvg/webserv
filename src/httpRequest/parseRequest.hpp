@@ -23,7 +23,8 @@ struct RequestLine
     std::string version;
 };
 
-typedef Result<HttpRequest, HttpResponse> ParseRequestResult;
+
+typedef Result<RequestLine, HttpResponse> ParseRequestLineResult;
 ParseRequestLineResult parseHttpRequestLine(std::istream &httpRequest, const Server &server);
 
 typedef Result<Headers, HttpResponse> ParseHeaderResult;
@@ -32,7 +33,7 @@ ParseHeaderResult parseHttpHeaders(std::istream &httpRequest);
 typedef Result<std::string, HttpResponse> ParseBodyResult;
 ParseBodyResult parseHttpBody(std::istream &httpRequest, std::map<std::string, std::string> &headers);
 
-typedef Result<RequestLine, HttpResponse> ParseRequestLineResult;
+typedef Result<HttpRequest, HttpResponse> ParseRequestResult;
 ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Server &server);
 
 #endif
