@@ -59,6 +59,8 @@ typedef Result<std::string, std::string> UploadPathResult;
 typedef Result<std::map<int, std::string>, std::string> RedirectResult;
 
 typedef Result<int, std::string> StringToIntResult;
+
 } // namespace parseDirective
+typedef Result<bool, HttpResponse> IsDirectoryResult;
 
 #endif

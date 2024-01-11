@@ -57,14 +57,14 @@ ResponseResult execute(const HttpRequest request, const Server server)
     else if (pid == 0) // child process
     {
         close(pipefds[IN]);
-        execve(request.uri.c_str(), NULL, enviromentVariables(request, server));
+        execve(utils::toChar(request.uri), NULL, enviromentVariables(request, server));
         std::cerr << "execve failed" << std::endl;
         write(STDOUT_FILENO, "Status: 500\n\n", 13);
     }
     else // parent process
     {
         close(pipefds[OUT]);
-        write(pipefds[IN], request.body.c_str(), request.body.size());
+        write(pipefds[IN], utils::toChar(request.body), request.body.size());
         int status;
         waitpid(pid, &status, 0);
         if (WIFEXITED(status) && WEXITSTATUS(status) == 0)

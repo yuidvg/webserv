@@ -12,7 +12,7 @@ int main(int argc, char **argv)
     }
     const std::string configPath = argc == 2 ? argv[1] : "config/default.conf";
 
-    ConfigResult configResult = parseConfig(configPath.c_str());
+    ConfigResult configResult = parseConfig(utils::toChar(configPath));
     if (!configResult.success)
     {
         utils::printError(configResult.error);
