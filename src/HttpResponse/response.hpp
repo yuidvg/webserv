@@ -1,7 +1,7 @@
 #ifndef HTTPRESPONSE_HPP
 #define HTTPRESPONSE_HPP
 
-#include "../HttpRequest/RequestParser.hpp"
+#include "../httpRequest/parseRequest.hpp"
 #include <cstring>
 #include <iostream>
 #include <map>
