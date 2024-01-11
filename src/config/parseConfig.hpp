@@ -3,6 +3,7 @@
 
 #include "../utils/utils.hpp"
 #include "config.hpp"
+#include "tokenizeConfig.hpp"
 #include <fstream>
 #include <iostream>
 #include <map>

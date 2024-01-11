@@ -1,6 +1,6 @@
 #include "parseConfig.hpp"
 
-//TODO: camelCaseに変更
+// TODO: camelCaseに変更
 
 template <typename T> utils::Result<T, std::string> PullWord(std::istringstream &iss)
 {
@@ -53,11 +53,11 @@ ErrorPageMapResult HandleErrorPageDirective(std::istringstream &iss, std::map<in
 // ロケーションブロックの設定を解析
 ParseLocationResult ParseLocation(std::ifstream &config_file, std::string &locationPath)
 {
-    std::string path = locationPath;                      
-    std::string root = "";                      
-    bool autoindex = false;                        
-    std::string index = "index.html";                     
-    size_t clientMaxBodySize = 0;              
+    std::string path = locationPath;
+    std::string root = "";
+    bool autoindex = false;
+    std::string index = "index.html";
+    size_t clientMaxBodySize = 0;
     std::map<int, std::string> errorPages;
     std::vector<std::string> allowMethods;
     allowMethods.push_back("GET");
@@ -66,7 +66,7 @@ ParseLocationResult ParseLocation(std::ifstream &config_file, std::string &locat
     std::string cgiExtension = "";
     std::string uploadPath = "";
     std::map<int, std::string> redirect;
-    
+
     std::string line;
 
     while (std::getline(config_file, line))
@@ -142,7 +142,7 @@ ParseLocationResult ParseLocation(std::ifstream &config_file, std::string &locat
         else if (key == "return")
         {
             int statusCode; // ステータスコードを取得
-                if (!(iss >> statusCode))
+            if (!(iss >> statusCode))
                 return ParseLocationResult::Err("Config: returnの引数が不正です");
             std::string redirectUrl;
             if (!(iss >> redirectUrl))
@@ -151,10 +151,11 @@ ParseLocationResult ParseLocation(std::ifstream &config_file, std::string &locat
             if (iss >> tmpStr)
                 return ParseLocationResult::Err("Config: returnの引数が多いです");
             redirect[statusCode] = redirectUrl;
-}
+        }
         else if (key == "}")
         {
-            return ParseLocationResult::Ok(Location(path, root, autoindex, index, clientMaxBodySize, errorPages, allowMethods, cgiExtension, uploadPath, redirect));
+            return ParseLocationResult::Ok(Location(path, root, autoindex, index, clientMaxBodySize, errorPages,
+                                                    allowMethods, cgiExtension, uploadPath, redirect));
         }
         else if (key.empty() || key == "\t" || key == "\n")
         {
@@ -203,7 +204,7 @@ ParseServerResult ParseServer(std::ifstream &config_file)
             if (iss >> tmpStr)
                 return ParseServerResult::Err("Config: locationの引数が多いです");
             ParseLocationResult location = ParseLocation(config_file, locationPath);
-            if(!location.ok())
+            if (!location.ok())
                 return ParseServerResult::Err(location.unwrapErr());
             locations.push_back(location.unwrap());
             if (config_file.eof())
@@ -260,7 +261,8 @@ ParseServerResult ParseServer(std::ifstream &config_file)
         }
         else if (key == "}")
         {
-            return ParseServerResult::Ok(Server(name, port, root, errorPages, clientMaxBodySize, autoindex, index, locations));
+            return ParseServerResult::Ok(
+                Server(name, port, root, errorPages, clientMaxBodySize, autoindex, index, locations));
         }
         else if (config_file.eof())
         {
@@ -281,6 +283,21 @@ ParseServerResult ParseServer(std::ifstream &config_file)
 // 設定ファイルを解析するメインの関数
 ParseResult ParseConfig(const char *configPath)
 {
+    tokenizeResult tokensResult = tokenize(configPath);
+    if (!tokensResult.ok())
+        return ParseResult::Err(tokensResult.unwrapErr());
+    std::vector<Tokenize> tokens = tokensResult.unwrap();
+    // debug用
+    for (std::vector<Tokenize>::const_iterator it = tokens.begin(); it != tokens.end(); ++it)
+    {
+        std::cout << it->key << " : ";
+        for (std::vector<std::string>::const_iterator valIt = it->values.begin(); valIt != it->values.end(); ++valIt)
+        {
+            std::cout << *valIt << " ";
+        }
+        std::cout << std::endl;
+    }
+    exit(1);
     std::ifstream configFile(configPath);
     std::string line;
     std::vector<Server> servers;
