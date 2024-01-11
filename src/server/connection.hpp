@@ -43,7 +43,7 @@ class Connection
     Connection();  // コンストラクタ
     ~Connection(); // デストラクタ
     void deleteConnSock(int sd);
-    void Start(std::vector<Server> servers); // サーバーを開始するためのメソッド
+    void Start(const std::vector<Server> servers); // サーバーを開始するためのメソッド
 };
 
 #endif
