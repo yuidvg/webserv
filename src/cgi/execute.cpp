@@ -1,5 +1,4 @@
 #include "cgi.hpp"
-#include "utils/utils.hpp"
 
 namespace cgi
 {

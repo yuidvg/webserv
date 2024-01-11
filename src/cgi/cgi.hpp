@@ -1,15 +1,11 @@
 #ifndef CGI_HPP
 #define CGI_HPP
 
-#include "../httpRequest/parseRequest.hpp"
-#include "../utils/utils.hpp"
-#include <map>
-#include <string>
-#include <unistd.h>
+#include "../types/all.hpp"
+#include "../utils/all.hpp"
 
 namespace cgi
 {
-typedef Result<std::string, std::string> ResponseResult;
 ResponseResult execute(const HttpRequest request, const Server server, const int clientSocket);
 bool shouldUse(const HttpRequest request, const Server server);
 } // namespace cgi

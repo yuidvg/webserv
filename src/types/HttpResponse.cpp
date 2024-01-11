@@ -1,4 +1,5 @@
 #include "HttpResponse.hpp"
+#include "../consts.hpp"
 
 HttpResponse::HttpResponse() : statusCode(SUCCESS), headers(Headers()), body("")
 {
