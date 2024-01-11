@@ -1,6 +1,5 @@
 #include "connection.hpp"
-#include "../HttpRequest/RequestParser.hpp"
-#include "../HttpResponse/HttpResponse.hpp"
+#include "../httpRequest/parseRequest.hpp"
 #include "../utils/utils.hpp"
 
 Connection::Connection()

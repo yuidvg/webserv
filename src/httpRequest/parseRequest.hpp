@@ -1,5 +1,5 @@
-#ifndef REQUESTPARSER_HPP
-#define REQUESTPARSER_HPP
+#ifndef PARSEREQUEST_HPP
+#define PARSEREQUEST_HPP
 
 #include <cstring>
 #include <iostream>
