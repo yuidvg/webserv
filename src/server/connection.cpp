@@ -100,16 +100,9 @@ void Connection::ProcessConnection(int sd, Socket &socket)
     std::cout << "Received \n" << GREEN << rc << " bytes: " << buffer << NORMAL << std::endl;
 
 	std::istringstream	buf(buffer);
-	HttpParseResult	parserResult = parseHttpRequest(buf, socket.getServer());
-	if (!parserResult.ok())
-	{
-		utils::printError(std::string("parseHttpRequest() failed: " + utils::to_string(parserResult.unwrapErr())));
-		CloseConnection(sd);
-		return;
-	}
 
-    // TODO: HTTPレスポンスを作成する
-    HttpResponse httpResponse = response(parserResult.unwrap(), socket.getServer());
+
+    HttpResponse httpResponse = response(parseHttpRequest(buf, socket.getServer()), socket.getServer());
     std::string responseMessage = makeResponseMessage(httpResponse);
     rc = send(sd, responseMessage.c_str(), responseMessage.size(), 0);
     if (rc < 0)

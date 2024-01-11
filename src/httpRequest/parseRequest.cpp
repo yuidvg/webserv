@@ -33,12 +33,12 @@ static bool checkRequestLine(std::string &method, std::string &uri, std::string 
     (void)server;
     if (!checkMethod(method))
     {
-        errorCode = METHOD_NOT_ALLOWED;
+        errorCode = BAD_REQUEST;
         return (false);
     }
     if (version != "Http/1.1")
     {
-        errorCode = Http_VERSION_NOT_SUPPORTED;
+        errorCode = BAD_REQUEST;
         return (false);
     }
     return (true);
@@ -56,7 +56,7 @@ ParseRequestLineResult parseHttpRequestLine(std::istream &httpRequest, const Ser
     if (line.empty())
         return (ParseRequestLineResult::Err(BAD_REQUEST));
     if (isLineTooLong(line) == true)
-        return (ParseRequestLineResult::Err(REQUEST_URI_TOO_LONG));
+        return (ParseRequestLineResult::Err(BAD_REQUEST));
 
     std::istringstream requestLine(line);
     if (!(requestLine >> method >> uri >> version) ||
@@ -64,7 +64,7 @@ ParseRequestLineResult parseHttpRequestLine(std::istream &httpRequest, const Ser
         return (ParseRequestLineResult::Err(BAD_REQUEST));
 
     /* エラーチェック */
-    int errorCode = OK;
+    int errorCode = SUCCESS;
     if (!checkRequestLine(method, uri, version, errorCode, server))
         return (ParseRequestLineResult::Err(errorCode));
 
@@ -82,7 +82,7 @@ ParseHeaderResult parseHttpHeaders(std::istream &httpRequest)
         if (line.empty())
             break;
         if (isLineTooLong(line) == true)
-            return (ParseHeaderResult::Err(REQUEST_URI_TOO_LONG));
+            return (ParseHeaderResult::Err(BAD_REQUEST));
         if (std::isspace(line[0]))
             return (ParseHeaderResult::Err(BAD_REQUEST));
 
@@ -112,7 +112,7 @@ ParseBodyResult parseChunkedBody(std::istream &httpRequest, std::map<std::string
     std::string line;
 
     if (header["transfer-encoding"] != "chunked")
-        return (ParseBodyResult::Err(NOT_IMPLEMENTED));
+        return (ParseBodyResult::Err(BAD_REQUEST));
 
     std::string body;
     while (std::getline(httpRequest, line))
@@ -120,7 +120,7 @@ ParseBodyResult parseChunkedBody(std::istream &httpRequest, std::map<std::string
         // if (line.empty())
         // 	break ;
         if (isLineTooLong(line) == true)
-            return (ParseBodyResult::Err(REQUEST_URI_TOO_LONG));
+            return (ParseBodyResult::Err(BAD_REQUEST));
 
         std::istringstream chunkSizeLine(line);
         int chunkSize;
@@ -154,7 +154,7 @@ ParseBodyResult parsePlainBody(std::istream &httpRequest, std::map<std::string, 
 
     size_t contentLength = std::stoul(header["content-length"]);
     if (contentLength > MAX_LEN)
-        return (ParseBodyResult::Err(CONTENT_TOO_LARGE));
+        return (ParseBodyResult::Err(BAD_REQUEST));
 
     std::cout << "contentLength: " << contentLength << std::endl; // debug
     std::string body(contentLength, '\0');

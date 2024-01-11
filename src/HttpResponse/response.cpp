@@ -1,6 +1,8 @@
 #include "response.hpp"
+const
 
-HttpResponse response(const ParsedRequest request, const Server server)
+    HttpResponse
+    response(const ParsedRequestResult request, const Server server)
 {
     std::map<std::string, std::string> headers;
     // Locate the requested resource
