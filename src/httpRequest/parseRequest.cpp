@@ -1,4 +1,4 @@
-#include "parsedRequest.hpp"
+#include "parseRequest.hpp"
 
 static bool isLineTooLong(const std::string &line)
 {
@@ -75,7 +75,7 @@ ParseRequestLineResult parseHttpRequestLine(std::istream &httpRequest, const Ser
 ParseHeaderResult parseHttpHeaders(std::istream &httpRequest)
 {
     std::string line;
-    std::map<std::string, std::string> header;
+    Headers headers;
 
     while (std::getline(httpRequest, line))
     {
@@ -97,22 +97,22 @@ ParseHeaderResult parseHttpHeaders(std::istream &httpRequest)
         if (key.empty() || std::isspace(*(key.end() - 1)) || value.empty())
             return (ParseHeaderResult::Error(BAD_REQUEST));
 
-        header[utils::lowerCase(key)] = value; // keyを小文字に変換して格納する
-        std::cout << "[key]: " << key << ", [value]: " << header[utils::lowerCase(key)] << std::endl; // debug
+        headers[utils::lowerCase(key)] = value; // keyを小文字に変換して格納する
+        std::cout << "[key]: " << key << ", [value]: " << headers[utils::lowerCase(key)] << std::endl; // debug
     }
-    if (!line.empty() || header.empty())
+    if (!line.empty() || headers.empty())
         return (ParseHeaderResult::Error(BAD_REQUEST));
 
-    return (ParseHeaderResult::Success(header));
+    return (ParseHeaderResult::Success(headers));
 }
 
-ParseBodyResult parseChunkedBody(std::istream &httpRequest, std::map<std::string, std::string> &header)
+ParseBodyResult parseChunkedBody(std::istream &httpRequest, std::map<std::string, std::string> &headers)
 {
     std::cout << "====parseChunkedBody====" << std::endl; // debug
     std::string line;
 
-    if (header["transfer-encoding"] != "chunked")
-        return (ParseBodyResult::Error(BAD_REQUEST));
+    if (headers["transfer-encoding"] != "chunked")
+        return (ParseBodyResult::Error(HttpResponse(BAD_REQUEST)));
 
     std::string body;
     while (std::getline(httpRequest, line))
@@ -120,12 +120,12 @@ ParseBodyResult parseChunkedBody(std::istream &httpRequest, std::map<std::string
         // if (line.empty())
         // 	break ;
         if (isLineTooLong(line) == true)
-            return (ParseBodyResult::Error(BAD_REQUEST));
+            return (ParseBodyResult::Error(HttpResponse(BAD_REQUEST)));
 
         std::istringstream chunkSizeLine(line);
         int chunkSize;
         if (!(chunkSizeLine >> std::hex >> chunkSize) || !chunkSizeLine.eof())
-            return (ParseBodyResult::Error(BAD_REQUEST));
+            return (ParseBodyResult::Error(HttpResponse(BAD_REQUEST)));
 
         // チャンクのサイズを読み取り、0でない限り続ける
         if (chunkSize == 0)
@@ -144,15 +144,15 @@ ParseBodyResult parseChunkedBody(std::istream &httpRequest, std::map<std::string
     return (ParseBodyResult::Success(body));
 }
 
-ParseBodyResult parsePlainBody(std::istream &httpRequest, std::map<std::string, std::string> &header)
+ParseBodyResult parsePlainBody(std::istream &httpRequest, std::map<std::string, std::string> &headers)
 {
     std::cout << "====parsePlainBody====" << std::endl; // debug
     std::string line;
 
-    if (header["content-length"].empty() || !utils::isNumber(header["content-length"]))
+    if (headers["content-length"].empty() || !utils::isNumber(headers["content-length"]))
         return (ParseBodyResult::Error(BAD_REQUEST));
 
-    size_t contentLength = std::stoul(header["content-length"]);
+    size_t contentLength = std::stoul(headers["content-length"]);
     if (contentLength > MAX_LEN)
         return (ParseBodyResult::Error(BAD_REQUEST));
 
@@ -164,15 +164,15 @@ ParseBodyResult parsePlainBody(std::istream &httpRequest, std::map<std::string, 
     return (ParseBodyResult::Success(body));
 }
 
-ParseBodyResult parseHttpBody(std::istream &httpRequest, std::map<std::string, std::string> &header)
+ParseBodyResult parseHttpBody(std::istream &httpRequest, std::map<std::string, std::string> &headers)
 {
     std::cout << "====parseBody====" << std::endl; // debug
     std::string line;
 
-    if (header.find("transfer-encoding") != header.end())
-        return (parseChunkedBody(httpRequest, header));
-    else if (header.find("content-length") != header.end())
-        return (parsePlainBody(httpRequest, header));
+    if (headers.find("transfer-encoding") != headers.end())
+        return (parseChunkedBody(httpRequest, headers));
+    else if (headers.find("content-length") != headers.end())
+        return (parsePlainBody(httpRequest, headers));
     else
         return (ParseBodyResult::Success(""));
 }
@@ -183,16 +183,16 @@ ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Server &ser
     if (!parseResult.success)
         return (ParseRequestResult::Error(HttpResponse(parseResult.error)));
 
-    ParseHeaderResult headers = parseHttpHeaders(httpRequest);
-    if (!headers.success)
-        return (ParseRequestResult::Error(HttpResponse(headers.error)));
+    ParseHeaderResult headersResult = parseHttpHeaders(httpRequest);
+    if (!headersResult.success)
+        return (ParseRequestResult::Error(HttpResponse(headersResult.error)));
 
-    std::map<std::string, std::string> header = headers.value;
-    ParseBodyResult body = parseHttpBody(httpRequest, header);
+    Headers headers = headersResult.value;
+    ParseBodyResult body = parseHttpBody(httpRequest, headers);
     if (!body.success)
         return (ParseRequestResult::Error(HttpResponse(body.error)));
 
     RequestLine requestLine = parseResult.value;
-    ParsedRequest result(requestLine.method, requestLine.uri, requestLine.version, headers.value, body.value);
+    HttpRequest result(requestLine.method, requestLine.uri, requestLine.version, headers, body.value);
     return (ParseRequestResult::Success(result));
 }

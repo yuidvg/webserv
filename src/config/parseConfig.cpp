@@ -1,6 +1,6 @@
 #include "parseConfig.hpp"
 
-//TODO: camelCaseに変更
+// TODO: camelCaseに変更
 
 template <typename T> Result<T, std::string> PullWord(std::istringstream &iss)
 {
@@ -142,7 +142,7 @@ ParseLocationResult ParseLocation(std::ifstream &config_file, std::string &locat
         else if (key == "return")
         {
             int statusCode; // ステータスコードを取得
-                if (!(iss >> statusCode))
+            if (!(iss >> statusCode))
                 return ParseLocationResult::Error("Config: returnの引数が不正です");
             std::string redirectUrl;
             if (!(iss >> redirectUrl))
@@ -151,10 +151,11 @@ ParseLocationResult ParseLocation(std::ifstream &config_file, std::string &locat
             if (iss >> tmpStr)
                 return ParseLocationResult::Error("Config: returnの引数が多いです");
             redirect[statusCode] = redirectUrl;
-}
+        }
         else if (key == "}")
         {
-            return ParseLocationResult::Success(Location(path, root, autoindex, index, clientMaxBodySize, errorPages, allowMethods, cgiExtension, uploadPath, redirect));
+            return ParseLocationResult::Success(Location(path, root, autoindex, index, clientMaxBodySize, errorPages,
+                                                         allowMethods, cgiExtension, uploadPath, redirect));
         }
         else if (key.empty() || key == "\t" || key == "\n")
         {
@@ -203,7 +204,7 @@ ParseServerResult ParseServer(std::ifstream &config_file)
             if (iss >> tmpStr)
                 return ParseServerResult::Error("Config: locationの引数が多いです");
             ParseLocationResult location = ParseLocation(config_file, locationPath);
-            if(!location.success)
+            if (!location.success)
                 return ParseServerResult::Error(location.error);
             locations.push_back(location.value);
             if (config_file.eof())
@@ -260,7 +261,8 @@ ParseServerResult ParseServer(std::ifstream &config_file)
         }
         else if (key == "}")
         {
-            return ParseServerResult::Success(Server(name, port, root, errorPages, clientMaxBodySize, autoindex, index, locations));
+            return ParseServerResult::Success(
+                Server(name, port, root, errorPages, clientMaxBodySize, autoindex, index, locations));
         }
         else if (config_file.eof())
         {
@@ -279,7 +281,7 @@ ParseServerResult ParseServer(std::ifstream &config_file)
 }
 
 // 設定ファイルを解析するメインの関数
-ConfigResult ParseConfig(const char *configPath)
+ConfigResult parseConfig(const char *configPath)
 {
     std::ifstream configFile(configPath);
     std::string line;

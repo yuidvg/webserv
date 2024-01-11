@@ -8,10 +8,12 @@
 #include <sstream>
 #include <string>
 
-#include "../httpResponse/response.hpp"
+#include "../httpResponse/HttpResponse.hpp"
 #include "Headers.hpp"
 #include "Result.hpp"
 #include "consts.hpp"
+
+struct HttpResponse;
 
 namespace utils
 {

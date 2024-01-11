@@ -1,6 +1,8 @@
-#include "response.hpp"
+#include "../httpRequest/parseRequest.hpp"
+#include "../utils/utils.hpp"
+#include "HttpResponse.hpp"
 
-static HttpResponse responseToValidRequest(const ParsedRequest request, const Server server)
+static HttpResponse responseToValidRequest(const HttpRequest request, const Server server)
 {
     const std::string fullPath = server.root + request.uri;
     const utils::FileContentResult openedFile = utils::content(fullPath);
@@ -13,7 +15,7 @@ static HttpResponse responseToValidRequest(const ParsedRequest request, const Se
 
 HttpResponse response(const ParseRequestResult requestResult, const Server server)
 {
-    return requestResult.success ? responseToValidRequest(requestResult.value, server) : requestResult.value;
+    return requestResult.success ? responseToValidRequest(requestResult.value, server) : requestResult.error;
 }
 
 std::string makeResponseMessage(const HttpResponse response)
@@ -25,14 +27,4 @@ std::string makeResponseMessage(const HttpResponse response)
     text += CRLF;
     text += response.body;
     return text;
-}
-
-HttpResponse::HttpResponse() : statusCode(SUCCESS), headers(Headers()), body("")
-{
-}
-
-HttpResponse::HttpResponse(const unsigned int statusCode, const Headers headers = Headers(),
-                           const std::string body = "")
-    : statusCode(statusCode), headers(headers), body(body)
-{
 }

@@ -22,6 +22,6 @@ ParseLocationResult ParseLocation(std::ifstream &configFile, std::string &locati
 ErrorPageMapResult HandleErrorPageDirective(std::istringstream &iss, std::map<int, std::string> &errorPages);
 void HandleLocationDirective(std::istringstream &iss, std::ifstream &configFile, Server &server, int type);
 
-ConfigResult parsedConfig(const char *configPath);
+ConfigResult parseConfig(const char *configPath);
 
 #endif

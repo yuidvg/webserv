@@ -1,7 +1,4 @@
 #include "connection.hpp"
-#include "../httpRequest/parseRequest.hpp"
-#include "../httpResponse/response.hpp"
-#include "../utils/utils.hpp"
 
 Connection::Connection()
 {
@@ -99,10 +96,11 @@ void Connection::ProcessConnection(int sd, Socket &socket)
     }
     std::cout << "Received \n" << GREEN << rc << " bytes: " << buffer << NORMAL << std::endl;
 
-	std::istringstream	buf(buffer);
+    std::istringstream buf(buffer);
 
+    ParseRequestResult parseRequestResult = parseHttpRequest(buf, socket.getServer());
 
-    HttpResponse httpResponse = response(parseHttpRequest(buf, socket.getServer()), socket.getServer());
+    HttpResponse httpResponse = response(parseRequestResult, socket.getServer());
     std::string responseMessage = makeResponseMessage(httpResponse);
     rc = send(sd, responseMessage.c_str(), responseMessage.size(), 0);
     if (rc < 0)
