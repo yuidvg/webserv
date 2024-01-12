@@ -114,11 +114,8 @@ ParseServerResult ParseServer(std::vector<Tokenize> &tokens)
 {
     std::string name = "";
     size_t port = 80;
-    std::string root = "";
     std::map<int, std::string> errorPages;
     size_t clientMaxBodySize = 1048576;
-    bool autoindex = false;
-    std::string index = "index.html";
     std::vector<Location> locations;
 
     while (!tokens.empty())
@@ -155,12 +152,6 @@ ParseServerResult ParseServer(std::vector<Tokenize> &tokens)
             std::string portStr = token.values[0];
             port = std::stoi(portStr);
         }
-        else if (token.key == "root")
-        {
-            if (token.values.size() != 1)
-                return ParseServerResult::Err("Config: rootの引数が多いです");
-            root = token.values[0];
-        }
         else if (token.key == "error_page")
         {
             if (token.values.size() != 2)
@@ -169,10 +160,18 @@ ParseServerResult ParseServer(std::vector<Tokenize> &tokens)
             std::string errorPagePath = token.values[1];
             errorPages[std::stoi(errorCodeStr)] = errorPagePath;
         }
+        else if (token.key == "client_max_body_size")
+        {
+            if (token.values.size() != 1)
+                return ParseServerResult::Err(token.key + "引数の数が不正です");
+
+            clientMaxBodySize = std::atoi(token.values[0].c_str());
+            if (clientMaxBodySize == 0)
+                return ParseServerResult::Err("client_max_body_sizeの値が不正です");
+        }
         else if (token.key == "}")
         {
-            return ParseServerResult::Ok(
-                Server(name, port, root, errorPages, clientMaxBodySize, autoindex, index, locations));
+            return ParseServerResult::Ok(Server(name, port, errorPages, clientMaxBodySize, locations));
         }
     }
 

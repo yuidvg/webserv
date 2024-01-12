@@ -1,6 +1,6 @@
 #include "socket.hpp"
 
-Socket::Socket() : server("", 80, "", std::map<int, std::string>(), 1048576, false, "index.html", std::vector<Location>())
+Socket::Socket() : server("", 80, std::map<int, std::string>(), 1048576, std::vector<Location>())
 {
 }
 
@@ -42,7 +42,8 @@ InitializeResult Socket::initialize() const
     if (bind(sd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
         close(sd);
-        return (InitializeResult::Err(std::string("bind() failed: " + std::string(strerror(errno)) + "\nポート番号" + utils::to_string(server.port))));
+        return (InitializeResult::Err(std::string("bind() failed: " + std::string(strerror(errno)) + "\nポート番号" +
+                                                  utils::to_string(server.port))));
     }
 
     if (listen(sd, 5) < 0)

@@ -50,17 +50,15 @@ struct Server
 {
     const std::string name; // サーバー名
     const size_t port;
-    const std::string root; // サーバー全体のルートディレクトリ
+    // const std::string root; // サーバー全体のルートディレクトリ
     const std::map<int, std::string> errorPages;
-    const size_t clientMaxBodySize;        // リクエストボディ最大サイズ
-    const bool autoindex;                  // ディレクトリリスティングの有効/無効
-    const std::string index;               // デフォルトファイル名
+    const size_t clientMaxBodySize; // リクエストボディ最大サイズ
+    // const bool autoindex;                  // ディレクトリリスティングの有効/無効
+    // const std::string index;               // デフォルトファイル名
     const std::vector<Location> locations; // ロケーションの設定
-    Server(const std::string name, const size_t port, const std::string root,
-           const std::map<int, std::string> errorPages, const size_t clientMaxBodySize, const bool autoindex,
-           const std::string index, const std::vector<Location> locations)
-        : name(name), port(port), root(root), errorPages(errorPages), clientMaxBodySize(clientMaxBodySize),
-          autoindex(autoindex), index(index), locations(locations)
+    Server(const std::string name, const size_t port, const std::map<int, std::string> errorPages,
+           const size_t clientMaxBodySize, const std::vector<Location> locations)
+        : name(name), port(port), errorPages(errorPages), clientMaxBodySize(clientMaxBodySize), locations(locations)
     {
     }
 };
