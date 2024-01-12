@@ -4,18 +4,14 @@
 
 int main(int argc, char **argv)
 {
-    const char *configPath;
-    if (argc < 2)
-        configPath = "config/default.conf";
-    else if (argc == 2)
-        configPath = argv[1];
-    else
+    if (argc > 2)
     {
         utils::printError("引数が多すぎます");
         return 1;
     }
+    const std::string configPath = argc == 2 ? argv[1] : "config/default.conf";
 
-    ParseResult result = ParseConfig(configPath);
+    ParseResult result = ParseConfig(configPath.c_str());
     if (!result.ok())
     {
         utils::printError(result.unwrapErr());
