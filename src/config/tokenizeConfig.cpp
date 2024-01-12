@@ -28,10 +28,9 @@ stringResult checkBracketsBalance(const std::vector<Tokenize> &tokens)
 
 stringResult removeSemicolonFromToken(Tokenize &token)
 {
-    if (token.key == SERVER || token.key == SERVER_NAME || token.key == LISTEN || token.key == LOCATION ||
-        token.key == ALLOW_METHOD || token.key == CGI_EXECUTOR || token.key == UPLOAD_PATH || token.key == RETURN ||
-        token.key == ROOT || token.key == ERROR_PAGE || token.key == CLIENT_MAX_BODY_SIZE || token.key == INDEX ||
-        token.key == AUTOINDEX)
+    if (token.key == SERVER_NAME || token.key == LISTEN || token.key == ALLOW_METHOD || token.key == CGI_EXECUTOR ||
+        token.key == UPLOAD_PATH || token.key == RETURN || token.key == ROOT || token.key == ERROR_PAGE ||
+        token.key == CLIENT_MAX_BODY_SIZE || token.key == INDEX || token.key == AUTOINDEX)
     {
         if (token.values[token.values.size() - 1] == OPEN_BRACKET ||
             token.values[token.values.size() - 1] == CLOSE_BRACKET)

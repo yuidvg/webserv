@@ -1,27 +1,5 @@
 #include "parseConfig.hpp"
 
-// TODO: camelCaseに変更
-
-ErrorPageMapResult HandleErrorPageDirective(std::vector<Tokenize> tokens, std::map<int, std::string> &errorPages)
-{
-    if (tokens.size() != 2)
-        return ErrorPageMapResult::Err("Config: error_pageの引数が多いです");
-    std::string errorCodeStr = tokens[0].values[0];
-    std::string errorPagePath = tokens[1].values[0];
-    int errorCode;
-    try
-    {
-        errorCode = std::stoi(errorCodeStr);
-    }
-    catch (const std::exception &e)
-    {
-        return ErrorPageMapResult::Err("Config: error_code引数が不正です");
-    }
-    errorPages[errorCode] = errorPagePath;
-    return ErrorPageMapResult::Ok("OK");
-}
-
-// TODO: 下記のようにコードを短くする。
 // parsedLocation(std::ifstream &config_file)
 // {
 //     const std::vector<const std::string> lines = readLines(config_file);
@@ -94,8 +72,8 @@ ParseLocationResult ParseLocation(std::vector<Tokenize> &tokens, std::string &lo
         }
         else if (token.key == "allow_method")
         {
-            if (token.values.size() != 1)
-                return ParseLocationResult::Err("Config: allow_methodの引数が多いです");
+            if (token.values.size() > 3 || token.values.size() < 1)
+                return ParseLocationResult::Err("Config: allow_methodの引数が不正です");
             // 許可されるHTTPメソッドをvectorに追加
             std::string method = token.values[0];
             if (method != "GET" && method != "POST" && method != "DELETE")
@@ -149,17 +127,17 @@ ParseServerResult ParseServer(std::vector<Tokenize> &tokens)
         tokens.erase(tokens.begin());
         if (token.key == "location")
         {
-            if (token.values.size() != 1)
+            if (token.values.size() > 2)
                 return ParseServerResult::Err("Config: locationの引数が多いです");
-            std::string locationPath = token.values[0];
-            std::string tmpStr;
-            if (tokens.empty())
-                return ParseServerResult::Err("Config: locationブロックがありません");
-            token = tokens.front();
-            tokens.erase(tokens.begin());
-            if (token.key != "{")
+            if (tokens.front().key != OPEN_BRACKET && token.values[1] != OPEN_BRACKET)
                 return ParseServerResult::Err("Config: locationブロックの開始が不正です");
-            ParseLocationResult location = ParseLocation(tokens, locationPath);
+            std::string locationsPath = token.values[0];
+            if (tokens.front().key == OPEN_BRACKET)
+            {
+                token = tokens.front();
+                tokens.erase(tokens.begin());
+            }
+            ParseLocationResult location = ParseLocation(tokens, locationsPath);
             if (!location.ok())
                 return ParseServerResult::Err(location.unwrapErr());
             locations.push_back(location.unwrap());
@@ -216,7 +194,6 @@ ParseResult ParseConfig(const char *configPath)
     {
         Tokenize token = tokens.front();
         tokens.erase(tokens.begin());
-        std::cout << "token.key: " << token.key << std::endl;
         if (token.key == "server")
         {
             if (token.values.size() > 1)
