@@ -106,8 +106,11 @@ ParseServerResult parseServerContext(std::vector<Tokenize> &tokens)
 {
     std::string name = "";
     size_t port = 80;
+    std::string root = "";
     std::map<int, std::string> errorPages;
     size_t clientMaxBodySize = 1048576;
+    bool autoindex = false;
+    std::string index = "index.html";
     std::vector<Location> locations;
 
     while (!tokens.empty())
@@ -152,7 +155,8 @@ ParseServerResult parseServerContext(std::vector<Tokenize> &tokens)
         }
         else if (token.key == CLOSE_BRACKET)
         {
-            return ParseServerResult::Ok(Server(name, port, errorPages, clientMaxBodySize, locations));
+            return ParseServerResult::Ok(
+                Server(name, port, root, errorPages, clientMaxBodySize, autoindex, index, locations));
         }
     }
 
@@ -161,7 +165,7 @@ ParseServerResult parseServerContext(std::vector<Tokenize> &tokens)
 }
 
 // 設定ファイルを解析するメインの関数
-ParseResult ParseConfig(const char *configPath)
+ParseResult parseConfig(const char *configPath)
 {
     TokenizeResult tokensResult = tokenize(configPath);
     if (!tokensResult.ok())

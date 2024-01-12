@@ -15,7 +15,7 @@ typedef utils::Result<Server, std::string> ParseServerResult;
 typedef utils::Result<Location, std::string> ParseLocationResult;
 
 // 設定ファイルを解析するメインの関数
-ParseResult parseConfigContext(const char *configPath);
+ParseResult parseConfig(const char *configPath);
 ParseServerResult parseServerContext(std::vector<Tokenize> &tokens);
 ParseLocationResult parseLocationContext(std::vector<Tokenize> &tokens, std::string &locationPath);
 

@@ -15,7 +15,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    ParseResult result = ParseConfig(configPath);
+    ParseResult result = parseConfig(configPath);
     if (!result.ok())
     {
         utils::printError(result.unwrapErr());

@@ -1,8 +1,8 @@
 #ifndef CGI_HPP
 #define CGI_HPP
 
-#include "../HttpRequest/RequestParser.hpp"
 #include "../utils/utils.hpp"
+#include "httpRequest/RequestParser.hpp"
 #include <map>
 #include <string>
 #include <unistd.h>
