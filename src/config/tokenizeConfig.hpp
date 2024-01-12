@@ -1,7 +1,10 @@
 #ifndef TOKENIZE_CONFIG_HPP
 #define TOKENIZE_CONFIG_HPP
 
-#include "parseConfig.hpp"
+#include "../utils/utils.hpp"
+#include "config.hpp"
+#include <fstream>
+#include <iostream>
 
 struct Tokenize
 {

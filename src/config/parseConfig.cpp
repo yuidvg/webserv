@@ -2,36 +2,22 @@
 
 // TODO: camelCaseに変更
 
-template <typename T> utils::Result<T, std::string> PullWord(std::istringstream &iss)
+ErrorPageMapResult HandleErrorPageDirective(std::vector<Tokenize> tokens, std::map<int, std::string> &errorPages)
 {
-    T word;
-    if (!(iss >> word))
-    {
-        return utils::Result<T, std::string>::Err("Config: ディレクティブの引数が不正です");
-    }
-    std::string tmpStr;
-    if (iss >> tmpStr)
-    {
-        std::ostringstream oss;
-        oss << "Config: " << word << " ディレクティブの引数が多いです";
-        return utils::Result<T, std::string>::Err(oss.str());
-    }
-    return utils::Result<T, std::string>::Ok(word);
-}
-
-ErrorPageMapResult HandleErrorPageDirective(std::istringstream &iss, std::map<int, std::string> &errorPages)
-{
-    int errorCode; // ステータスコードを取得
-    std::string errorPagePath;
-
-    if (!(iss >> errorCode))
-        return ErrorPageMapResult::Err("Config: error_code引数が不正です");
-    if (!(iss >> errorPagePath))
-        return ErrorPageMapResult::Err("Config: error_page_path");
-    errorPages[errorCode] = errorPagePath;
-    std::string tmpStr;
-    if (iss >> tmpStr)
+    if (tokens.size() != 2)
         return ErrorPageMapResult::Err("Config: error_pageの引数が多いです");
+    std::string errorCodeStr = tokens[0].values[0];
+    std::string errorPagePath = tokens[1].values[0];
+    int errorCode;
+    try
+    {
+        errorCode = std::stoi(errorCodeStr);
+    }
+    catch (const std::exception &e)
+    {
+        return ErrorPageMapResult::Err("Config: error_code引数が不正です");
+    }
+    errorPages[errorCode] = errorPagePath;
     return ErrorPageMapResult::Ok("OK");
 }
 
@@ -51,7 +37,7 @@ ErrorPageMapResult HandleErrorPageDirective(std::istringstream &iss, std::map<in
 // }
 
 // ロケーションブロックの設定を解析
-ParseLocationResult ParseLocation(std::ifstream &config_file, std::string &locationPath)
+ParseLocationResult ParseLocation(std::vector<Tokenize> &tokens, std::string &locationPath)
 {
     std::string path = locationPath;
     std::string root = "";
@@ -67,112 +53,87 @@ ParseLocationResult ParseLocation(std::ifstream &config_file, std::string &locat
     std::string uploadPath = "";
     std::map<int, std::string> redirect;
 
-    std::string line;
-
-    while (std::getline(config_file, line))
+    while (!tokens.empty())
     {
-        std::istringstream tmp_iss(line);
-        std::getline(tmp_iss, line, ';');
-        std::istringstream iss(line);
-        std::string key;
-        iss >> key;
-        if (key == "root")
+        Tokenize token = tokens.front();
+        tokens.erase(tokens.begin());
+        if (token.key == "root")
         {
-            utils::Result<std::string, std::string> result = PullWord<std::string>(iss);
-            if (!result.ok())
-                return ParseLocationResult::Err(result.unwrapErr());
-            root = result.unwrap();
+            if (token.values.size() != 1)
+                return ParseLocationResult::Err(token.key + "引数の数が不正です");
+            root = token.values[0];
         }
-        else if (key == "autoindex")
+        else if (token.key == "autoindex")
         {
-            utils::Result<std::string, std::string> result = PullWord<std::string>(iss);
-            if (!result.ok())
-                return ParseLocationResult::Err(result.unwrapErr());
-            autoindex = (result.unwrap() == "on");
+            if (token.values.size() != 1)
+                return ParseLocationResult::Err(token.key + "引数の数が不正です");
+            autoindex = (token.values[0] == "on");
         }
-        else if (key == "index")
+        else if (token.key == "index")
         {
-            utils::Result<std::string, std::string> result = PullWord<std::string>(iss);
-            if (!result.ok())
-                return ParseLocationResult::Err(result.unwrapErr());
-            index = result.unwrap();
+            if (token.values.size() != 1)
+                return ParseLocationResult::Err(token.key + "引数の数が不正です");
+            index = token.values[0];
         }
-        else if (key == "client_max_body_size")
+        else if (token.key == "client_max_body_size")
         {
-            utils::Result<size_t, std::string> result = PullWord<size_t>(iss);
-            if (!result.ok())
-                return ParseLocationResult::Err(result.unwrapErr());
-            clientMaxBodySize = result.unwrap();
-        }
-        else if (key == "error_page")
-        {
+            if (token.values.size() != 1)
+                return ParseLocationResult::Err(token.key + "引数の数が不正です");
 
-            ErrorPageMapResult errorPageMapResult = HandleErrorPageDirective(iss, errorPages);
-            if (!errorPageMapResult.ok())
-                return ParseLocationResult::Err(errorPageMapResult.unwrapErr());
+            clientMaxBodySize = std::atoi(token.values[0].c_str());
+            if (clientMaxBodySize == 0)
+                return ParseLocationResult::Err("client_max_body_sizeの値が不正です");
         }
-        else if (key == "allow_method")
+        else if (token.key == "error_page")
         {
+            if (token.values.size() != 2)
+                return ParseLocationResult::Err("Config: error_pageの引数が多いです");
+            std::string errorCodeStr = token.values[0];
+            std::string errorPagePath = token.values[1];
+            errorPages[std::stoi(errorCodeStr)] = errorPagePath;
+        }
+        else if (token.key == "allow_method")
+        {
+            if (token.values.size() != 1)
+                return ParseLocationResult::Err("Config: allow_methodの引数が多いです");
             // 許可されるHTTPメソッドをvectorに追加
-            std::string method;
-            int i = 0;
-            while (iss >> method)
-            {
-                if (method != "GET" && method != "POST" && method != "DELETE")
-                    return (ParseLocationResult::Err("Config: 許可されないHTTPメソッドが指定されています"));
-                allowMethods.push_back(method);
-                i++;
-            }
-            if (i > 3)
-                return (ParseLocationResult::Err("Config: 許可されるHTTPメソッドが多すぎます"));
+            std::string method = token.values[0];
+            if (method != "GET" && method != "POST" && method != "DELETE")
+                return (ParseLocationResult::Err("Config: 許可されないHTTPメソッドが指定されています"));
+            allowMethods.push_back(method);
         }
-        else if (key == "cgi_executor")
+        else if (token.key == "cgi_executor")
         {
-            std::string cgiProgram;
-            iss >> cgiProgram;
-            cgiExtension = (cgiProgram);
+            if (token.values.size() != 1)
+                return ParseLocationResult::Err("Config: cgi_executorの引数が多いです");
+            cgiExtension = token.values[0];
         }
-        else if (key == "upload_path")
+        else if (token.key == "upload_path")
         {
-            utils::Result<std::string, std::string> result = PullWord<std::string>(iss);
-            if (!result.ok())
-                return ParseLocationResult::Err(result.unwrapErr());
-            uploadPath = result.unwrap();
+            if (token.values.size() != 1)
+                return ParseLocationResult::Err(token.key + "引数の数が不正です");
+            uploadPath = token.values[0];
         }
-        else if (key == "return")
+        else if (token.key == "return")
         {
-            int statusCode; // ステータスコードを取得
-            if (!(iss >> statusCode))
+            if (token.values.size() != 2)
                 return ParseLocationResult::Err("Config: returnの引数が不正です");
-            std::string redirectUrl;
-            if (!(iss >> redirectUrl))
-                return ParseLocationResult::Err("Config: returnの引数が不正です");
-            std::string tmpStr;
-            if (iss >> tmpStr)
-                return ParseLocationResult::Err("Config: returnの引数が多いです");
+            int statusCode = std::atoi(token.values[0].c_str());
+            std::string redirectUrl = token.values[1];
             redirect[statusCode] = redirectUrl;
         }
-        else if (key == "}")
+        else if (token.key == "}")
         {
             return ParseLocationResult::Ok(Location(path, root, autoindex, index, clientMaxBodySize, errorPages,
                                                     allowMethods, cgiExtension, uploadPath, redirect));
-        }
-        else if (key.empty() || key == "\t" || key == "\n")
-        {
-            continue;
-        }
-        else
-        {
-            return ParseLocationResult::Err("Location: 不正なディレクティブ");
         }
     }
     return ParseLocationResult::Err("Locationブロックで文字列が見つかりませんでした");
 }
 
 // サーバーブロックの設定を解析
-ParseServerResult ParseServer(std::ifstream &config_file)
+ParseServerResult ParseServer(std::vector<Tokenize> &tokens)
 {
-    std::string line;
     std::string name = "";
     size_t port = 80;
     std::string root = "";
@@ -182,102 +143,63 @@ ParseServerResult ParseServer(std::ifstream &config_file)
     std::string index = "index.html";
     std::vector<Location> locations;
 
-    while (std::getline(config_file, line))
+    while (!tokens.empty())
     {
-        std::istringstream tmp_iss(line);
-        std::getline(tmp_iss, line, ';');
-        std::istringstream iss(line);
-        std::string key;
-        iss >> key;
-        if (key == "location")
+        Tokenize token = tokens.front();
+        tokens.erase(tokens.begin());
+        if (token.key == "location")
         {
-
-            std::string locationPath;
-            std::string tmpStr;
-            if (key == "location")
-            {
-                if (!(iss >> locationPath))
-                    return ParseServerResult::Err("location.front_pathが指定されていません");
-            }
-            if (!(iss >> tmpStr) || tmpStr != "{")
-                return ParseServerResult::Err("Config: locationブロックの開始が不正です");
-            if (iss >> tmpStr)
+            if (token.values.size() != 1)
                 return ParseServerResult::Err("Config: locationの引数が多いです");
-            ParseLocationResult location = ParseLocation(config_file, locationPath);
+            std::string locationPath = token.values[0];
+            std::string tmpStr;
+            if (tokens.empty())
+                return ParseServerResult::Err("Config: locationブロックがありません");
+            token = tokens.front();
+            tokens.erase(tokens.begin());
+            if (token.key != "{")
+                return ParseServerResult::Err("Config: locationブロックの開始が不正です");
+            ParseLocationResult location = ParseLocation(tokens, locationPath);
             if (!location.ok())
                 return ParseServerResult::Err(location.unwrapErr());
             locations.push_back(location.unwrap());
-            if (config_file.eof())
-                return ParseServerResult::Err("Config: サーバーブロックが終了していない");
         }
-        else if (key == "server_name")
+        else if (token.key == "server_name")
         {
-            utils::Result<std::string, std::string> result = PullWord<std::string>(iss);
-            if (!result.ok())
-                return ParseServerResult::Err(result.unwrapErr());
-            name = result.unwrap();
+            if (token.values.size() != 1)
+                return ParseServerResult::Err("Config: server_nameの引数が多いです");
+            name = token.values[0];
         }
-        else if (key == "listen")
+        else if (token.key == "listen")
         {
-            utils::Result<int, std::string> result = PullWord<int>(iss);
-            if (!result.ok())
-                return ParseServerResult::Err(result.unwrapErr());
-            port = result.unwrap();
+            if (token.values.size() != 1)
+                return ParseServerResult::Err("Config: listenの引数が多いです");
+            std::string portStr = token.values[0];
+            port = std::stoi(portStr);
         }
-        else if (key == "root")
+        else if (token.key == "root")
         {
-            utils::Result<std::string, std::string> result = PullWord<std::string>(iss);
-            if (!result.ok())
-                return ParseServerResult::Err(result.unwrapErr());
-            root = result.unwrap();
+            if (token.values.size() != 1)
+                return ParseServerResult::Err("Config: rootの引数が多いです");
+            root = token.values[0];
         }
-        else if (key == "error_page")
+        else if (token.key == "error_page")
         {
-            ErrorPageMapResult errorPageMapResult = HandleErrorPageDirective(iss, errorPages);
-            if (!errorPageMapResult.ok())
-                return ParseServerResult::Err(errorPageMapResult.unwrapErr());
+            if (token.values.size() != 2)
+                return ParseServerResult::Err("Config: error_pageの引数が多いです");
+            std::string errorCodeStr = token.values[0];
+            std::string errorPagePath = token.values[1];
+            errorPages[std::stoi(errorCodeStr)] = errorPagePath;
         }
-        else if (key == "client_max_body_size")
-        {
-            utils::Result<size_t, std::string> result = PullWord<size_t>(iss);
-            if (!result.ok())
-                return ParseServerResult::Err(result.unwrapErr());
-            clientMaxBodySize = result.unwrap();
-        }
-        else if (key == "autoindex")
-        {
-            utils::Result<std::string, std::string> result = PullWord<std::string>(iss);
-            if (!result.ok())
-                return ParseServerResult::Err(result.unwrapErr());
-            std::string autoindex_value = result.unwrap();
-            autoindex = (autoindex_value == "on");
-        }
-        else if (key == "index")
-        {
-            utils::Result<std::string, std::string> result = PullWord<std::string>(iss);
-            if (!result.ok())
-                return ParseServerResult::Err(result.unwrapErr());
-            index = result.unwrap();
-        }
-        else if (key == "}")
+        else if (token.key == "}")
         {
             return ParseServerResult::Ok(
                 Server(name, port, root, errorPages, clientMaxBodySize, autoindex, index, locations));
         }
-        else if (config_file.eof())
-        {
-            ParseServerResult::Err("Config: サーバーブロックが終了していない");
-        }
-        else if (key.empty() || key == "\t" || key == "\n")
-        {
-            continue;
-        }
-        else
-        {
-            ParseServerResult::Err("Server: 不正なディレクティブ");
-        }
     }
-    return ParseServerResult::Err("Serverブロックで文字列が見つかりませんでした");
+
+    return ParseServerResult::Err(
+        "Serverブロックが正常に終了しませんでした。\nserverブロックの中身が無い or } がありません");
 }
 
 // 設定ファイルを解析するメインの関数
@@ -287,40 +209,30 @@ ParseResult ParseConfig(const char *configPath)
     if (!tokensResult.ok())
         return ParseResult::Err(tokensResult.unwrapErr());
     std::vector<Tokenize> tokens = tokensResult.unwrap();
-    // debug用
-    for (std::vector<Tokenize>::const_iterator it = tokens.begin(); it != tokens.end(); ++it)
-    {
-        std::cout << it->key << " : ";
-        for (std::vector<std::string>::const_iterator valIt = it->values.begin(); valIt != it->values.end(); ++valIt)
-        {
-            std::cout << *valIt << " ";
-        }
-        std::cout << std::endl;
-    }
-    exit(1);
-    std::ifstream configFile(configPath);
-    std::string line;
+
     std::vector<Server> servers;
 
-    if (!configFile.is_open())
-        return ParseResult::Err("Failed to open file: " + std::string(configPath));
-    while (std::getline(configFile, line))
+    while (!tokens.empty())
     {
-        std::istringstream iss(line);
-        std::string key;
-        iss >> key;
-
-        if (key == "server")
+        Tokenize token = tokens.front();
+        tokens.erase(tokens.begin());
+        std::cout << "token.key: " << token.key << std::endl;
+        if (token.key == "server")
         {
-            std::string tmpStr;
-            if (!(iss >> tmpStr) || tmpStr != "{")
-                return ParseResult::Err("Config: serverブロックの開始が不正です");
-            if (iss >> tmpStr)
+            if (token.values.size() > 1)
                 return ParseResult::Err("Config: serverの引数が多いです");
-            ParseServerResult serverResult = ParseServer(configFile);
+            if (tokens.front().key != OPEN_BRACKET && token.values[0] != OPEN_BRACKET)
+                return ParseResult::Err("Config: serverブロックの開始が不正です");
+            if (tokens.front().key == OPEN_BRACKET)
+                tokens.erase(tokens.begin());
+            ParseServerResult serverResult = ParseServer(tokens);
             if (!serverResult.ok())
                 return ParseResult::Err(serverResult.unwrapErr());
             servers.push_back(serverResult.unwrap());
+        }
+        else
+        {
+            return ParseResult::Err("Config: serverブロックがありません");
         }
     }
     return ParseResult::Ok(servers);
