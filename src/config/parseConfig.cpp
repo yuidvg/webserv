@@ -138,6 +138,27 @@ ParseServerResult parseServerContext(std::vector<Tokenize> &tokens)
                 return ParseServerResult::Err(listenRes.unwrapErr());
             port = listenRes.unwrap();
         }
+        if (token.key == ROOT)
+        {
+            RootResult rootRes = parseRootDirective(token);
+            if (!rootRes.ok())
+                return ParseServerResult::Err(rootRes.unwrapErr());
+            root = rootRes.unwrap();
+        }
+        else if (token.key == AUTOINDEX)
+        {
+            AutoindexResult autoindexRes = parseAutoindexDirective(token);
+            if (!autoindexRes.ok())
+                return ParseServerResult::Err(autoindexRes.unwrapErr());
+            autoindex = autoindexRes.unwrap();
+        }
+        else if (token.key == INDEX)
+        {
+            IndexResult indexRes = parseIndexDirective(token);
+            if (!indexRes.ok())
+                return ParseServerResult::Err(indexRes.unwrapErr());
+            index = indexRes.unwrap();
+        }
         else if (token.key == ERROR_PAGE)
         {
             ErrorPagesResult errorPageRes = parseErrorPage(token);
