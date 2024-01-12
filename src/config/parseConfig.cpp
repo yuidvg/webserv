@@ -279,14 +279,14 @@ ParseServerResult ParseServer(std::ifstream &config_file)
 }
 
 // 設定ファイルを解析するメインの関数
-ParseResult ParseConfig(const char *configPath)
+ConfigResult ParseConfig(const char *configPath)
 {
     std::ifstream configFile(configPath);
     std::string line;
     std::vector<Server> servers;
 
     if (!configFile.is_open())
-        return ParseResult::Err("Failed to open file: " + std::string(configPath));
+        return ConfigResult::Err("Failed to open file: " + std::string(configPath));
     while (std::getline(configFile, line))
     {
         std::istringstream iss(line);
@@ -297,14 +297,14 @@ ParseResult ParseConfig(const char *configPath)
         {
             std::string tmpStr;
             if (!(iss >> tmpStr) || tmpStr != "{")
-                return ParseResult::Err("Config: serverブロックの開始が不正です");
+                return ConfigResult::Err("Config: serverブロックの開始が不正です");
             if (iss >> tmpStr)
-                return ParseResult::Err("Config: serverの引数が多いです");
+                return ConfigResult::Err("Config: serverの引数が多いです");
             ParseServerResult serverResult = ParseServer(configFile);
             if (!serverResult.ok())
-                return ParseResult::Err(serverResult.unwrapErr());
+                return ConfigResult::Err(serverResult.unwrapErr());
             servers.push_back(serverResult.unwrap());
         }
     }
-    return ParseResult::Ok(servers);
+    return ConfigResult::Ok(servers);
 }

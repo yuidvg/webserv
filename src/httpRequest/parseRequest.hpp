@@ -9,21 +9,14 @@
 #include <vector>
 
 #include "../config/parseConfig.hpp"
-#include "../utils/utils.hpp"
 #include "../utils/Result.hpp"
+#include "../utils/consts.hpp"
+#include "../utils/utils.hpp"
 
 #define SUCCESS 0
 #define FAILURE 1
 
 #define MAX_LEN 8192
-
-#define OK 200
-#define BAD_REQUEST 400
-#define METHOD_NOT_ALLOWED 405
-#define CONTENT_TOO_LARGE 413
-#define REQUEST_URI_TOO_LONG 414
-#define NOT_IMPLEMENTED 501
-#define Http_VERSION_NOT_SUPPORTED 505
 
 struct ParsedRequest
 {
@@ -47,7 +40,7 @@ struct RequestLine
     std::string version;
 };
 
-typedef utils::Result<ParsedRequest, int> HttpParseResult;
+typedef utils::Result<ParsedRequest, int> ParsedRequestResult;
 typedef utils::Result<RequestLine, int> ParseRequestLineResult;
 typedef utils::Result<std::map<std::string, std::string>, int> ParseHeaderResult;
 typedef utils::Result<std::string, int> ParseBodyResult;
@@ -55,6 +48,6 @@ typedef utils::Result<std::string, int> ParseBodyResult;
 ParseRequestLineResult parseHttpRequestLine(std::istream &httpRequest, const Server &server);
 ParseHeaderResult parseHttpHeaders(std::istream &httpRequest);
 ParseBodyResult parseHttpBody(std::istream &httpRequest, std::map<std::string, std::string> &header);
-HttpParseResult parseHttpRequest(std::istream &httpRequest, const Server &server);
+ParsedRequestResult parseHttpRequest(std::istream &httpRequest, const Server &server);
 
 #endif

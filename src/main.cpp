@@ -1,4 +1,4 @@
-#include "config/parseConfig.hpp"
+#include "config/config.hpp"
 #include "server/connection.hpp"
 #include "utils/utils.hpp"
 
@@ -11,13 +11,13 @@ int main(int argc, char **argv)
     }
     const std::string configPath = argc == 2 ? argv[1] : "config/default.conf";
 
-    ParseResult result = ParseConfig(configPath.c_str());
-    if (!result.ok())
+    ConfigResult configResult = parsedConfig(configPath.c_str());
+    if (!configResult.ok())
     {
-        utils::printError(result.unwrapErr());
+        utils::printError(configResult.unwrapErr());
         return 1;
     }
-    const std::vector<Server> servers = result.unwrap();
+    const std::vector<Server> servers = configResult.unwrap();
 
     Connection connection;
     connection.Start(servers);
