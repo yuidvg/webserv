@@ -29,15 +29,15 @@ typedef utils::Result<Socket, std::string> FindConnectedVirtualServerResult;
 class Connection
 {
   private:
-    void AllCloseConnection();
-    void CloseConnection(int fd); // 接続を閉じる
-    FindConnectedVirtualServerResult FindConnectedVirtualServer(int sd, std::vector<Socket> &sockets);
-    NewSDResult AcceptNewConnection(int listenSd); // 新規接続を受け入れる
-    void ProcessConnection(int sd, Socket &socket); // 接続が確立されたソケットと通信する
-    std::vector<int> listenSockets;                // リスニングソケット
+    void allcloseConnection();
+    void closeConnection(int fd); // 接続を閉じる
+    FindConnectedVirtualServerResult findConnectedVirtualServer(int sd, std::vector<Socket> &sockets);
+    NewSDResult acceptNewConnection(int listenSd);  // 新規接続を受け入れる
+    void processConnection(int sd, Socket &socket); // 接続が確立されたソケットと通信する
+    std::vector<int> listenSockets;                 // リスニングソケット
     std::vector<Socket> sockets;                    // リスニングソケット
-    int maxSd;                                     // 最大のファイルディスクリプタ
-    fd_set masterSet;                              // ファイルディスクリプタの集合
+    int maxSd;                                      // 最大のファイルディスクリプタ
+    fd_set masterSet;                               // ファイルディスクリプタの集合
     std::map<int, Socket> connSocks; // connectedsockets<sd,socket> この仮想サーバーが受け持つソケットのリスト
   public:
     Connection();  // コンストラクタ
