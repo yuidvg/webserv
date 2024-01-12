@@ -66,6 +66,14 @@ tokenizeResult tokenize(const char *configPath)
     std::ifstream configFile(configPath);
     std::string line;
     std::vector<Tokenize> tokens;
+    if (!configFile.is_open())
+        return tokenizeResult::Err("Failed to open file: " + std::string(configPath));
+    if (configFile.peek() == std::ifstream::traits_type::eof())
+    {
+
+        return tokenizeResult::Err("Empty file: " + std::string(configPath));
+    }
+
     while (std::getline(configFile, line))
     {
         std::istringstream iss(line);
