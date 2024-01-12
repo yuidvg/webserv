@@ -23,8 +23,8 @@
 #define YELLOW "\x1b[33m"
 #define NORMAL "\x1b[0m"
 
-typedef utils::Result<int, std::string> NewSDResult;
-typedef utils::Result<Socket, std::string> FindConnectedVirtualServerResult;
+typedef Result<int, std::string> NewSDResult;
+typedef Result<Socket, std::string> FindConnectedVirtualServerResult;
 
 class Connection
 {

@@ -1,32 +1,38 @@
 #include "response.hpp"
-const
 
-    HttpResponse
-    response(const ParsedRequestResult request, const Server server)
+static HttpResponse responseToValidRequest(const ParsedRequest request, const Server server)
 {
-    std::map<std::string, std::string> headers;
-    // Locate the requested resource
-    std::string resourcePath = server.root + request.uri;
-    std::ifstream ifs(resourcePath);
-    if (!ifs.is_open())
-    {
-        // If the resource is not found, return a 404 response";
-        HttpResponse response = HttpResponse(BAD_REQUEST, headers, "");
-        return response;
-    }
-    const std::string content = utils::content(ifs);
-    headers["Content-Type"] = utils::contentType(resourcePath);
-
-    return HttpResponse(200, headers, content);
+    const std::string fullPath = server.root + request.uri;
+    const utils::FileContentResult openedFile = utils::content(fullPath);
+    return openedFile.success
+               ? HttpResponse(SUCCESS,
+                              Headers(utils::contentType(fullPath), utils::toString(openedFile.value.length())),
+                              openedFile.value)
+               : HttpResponse(BAD_REQUEST, Headers(), "");
 }
 
-std::string makeResponseMessage(const HttpResponse &response)
+HttpResponse response(const ParseRequestResult requestResult, const Server server)
 {
-    std::string httpResponse = "HTTP/1.1 " + std::to_string(response.statusCode) + "\r\n";
+    return requestResult.success ? responseToValidRequest(requestResult.value, server) : requestResult.value;
+}
+
+std::string makeResponseMessage(const HttpResponse response)
+{
+    std::string text = SERVER_PROTOCOL + " " + std::to_string(response.statusCode) + CRLF;
     for (std::map<std::string, std::string>::const_iterator it = response.headers.begin(); it != response.headers.end();
          ++it)
-        httpResponse += it->first + ": " + it->second + "\r\n";
-    httpResponse += "\r\n";
-    httpResponse += response.body;
-    return httpResponse;
+        text += it->first + ": " + it->second + CRLF;
+    text += CRLF;
+    text += response.body;
+    return text;
+}
+
+HttpResponse::HttpResponse() : statusCode(SUCCESS), headers(Headers()), body("")
+{
+}
+
+HttpResponse::HttpResponse(const unsigned int statusCode, const Headers headers = Headers(),
+                           const std::string body = "")
+    : statusCode(statusCode), headers(headers), body(body)
+{
 }

@@ -1,8 +1,10 @@
 #ifndef HTTPRESPONSE_HPP
 #define HTTPRESPONSE_HPP
 
-#include "../httpRequest/parseRequest.hpp"
+#include "../httpRequest/parsedRequest.hpp"
+#include "../utils/Headers.hpp"
 #include "../utils/utils.hpp"
+
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -11,15 +13,13 @@
 struct HttpResponse
 {
     const unsigned int statusCode;
-    const std::map<std::string, std::string> headers;
+    const Headers headers;
     const std::string body;
 
-    HttpResponse(const unsigned int statusCode, const std::map<std::string, std::string> headers,
-                 const std::string body)
-        : statusCode(statusCode), headers(headers), body(body)
-    {
-    }
+    HttpResponse();
+    HttpResponse(const unsigned int statusCode, const Headers headers = Headers(), const std::string body = "");
 };
+struct ParsedRequest;
 
 HttpResponse response(const ParsedRequest request, const Server server);
 std::string makeResponseMessage(const HttpResponse &response);

@@ -53,7 +53,7 @@ NewSDResult Connection::AcceptNewConnection(const int listenSd)
         {
             // エラーメッセージを返す
             std::string errorMsg = "accept() failed on socket ";
-            return NewSDResult::Err(errorMsg);
+            return NewSDResult::Error(errorMsg);
         }
     }
     std::cout << GREEN << "New incoming connection " << newSd << NORMAL << std::endl;
@@ -63,7 +63,7 @@ NewSDResult Connection::AcceptNewConnection(const int listenSd)
         maxSd = newSd;
     }
     // 新しい接続を受け入れた
-    return NewSDResult::Ok(newSd);
+    return NewSDResult::Success(newSd);
 }
 
 void Connection::deleteConnSock(int sd)
@@ -164,9 +164,9 @@ void Connection::Start(const std::vector<Server> servers)
                 if (std::find(listenSockets.begin(), listenSockets.end(), i) != listenSockets.end())
                 {
                     NewSDResult newSDResult = AcceptNewConnection(i);
-                    if (!newSDResult.ok())
+                    if (!newSDResult.success)
                     {
-                        utils::printError(newSDResult.unwrapErr());
+                        utils::printError(newSDResult.error);
                         AllCloseConnection();
                         return;
                     }
@@ -175,7 +175,7 @@ void Connection::Start(const std::vector<Server> servers)
                         if (sockets[index].getListenSocket() == i)
                         {
                             std::cout << "新しい接続を受け入れた" << std::endl;
-                            connSocks.insert(std::make_pair(newSDResult.unwrap(), sockets[index]));
+                            connSocks.insert(std::make_pair(newSDResult.value, sockets[index]));
                         }
                     }
                 }
