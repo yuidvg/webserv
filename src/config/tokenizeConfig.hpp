@@ -12,11 +12,11 @@ struct Tokenize
     std::vector<std::string> values;
 };
 
-typedef utils::Result<std::vector<Tokenize>, std::string> tokenizeResult;
-typedef utils::Result<std::string, std::string> stringResult;
+typedef utils::Result<std::vector<Tokenize>, std::string> TokenizeResult;
+typedef utils::Result<std::string, std::string> StringResult;
 
-stringResult checkBracketsBalance(const std::vector<Tokenize> &tokens);
-stringResult removeSemicolonFromToken(Tokenize &token);
-tokenizeResult tokenize(const char *configPath);
+StringResult checkBracketsBalance(const std::vector<Tokenize> &tokens);
+StringResult removeSemicolonFromToken(Tokenize &token);
+TokenizeResult tokenize(const char *configPath);
 
 #endif

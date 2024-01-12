@@ -7,43 +7,41 @@
 
 namespace directiveParser
 {
+typedef utils::Result<Server, std::string> ServerResult;
+typedef utils::Result<std::string, std::string> NameResult;
+typedef utils::Result<int, std::string> PortResult;
+typedef utils::Result<Location, std::string> LocationResult;
 
-// server専用
-typedef utils::Result<Server, std::string> serverResult;
-typedef utils::Result<std::string, std::string> nameResult;
-typedef utils::Result<int, std::string> portResult;
-typedef utils::Result<Location, std::string> locationResult;
-// server, location両方
-typedef utils::Result<std::map<int, std::string>, std::string> errorPagesResult;
-typedef utils::Result<size_t, std::string> clientMaxBodySizeResult;
-// location専用
-typedef utils::Result<std::string, std::string> pathResult;
-typedef utils::Result<std::string, std::string> rootResult;
-typedef utils::Result<bool, std::string> autoindexResult;
-typedef utils::Result<std::string, std::string> indexResult;
-typedef utils::Result<std::vector<std::string>, std::string> allowMethodsResult;
-typedef utils::Result<std::string, std::string> cgiExtensionResult;
-typedef utils::Result<std::string, std::string> uploadPathResult;
-typedef utils::Result<std::map<int, std::string>, std::string> redirectResult;
-// その他
-typedef utils::Result<int, std::string> stringToIntResult;
+typedef utils::Result<std::map<int, std::string>, std::string> ErrorPagesResult;
+typedef utils::Result<size_t, std::string> ClientMaxBodySizeResult;
+
+typedef utils::Result<std::string, std::string> PathResult;
+typedef utils::Result<std::string, std::string> RootResult;
+typedef utils::Result<bool, std::string> AutoindexResult;
+typedef utils::Result<std::string, std::string> IndexResult;
+typedef utils::Result<std::vector<std::string>, std::string> AllowMethodsResult;
+typedef utils::Result<std::string, std::string> CgiExtensionResult;
+typedef utils::Result<std::string, std::string> UploadPathResult;
+typedef utils::Result<std::map<int, std::string>, std::string> RedirectResult;
+
+typedef utils::Result<int, std::string> StringToIntResult;
 } // namespace directiveParser
 
-directiveParser::serverResult parseServer(Tokenize token, std::vector<Tokenize> &tokens);
-directiveParser::nameResult parseServerName(const Tokenize &token);
-directiveParser::portResult parseListen(const Tokenize &token);
-directiveParser::errorPagesResult parseErrorPage(const Tokenize &token);
-directiveParser::clientMaxBodySizeResult parseClientMaxBodySize(const Tokenize &token);
-directiveParser::stringToIntResult stringToInt(const std::string &str, int minVal, int maxVal);
-directiveParser::locationResult parseLocationDirective(Tokenize token, std::vector<Tokenize> &tokens);
-// location
-directiveParser::rootResult parseRootDirective(const Tokenize &token);
-directiveParser::autoindexResult parseAutoindexDirective(const Tokenize &token);
-directiveParser::indexResult parseIndexDirective(const Tokenize &token);
-directiveParser::redirectResult parseReturnDirective(const Tokenize &token);
-directiveParser::allowMethodsResult parseAllowMethodDirective(const Tokenize &token);
-directiveParser::cgiExtensionResult parseCgiExecutorDirective(const Tokenize &token);
-directiveParser::uploadPathResult parseUploadPathDirective(const Tokenize &token);
-directiveParser::redirectResult parseReturnDirective(const Tokenize &token);
+directiveParser::ServerResult parseServer(Tokenize token, std::vector<Tokenize> &tokens);
+directiveParser::NameResult parseServerName(const Tokenize &token);
+directiveParser::PortResult parseListen(const Tokenize &token);
+directiveParser::ErrorPagesResult parseErrorPage(const Tokenize &token);
+directiveParser::ClientMaxBodySizeResult parseClientMaxBodySize(const Tokenize &token);
+directiveParser::StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal);
+directiveParser::LocationResult parseLocationDirective(Tokenize token, std::vector<Tokenize> &tokens);
+
+directiveParser::RootResult parseRootDirective(const Tokenize &token);
+directiveParser::AutoindexResult parseAutoindexDirective(const Tokenize &token);
+directiveParser::IndexResult parseIndexDirective(const Tokenize &token);
+directiveParser::RedirectResult parseReturnDirective(const Tokenize &token);
+directiveParser::AllowMethodsResult parseAllowMethodDirective(const Tokenize &token);
+directiveParser::CgiExtensionResult parseCgiExecutorDirective(const Tokenize &token);
+directiveParser::UploadPathResult parseUploadPathDirective(const Tokenize &token);
+directiveParser::RedirectResult parseReturnDirective(const Tokenize &token);
 
 #endif

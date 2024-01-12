@@ -2,107 +2,107 @@
 
 using namespace directiveParser;
 
-stringToIntResult stringToInt(const std::string &str, int minVal, int maxVal)
+StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal)
 {
     if (!utils::isNumber(str))
     {
-        return stringToIntResult::Err("値が数値ではありません");
+        return StringToIntResult::Err("値が数値ではありません");
     }
 
     std::istringstream iss(str);
     int num;
     if (!(iss >> num) || !iss.eof())
     {
-        return stringToIntResult::Err("数値の変換に失敗しました");
+        return StringToIntResult::Err("数値の変換に失敗しました");
     }
 
     if (num < minVal || num > maxVal)
     {
-        return stringToIntResult::Err("数値が許容範囲外です");
+        return StringToIntResult::Err("数値が許容範囲外です");
     }
 
-    return stringToIntResult::Ok(num);
+    return StringToIntResult::Ok(num);
 }
 
 /*
     各ディレクティブのパーサー
 */
 
-serverResult parseServer(Tokenize token, std::vector<Tokenize> &tokens)
+ServerResult parseServer(Tokenize token, std::vector<Tokenize> &tokens)
 {
     if (token.values.size() > 1)
-        return serverResult::Err("Config: serverの引数が多いです");
+        return ServerResult::Err("Config: serverの引数が多いです");
     if (tokens.front().key != OPEN_BRACKET && token.values[0] != OPEN_BRACKET)
-        return serverResult::Err("Config: serverブロックの開始が不正です");
+        return ServerResult::Err("Config: serverブロックの開始が不正です");
     if (tokens.front().key == OPEN_BRACKET)
         tokens.erase(tokens.begin());
 
-    ParseServerResult serverRes = ParseServer(tokens);
+    ParseServerResult serverRes = parseServerContext(tokens);
     if (!serverRes.ok())
-        return serverResult::Err(serverRes.unwrapErr());
+        return ServerResult::Err(serverRes.unwrapErr());
 
-    return serverResult::Ok(serverRes.unwrap());
+    return ServerResult::Ok(serverRes.unwrap());
 }
 
-nameResult parseServerName(const Tokenize &token)
+NameResult parseServerName(const Tokenize &token)
 {
     if (token.values.size() != 1)
-        return nameResult::Err("Config: server_nameの引数が多いです");
-    return nameResult::Ok(token.values[0]);
+        return NameResult::Err("Config: server_nameの引数が多いです");
+    return NameResult::Ok(token.values[0]);
 }
 
-portResult parseListen(const Tokenize &token)
+PortResult parseListen(const Tokenize &token)
 {
     if (token.values.size() != 1)
-        return portResult::Err("Config: listenの引数が多いです");
+        return PortResult::Err("Config: listenの引数が多いです");
 
-    stringToIntResult result = stringToInt(token.values[0], 0, 65535);
+    StringToIntResult result = stringToInt(token.values[0], 0, 65535);
     if (!result.ok())
     {
-        return portResult::Err(result.unwrapErr());
+        return PortResult::Err(result.unwrapErr());
     }
 
-    return portResult::Ok(result.unwrap());
+    return PortResult::Ok(result.unwrap());
 }
 
-errorPagesResult parseErrorPage(const Tokenize &token)
+ErrorPagesResult parseErrorPage(const Tokenize &token)
 {
     if (token.values.size() != 2)
-        return errorPagesResult::Err("Config: error_pageの引数が多いです");
+        return ErrorPagesResult::Err("Config: error_pageの引数が多いです");
 
-    stringToIntResult errorCodeResult = stringToInt(token.values[0], 100, 599);
+    StringToIntResult errorCodeResult = stringToInt(token.values[0], 100, 599);
     if (!errorCodeResult.ok())
     {
-        return errorPagesResult::Err("Config: error_pageのエラーコードが不正です");
+        return ErrorPagesResult::Err("Config: error_pageのエラーコードが不正です");
     }
     int errorCode = errorCodeResult.unwrap();
 
     std::map<int, std::string> errorPages;
     errorPages[errorCode] = token.values[1];
-    return errorPagesResult::Ok(errorPages);
+    return ErrorPagesResult::Ok(errorPages);
 }
 
-clientMaxBodySizeResult parseClientMaxBodySize(const Tokenize &token)
+ClientMaxBodySizeResult parseClientMaxBodySize(const Tokenize &token)
 {
     if (token.values.size() != 1)
-        return clientMaxBodySizeResult::Err(token.key + "引数の数が不正です");
+        return ClientMaxBodySizeResult::Err(token.key + "引数の数が不正です");
 
-    stringToIntResult sizeResult = stringToInt(token.values[0], 0, INT_MAX);
+    StringToIntResult sizeResult = stringToInt(token.values[0], 0, INT_MAX);
     if (!sizeResult.ok())
     {
-        return clientMaxBodySizeResult::Err("Config: client_max_body_sizeの値が不正です");
+        return ClientMaxBodySizeResult::Err("Config: client_max_body_sizeの値が不正です");
     }
 
     size_t size = static_cast<size_t>(sizeResult.unwrap());
-    return clientMaxBodySizeResult::Ok(size);
+    return ClientMaxBodySizeResult::Ok(size);
 }
 
-locationResult parseLocationDirective(Tokenize token, std::vector<Tokenize> &tokens)
+LocationResult parseLocationDirective(Tokenize token, std::vector<Tokenize> &tokens)
 {
     if (token.values.size() > 2)
-        return locationResult::Err("Config: locationの引数が多いです");
+        return LocationResult::Err("Config: locationの引数が多いです");
     if (tokens.front().key != OPEN_BRACKET && token.values[1] != OPEN_BRACKET)
-        return locationResult::Err("Config: locationブロックの開始が不正です");
+        return LocationResult::Err("Config: locationブロックの開始が不正です");
 
     std::string locationPath = token.values[0];
     if (tokens.front().key == OPEN_BRACKET)
@@ -111,53 +111,53 @@ locationResult parseLocationDirective(Tokenize token, std::vector<Tokenize> &tok
     }
 
     // ParseLocation 関数を呼び出して location の設定を解析
-    ParseLocationResult locationResult = ParseLocation(tokens, locationPath);
+    ParseLocationResult locationResult = parseLocationContext(tokens, locationPath);
     if (!locationResult.ok())
     {
-        return locationResult::Err(locationResult.unwrapErr());
+        return LocationResult::Err(locationResult.unwrapErr());
     }
 
     // 成功した場合、解析結果を返す
-    return locationResult::Ok(locationResult.unwrap());
+    return LocationResult::Ok(locationResult.unwrap());
 }
 
 /*
 Location
 */
-rootResult parseRootDirective(const Tokenize &token)
+RootResult parseRootDirective(const Tokenize &token)
 {
     if (token.values.size() != 1)
     {
-        return rootResult::Err(token.key + "引数の数が不正です");
+        return RootResult::Err(token.key + "引数の数が不正です");
     }
-    return rootResult::Ok(token.values[0]);
+    return RootResult::Ok(token.values[0]);
 }
 
-autoindexResult parseAutoindexDirective(const Tokenize &token)
+AutoindexResult parseAutoindexDirective(const Tokenize &token)
 {
     if (token.values.size() != 1)
     {
-        return autoindexResult::Err(token.key + "引数の数が不正です");
+        return AutoindexResult::Err(token.key + "引数の数が不正です");
     }
     bool autoindexValue = (token.values[0] == "on");
-    return autoindexResult::Ok(autoindexValue);
+    return AutoindexResult::Ok(autoindexValue);
 }
 
-indexResult parseIndexDirective(const Tokenize &token)
+IndexResult parseIndexDirective(const Tokenize &token)
 {
     if (token.values.size() != 1)
     {
-        return indexResult::Err(token.key + "引数の数が不正です");
+        return IndexResult::Err(token.key + "引数の数が不正です");
     }
-    return indexResult::Ok(token.values[0]);
+    return IndexResult::Ok(token.values[0]);
 }
 
 // location専用
-allowMethodsResult parseAllowMethodDirective(const Tokenize &token)
+AllowMethodsResult parseAllowMethodDirective(const Tokenize &token)
 {
     if (token.values.size() > 3 || token.values.size() < 1)
     {
-        return allowMethodsResult::Err("Config: allow_methodの引数が不正です");
+        return AllowMethodsResult::Err("Config: allow_methodの引数が不正です");
     }
     std::vector<std::string> methods;
     for (size_t i = 0; i < token.values.size(); ++i)
@@ -165,42 +165,42 @@ allowMethodsResult parseAllowMethodDirective(const Tokenize &token)
         std::string method = token.values[i];
         if (method != "GET" && method != "POST" && method != "DELETE")
         {
-            return allowMethodsResult::Err("Config: 許可されないHTTPメソッドが指定されています");
+            return AllowMethodsResult::Err("Config: 許可されないHTTPメソッドが指定されています");
         }
         methods.push_back(method);
     }
-    return allowMethodsResult::Ok(methods);
+    return AllowMethodsResult::Ok(methods);
 }
 
-cgiExtensionResult parseCgiExecutorDirective(const Tokenize &token)
+CgiExtensionResult parseCgiExecutorDirective(const Tokenize &token)
 {
     if (token.values.size() != 1)
     {
-        return cgiExtensionResult::Err("Config: cgi_executorの引数が多いです");
+        return CgiExtensionResult::Err("Config: cgi_executorの引数が多いです");
     }
-    return cgiExtensionResult::Ok(token.values[0]);
+    return CgiExtensionResult::Ok(token.values[0]);
 }
 
-uploadPathResult parseUploadPathDirective(const Tokenize &token)
+UploadPathResult parseUploadPathDirective(const Tokenize &token)
 {
     if (token.values.size() != 1)
     {
-        return uploadPathResult::Err(token.key + "引数の数が不正です");
+        return UploadPathResult::Err(token.key + "引数の数が不正です");
     }
-    return uploadPathResult::Ok(token.values[0]);
+    return UploadPathResult::Ok(token.values[0]);
 }
 
-redirectResult parseReturnDirective(const Tokenize &token)
+RedirectResult parseReturnDirective(const Tokenize &token)
 {
     if (token.values.size() != 2)
     {
-        return redirectResult::Err("Config: returnの引数が不正です");
+        return RedirectResult::Err("Config: returnの引数が不正です");
     }
 
-    stringToIntResult statusCodeResult = stringToInt(token.values[0], 300, 399);
+    StringToIntResult statusCodeResult = stringToInt(token.values[0], 300, 399);
     if (!statusCodeResult.ok())
-        return redirectResult::Err("Config: returnのステータスコードが不正です");
+        return RedirectResult::Err("Config: returnのステータスコードが不正です");
     std::map<int, std::string> redirect;
     redirect[statusCodeResult.unwrap()] = token.values[1];
-    return redirectResult::Ok(redirect);
+    return RedirectResult::Ok(redirect);
 }

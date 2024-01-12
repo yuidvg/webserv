@@ -1,6 +1,6 @@
 #include "tokenizeConfig.hpp"
 
-stringResult checkBracketsBalance(const std::vector<Tokenize> &tokens)
+StringResult checkBracketsBalance(const std::vector<Tokenize> &tokens)
 {
     int brackets = 0;
     for (std::vector<Tokenize>::const_iterator it = tokens.begin(); it != tokens.end(); ++it)
@@ -19,14 +19,14 @@ stringResult checkBracketsBalance(const std::vector<Tokenize> &tokens)
         }
         // サーバーコンテキスト内での2回ネストされたコンテキストは許可されません
         if (brackets > 2)
-            return stringResult::Err("Too many nested contexts in config file");
+            return StringResult::Err("Too many nested contexts in config file");
     }
     if (brackets != 0)
-        return stringResult::Err("Invalid number of brackets " + utils::to_string(brackets) + " in config file");
-    return stringResult::Ok("ok");
+        return StringResult::Err("Invalid number of brackets " + utils::to_string(brackets) + " in config file");
+    return StringResult::Ok("ok");
 }
 
-stringResult removeSemicolonFromToken(Tokenize &token)
+StringResult removeSemicolonFromToken(Tokenize &token)
 {
     if (token.key == SERVER_NAME || token.key == LISTEN || token.key == ALLOW_METHOD || token.key == CGI_EXECUTOR ||
         token.key == UPLOAD_PATH || token.key == RETURN || token.key == ROOT || token.key == ERROR_PAGE ||
@@ -51,26 +51,26 @@ stringResult removeSemicolonFromToken(Tokenize &token)
         {
             utils::printError(
                 std::string("token.values[token.values.size() - 1] == " + token.values[token.values.size() - 1]));
-            return stringResult::Err("';' is not found in config file");
+            return StringResult::Err("';' is not found in config file");
         }
     }
-    return stringResult::Ok("ok");
+    return StringResult::Ok("ok");
 }
 
 /*
 字句解析をした後、形式的な構文エラーと構造的な問題をチェックする。
 */
-tokenizeResult tokenize(const char *configPath)
+TokenizeResult tokenize(const char *configPath)
 {
     std::ifstream configFile(configPath);
     std::string line;
     std::vector<Tokenize> tokens;
     if (!configFile.is_open())
-        return tokenizeResult::Err("Failed to open file: " + std::string(configPath));
+        return TokenizeResult::Err("Failed to open file: " + std::string(configPath));
     if (configFile.peek() == std::ifstream::traits_type::eof())
     {
 
-        return tokenizeResult::Err("Empty file: " + std::string(configPath));
+        return TokenizeResult::Err("Empty file: " + std::string(configPath));
     }
 
     while (std::getline(configFile, line))
@@ -91,15 +91,15 @@ tokenizeResult tokenize(const char *configPath)
         {
             if (!token.values.empty())
             {
-                stringResult result = removeSemicolonFromToken(token);
+                StringResult result = removeSemicolonFromToken(token);
                 if (!result.ok())
-                    return tokenizeResult::Err(result.unwrapErr());
+                    return TokenizeResult::Err(result.unwrapErr());
             }
             tokens.push_back(token);
         }
     }
-    stringResult result = checkBracketsBalance(tokens);
+    StringResult result = checkBracketsBalance(tokens);
     if (!result.ok())
-        return tokenizeResult::Err(result.unwrapErr());
-    return tokenizeResult::Ok(tokens);
+        return TokenizeResult::Err(result.unwrapErr());
+    return TokenizeResult::Ok(tokens);
 }

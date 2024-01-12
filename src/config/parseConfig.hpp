@@ -1,7 +1,6 @@
 #ifndef parseConfig_HPP
 #define parseConfig_HPP
 
-#include "../utils/utils.hpp"
 #include "config.hpp"
 #include "tokenizeConfig.hpp"
 #include <fstream>
@@ -16,8 +15,8 @@ typedef utils::Result<Server, std::string> ParseServerResult;
 typedef utils::Result<Location, std::string> ParseLocationResult;
 
 // 設定ファイルを解析するメインの関数
-ParseResult ParseConfig(const char *configPath);
-ParseServerResult ParseServer(std::vector<Tokenize> &tokens);
-ParseLocationResult ParseLocation(std::vector<Tokenize> &tokens, std::string &locationPath);
+ParseResult parseConfigContext(const char *configPath);
+ParseServerResult parseServerContext(std::vector<Tokenize> &tokens);
+ParseLocationResult parseLocationContext(std::vector<Tokenize> &tokens, std::string &locationPath);
 
 #endif

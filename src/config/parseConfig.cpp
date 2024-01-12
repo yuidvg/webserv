@@ -4,7 +4,7 @@
 using namespace directiveParser;
 
 // ロケーションブロックの設定を解析
-ParseLocationResult ParseLocation(std::vector<Tokenize> &tokens, std::string &locationPath)
+ParseLocationResult parseLocationContext(std::vector<Tokenize> &tokens, std::string &locationPath)
 {
     std::string path = locationPath;
     std::string root = "";
@@ -26,35 +26,35 @@ ParseLocationResult ParseLocation(std::vector<Tokenize> &tokens, std::string &lo
         tokens.erase(tokens.begin());
         if (token.key == ROOT)
         {
-            rootResult rootRes = parseRootDirective(token);
+            RootResult rootRes = parseRootDirective(token);
             if (!rootRes.ok())
                 return ParseLocationResult::Err(rootRes.unwrapErr());
             root = rootRes.unwrap();
         }
         else if (token.key == AUTOINDEX)
         {
-            autoindexResult autoindexRes = parseAutoindexDirective(token);
+            AutoindexResult autoindexRes = parseAutoindexDirective(token);
             if (!autoindexRes.ok())
                 return ParseLocationResult::Err(autoindexRes.unwrapErr());
             autoindex = autoindexRes.unwrap();
         }
         else if (token.key == INDEX)
         {
-            indexResult indexRes = parseIndexDirective(token);
+            IndexResult indexRes = parseIndexDirective(token);
             if (!indexRes.ok())
                 return ParseLocationResult::Err(indexRes.unwrapErr());
             index = indexRes.unwrap();
         }
         else if (token.key == CLIENT_MAX_BODY_SIZE)
         {
-            clientMaxBodySizeResult clientMaxBodySizeRes = parseClientMaxBodySize(token);
+            ClientMaxBodySizeResult clientMaxBodySizeRes = parseClientMaxBodySize(token);
             if (!clientMaxBodySizeRes.ok())
                 return ParseLocationResult::Err(clientMaxBodySizeRes.unwrapErr());
             clientMaxBodySize = clientMaxBodySizeRes.unwrap();
         }
         else if (token.key == ERROR_PAGE)
         {
-            errorPagesResult errorPageRes = parseErrorPage(token);
+            ErrorPagesResult errorPageRes = parseErrorPage(token);
             if (!errorPageRes.ok())
                 return ParseLocationResult::Err(errorPageRes.unwrapErr());
             std::map<int, std::string> newErrorPages = errorPageRes.unwrap();
@@ -62,28 +62,28 @@ ParseLocationResult ParseLocation(std::vector<Tokenize> &tokens, std::string &lo
         }
         else if (token.key == ALLOW_METHOD)
         {
-            allowMethodsResult allowMethodsRes = parseAllowMethodDirective(token);
+            AllowMethodsResult allowMethodsRes = parseAllowMethodDirective(token);
             if (!allowMethodsRes.ok())
                 return ParseLocationResult::Err(allowMethodsRes.unwrapErr());
             allowMethods = allowMethodsRes.unwrap();
         }
         else if (token.key == CGI_EXECUTOR)
         {
-            cgiExtensionResult cgiExtensionRes = parseCgiExecutorDirective(token);
+            CgiExtensionResult cgiExtensionRes = parseCgiExecutorDirective(token);
             if (!cgiExtensionRes.ok())
                 return ParseLocationResult::Err(cgiExtensionRes.unwrapErr());
             cgiExtension = cgiExtensionRes.unwrap();
         }
         else if (token.key == UPLOAD_PATH)
         {
-            uploadPathResult uploadPathRes = parseUploadPathDirective(token);
+            UploadPathResult uploadPathRes = parseUploadPathDirective(token);
             if (!uploadPathRes.ok())
                 return ParseLocationResult::Err(uploadPathRes.unwrapErr());
             uploadPath = uploadPathRes.unwrap();
         }
         else if (token.key == RETURN)
         {
-            redirectResult redirectRes = parseReturnDirective(token);
+            RedirectResult redirectRes = parseReturnDirective(token);
             if (!redirectRes.ok())
             {
                 return ParseLocationResult::Err(redirectRes.unwrapErr());
@@ -102,7 +102,7 @@ ParseLocationResult ParseLocation(std::vector<Tokenize> &tokens, std::string &lo
 }
 
 // サーバーブロックの設定を解析
-ParseServerResult ParseServer(std::vector<Tokenize> &tokens)
+ParseServerResult parseServerContext(std::vector<Tokenize> &tokens)
 {
     std::string name = "";
     size_t port = 80;
@@ -116,28 +116,28 @@ ParseServerResult ParseServer(std::vector<Tokenize> &tokens)
         tokens.erase(tokens.begin());
         if (token.key == LOCATION)
         {
-            locationResult locationRes = parseLocationDirective(token, tokens);
+            LocationResult locationRes = parseLocationDirective(token, tokens);
             if (!locationRes.ok())
                 return ParseServerResult::Err(locationRes.unwrapErr());
             locations.push_back(locationRes.unwrap());
         }
         else if (token.key == SERVER_NAME)
         {
-            nameResult nameRes = parseServerName(token);
+            NameResult nameRes = parseServerName(token);
             if (!nameRes.ok())
                 return ParseServerResult::Err(nameRes.unwrapErr());
             name = nameRes.unwrap();
         }
         else if (token.key == LISTEN)
         {
-            portResult listenRes = parseListen(token);
+            PortResult listenRes = parseListen(token);
             if (!listenRes.ok())
                 return ParseServerResult::Err(listenRes.unwrapErr());
             port = listenRes.unwrap();
         }
         else if (token.key == ERROR_PAGE)
         {
-            errorPagesResult errorPageRes = parseErrorPage(token);
+            ErrorPagesResult errorPageRes = parseErrorPage(token);
             if (!errorPageRes.ok())
                 return ParseServerResult::Err(errorPageRes.unwrapErr());
             std::map<int, std::string> newErrorPages = errorPageRes.unwrap();
@@ -145,7 +145,7 @@ ParseServerResult ParseServer(std::vector<Tokenize> &tokens)
         }
         else if (token.key == CLIENT_MAX_BODY_SIZE)
         {
-            clientMaxBodySizeResult clientMaxBodySizeRes = parseClientMaxBodySize(token);
+            ClientMaxBodySizeResult clientMaxBodySizeRes = parseClientMaxBodySize(token);
             if (!clientMaxBodySizeRes.ok())
                 return ParseServerResult::Err(clientMaxBodySizeRes.unwrapErr());
             clientMaxBodySize = clientMaxBodySizeRes.unwrap();
@@ -163,7 +163,7 @@ ParseServerResult ParseServer(std::vector<Tokenize> &tokens)
 // 設定ファイルを解析するメインの関数
 ParseResult ParseConfig(const char *configPath)
 {
-    tokenizeResult tokensResult = tokenize(configPath);
+    TokenizeResult tokensResult = tokenize(configPath);
     if (!tokensResult.ok())
         return ParseResult::Err(tokensResult.unwrapErr());
     std::vector<Tokenize> tokens = tokensResult.unwrap();
@@ -176,10 +176,10 @@ ParseResult ParseConfig(const char *configPath)
         tokens.erase(tokens.begin());
         if (token.key == "server")
         {
-            serverResult result = parseServer(token, tokens);
-            if (!result.ok())
-                return ParseResult::Err(result.unwrapErr());
-            servers.push_back(result.unwrap());
+            ServerResult serverRes = parseServer(token, tokens);
+            if (!serverRes.ok())
+                return ParseResult::Err(serverRes.unwrapErr());
+            servers.push_back(serverRes.unwrap());
         }
         else
         {
