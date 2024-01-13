@@ -1,6 +1,6 @@
 #include "connection.hpp"
 
-Connection::Connection()
+Connection::Connection() : maxSd(-1)
 {
 }
 
@@ -10,7 +10,7 @@ Connection::~Connection()
 
 void Connection::CloseConnection(int sd)
 {
-    std::cout << YELLOW << "close sd: " << NORMAL << sd << std::endl;
+    std::cout << "close sd: " << sd << std::endl;
 
     deleteConnSock(sd);
     close(sd);
@@ -53,7 +53,7 @@ NewSDResult Connection::AcceptNewConnection(const int listenSd)
             return NewSDResult::Error(errorMsg);
         }
     }
-    std::cout << GREEN << "New incoming connection " << newSd << NORMAL << std::endl;
+    std::cout << "New incoming connection " << newSd << std::endl;
     FD_SET(newSd, &masterSet);
     if (newSd > maxSd)
     {
@@ -76,10 +76,8 @@ void Connection::ProcessConnection(int sd, Socket &socket)
     int rc;
 
     // Debug用
-    std::cout << GREEN;
     std::cout << "Port = " << socket.getServer().port << std::endl;
     std::cout << "server_name = " << socket.getServer().name << std::endl;
-    std::cout << NORMAL;
 
     rc = recv(sd, buffer, sizeof(buffer) - 1, 0);
     if (rc < 0)
@@ -94,7 +92,7 @@ void Connection::ProcessConnection(int sd, Socket &socket)
         CloseConnection(sd);
         return;
     }
-    std::cout << "Received \n" << GREEN << rc << " bytes: " << buffer << NORMAL << std::endl;
+    std::cout << "Received \n" << rc << " bytes: " << buffer << std::endl;
 
     std::istringstream buf(buffer);
 
@@ -130,11 +128,10 @@ void Connection::Start(const std::vector<Server> servers)
 
     fd_set workingSet;
     struct timeval timeout;
-    int endServer = FALSE;
     timeout.tv_sec = 3 * 60;
     timeout.tv_usec = 0;
 
-    while (endServer == FALSE)
+    while (true)
     {
         memcpy(&workingSet, &masterSet, sizeof(masterSet));
 

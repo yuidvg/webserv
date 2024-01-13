@@ -20,12 +20,6 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#define TRUE 1
-#define FALSE 0
-#define RED "\x1b[31m"
-#define YELLOW "\x1b[33m"
-#define NORMAL "\x1b[0m"
-
 typedef Result<int, std::string> NewSDResult;
 typedef Result<Socket, std::string> FindConnectedVirtualServerResult;
 
