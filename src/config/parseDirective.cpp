@@ -1,6 +1,6 @@
-#include "directiveParser.hpp"
+#include "parseDirective.hpp"
 
-using namespace directiveParser;
+using namespace parseDirective;
 
 StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal)
 {

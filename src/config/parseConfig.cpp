@@ -1,7 +1,7 @@
 #include "parseConfig.hpp"
-#include "directiveParser.hpp"
+#include "parseDirective.hpp"
 
-using namespace directiveParser;
+using namespace parseDirective;
 
 // ロケーションブロックの設定を解析
 ParseLocationResult parseLocationContext(std::vector<Tokenize> &tokens, std::string &locationPath)
