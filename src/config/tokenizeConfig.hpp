@@ -6,14 +6,13 @@
 #include <fstream>
 #include <iostream>
 
-struct Tokenize
+struct Token
 {
-    std::string key;
     std::vector<std::string> values;
 };
 
-typedef utils::Result<std::vector<Tokenize>, std::string> TokenizeResult;
+typedef utils::Result<std::vector<Token>, std::string> TokenResult;
 
-TokenizeResult tokenize(const char *configPath);
+TokenResult tokenize(const char *configPath);
 
 #endif

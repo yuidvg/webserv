@@ -27,21 +27,21 @@ typedef utils::Result<std::map<int, std::string>, std::string> RedirectResult;
 typedef utils::Result<int, std::string> StringToIntResult;
 } // namespace parseDirective
 
-parseDirective::ServerResult parseServer(Tokenize token, std::vector<Tokenize> &tokens);
-parseDirective::NameResult parseServerName(const Tokenize &token);
-parseDirective::PortResult parseListen(const Tokenize &token);
-parseDirective::ErrorPagesResult parseErrorPage(const Tokenize &token);
-parseDirective::ClientMaxBodySizeResult parseClientMaxBodySize(const Tokenize &token);
+parseDirective::ServerResult parseServer(Token token, std::vector<Token> &tokens);
+parseDirective::NameResult parseServerName(const Token &token);
+parseDirective::PortResult parseListen(const Token &token);
+parseDirective::ErrorPagesResult parseErrorPage(const Token &token);
+parseDirective::ClientMaxBodySizeResult parseClientMaxBodySize(const Token &token);
 parseDirective::StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal);
-parseDirective::LocationResult parseLocationDirective(Tokenize token, std::vector<Tokenize> &tokens);
+parseDirective::LocationResult parseLocationDirective(Token token, std::vector<Token> &tokens);
 
-parseDirective::RootResult parseRootDirective(const Tokenize &token);
-parseDirective::AutoindexResult parseAutoindexDirective(const Tokenize &token);
-parseDirective::IndexResult parseIndexDirective(const Tokenize &token);
-parseDirective::RedirectResult parseReturnDirective(const Tokenize &token);
-parseDirective::AllowMethodsResult parseAllowMethodDirective(const Tokenize &token);
-parseDirective::CgiExtensionResult parseCgiExecutorDirective(const Tokenize &token);
-parseDirective::UploadPathResult parseUploadPathDirective(const Tokenize &token);
-parseDirective::RedirectResult parseReturnDirective(const Tokenize &token);
+parseDirective::RootResult parseRootDirective(const Token &token);
+parseDirective::AutoindexResult parseAutoindexDirective(const Token &token);
+parseDirective::IndexResult parseIndexDirective(const Token &token);
+parseDirective::RedirectResult parseReturnDirective(const Token &token);
+parseDirective::AllowMethodsResult parseAllowMethodDirective(const Token &token);
+parseDirective::CgiExtensionResult parseCgiExecutorDirective(const Token &token);
+parseDirective::UploadPathResult parseUploadPathDirective(const Token &token);
+parseDirective::RedirectResult parseReturnDirective(const Token &token);
 
 #endif
