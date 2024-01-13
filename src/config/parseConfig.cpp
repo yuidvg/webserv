@@ -3,6 +3,56 @@
 
 using namespace parseDirective;
 
+StringResult checkBracketsBalance(const std::vector<Tokenize> &tokens)
+{
+    int brackets = 0;
+    for (std::vector<Tokenize>::const_iterator it = tokens.begin(); it != tokens.end(); ++it)
+    {
+        if (it->key == OPEN_BRACKET)
+            brackets++;
+        else if (it->key == CLOSE_BRACKET)
+            brackets--;
+        for (std::vector<std::string>::const_iterator valueIt = it->values.begin(); valueIt != it->values.end();
+             ++valueIt)
+        {
+            if (*valueIt == OPEN_BRACKET)
+                brackets++;
+            else if (*valueIt == CLOSE_BRACKET)
+                brackets--;
+        }
+        // サーバーコンテキスト内での2回ネストされたコンテキストは許可されません
+        if (brackets > 2)
+            return StringResult::Err("Too many nested contexts in config file");
+    }
+    if (brackets != 0)
+        return StringResult::Err("Invalid number of brackets " + utils::to_string(brackets) + " in config file");
+    return StringResult::Ok("ok");
+}
+
+void removeSemicolonFromToken(Tokenize &token)
+{
+    if (token.key == SERVER_NAME || token.key == LISTEN || token.key == ALLOW_METHOD || token.key == CGI_EXECUTOR ||
+        token.key == UPLOAD_PATH || token.key == RETURN || token.key == ROOT || token.key == ERROR_PAGE ||
+        token.key == CLIENT_MAX_BODY_SIZE || token.key == INDEX || token.key == AUTOINDEX)
+    {
+        if (token.values[token.values.size() - 1] == OPEN_BRACKET ||
+            token.values[token.values.size() - 1] == CLOSE_BRACKET)
+            ;
+        else if (token.values[token.values.size() - 1][token.values[token.values.size() - 1].size() - 1] == ';')
+        {
+            std::string tmp = token.values[token.values.size() - 1];
+            token.values.pop_back();
+            // ';' を探し、見つかった場合に削除
+            size_t semicolonPos = tmp.find(';');
+            if (semicolonPos != std::string::npos)
+            {
+                tmp.erase(semicolonPos, 1);
+            }
+            token.values.push_back(tmp);
+        }
+    }
+}
+
 // ロケーションブロックの設定を解析
 ParseLocationResult parseLocationContext(std::vector<Tokenize> &tokens, std::string &locationPath)
 {
@@ -192,6 +242,16 @@ ParseResult parseConfig(const char *configPath)
     if (!tokensResult.ok())
         return ParseResult::Err(tokensResult.unwrapErr());
     std::vector<Tokenize> tokens = tokensResult.unwrap();
+    for (std::vector<Tokenize>::iterator it = tokens.begin(); it != tokens.end(); ++it)
+    {
+        // トークンの末尾にあるセミコロンを削除
+        if (!it->values.empty())
+            removeSemicolonFromToken(*it);
+    }
+    // ブロックの数が合っているか確認
+    StringResult result = checkBracketsBalance(tokens);
+    if (!result.ok())
+        return ParseResult::Err(result.unwrapErr());
 
     std::vector<Server> servers;
 

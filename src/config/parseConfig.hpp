@@ -13,10 +13,13 @@
 typedef utils::Result<std::vector<Server>, std::string> ParseResult;
 typedef utils::Result<Server, std::string> ParseServerResult;
 typedef utils::Result<Location, std::string> ParseLocationResult;
+typedef utils::Result<std::string, std::string> StringResult;
 
 // 設定ファイルを解析するメインの関数
 ParseResult parseConfig(const char *configPath);
 ParseServerResult parseServerContext(std::vector<Tokenize> &tokens);
 ParseLocationResult parseLocationContext(std::vector<Tokenize> &tokens, std::string &locationPath);
+StringResult checkBracketsBalance(const std::vector<Tokenize> &tokens);
+void removeSemicolonFromToken(Tokenize &token);
 
 #endif
