@@ -130,11 +130,10 @@ void Connection::Start(const std::vector<Server> servers)
 
     fd_set workingSet;
     struct timeval timeout;
-    int endServer = FALSE;
     timeout.tv_sec = 3 * 60;
     timeout.tv_usec = 0;
 
-    while (endServer == FALSE)
+    while (true)
     {
         memcpy(&workingSet, &masterSet, sizeof(masterSet));
 
