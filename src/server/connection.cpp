@@ -1,6 +1,6 @@
 #include "connection.hpp"
 
-Connection::Connection()
+Connection::Connection() : maxSd(-1)
 {
 }
 
