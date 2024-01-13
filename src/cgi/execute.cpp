@@ -1,7 +1,6 @@
 #include "cgi.hpp"
 #include "utils/utils.hpp"
 
-
 namespace cgi
 {
 
@@ -21,12 +20,12 @@ char *const *mapStringStringToCStringArray(const std::map<std::string, std::stri
     return envArray;
 }
 
-char *const *enviromentVariables(const ParsedRequest request, const Server server)
+char *const *enviromentVariables(const HttpRequest request, const Server server)
 {
     std::map<std::string, std::string> env;
-    env["AUTH_TYPE"] = utils::value(request.header, std::string("Authorization"));
-    env["CONTENT_LENGTH"] = utils::value(request.header, std::string("Content-Length"));
-    env["CONTENT_TYPE"] = utils::value(request.header, std::string("Content-Type"));
+    env["AUTH_TYPE"] = utils::value(request.headers, std::string("Authorization"));
+    env["CONTENT_LENGTH"] = utils::value(request.headers, std::string("Content-Length"));
+    env["CONTENT_TYPE"] = utils::value(request.headers, std::string("Content-Type"));
     env["GATEWAY_INTERFACE"] = GATEWAY_INTERFACE;
     env["PATH_INFO"] = request.uri;
     env["PATH_TRANSLATED"] = request.uri;
@@ -37,7 +36,7 @@ char *const *enviromentVariables(const ParsedRequest request, const Server serve
     // env["REMOTE_IDENT"] = ;
     // env["REMOTE_USER"] = ;
     env["REQUEST_METHOD"] = request.method;
-    env["SCRIPT_NAME"] = utils::value(request.header, request.uri);
+    env["SCRIPT_NAME"] = utils::value(request.headers, request.uri);
     env["SERVER_NAME"] = server.name;
     env["SERVER_PORT"] = server.port;
     env["SERVER_PROTOCOL"] = SERVER_PROTOCOL;
@@ -45,17 +44,17 @@ char *const *enviromentVariables(const ParsedRequest request, const Server serve
     return mapStringStringToCStringArray(env);
 }
 
-ResponseResult execute(const ParsedRequest request, const Server server)
+ResponseResult execute(const HttpRequest request, const Server server)
 {
     int pipefds[2];
     if (pipe(pipefds) == -1)
     {
         std::cerr << "pipe failed" << std::endl;
-        return ResponseResult::Err("Status: 500\n\n");
+        return ResponseResult::Error("Status: 500\n\n");
     }
     const pid_t pid = fork();
     if (pid == -1)
-        return ResponseResult::Err("Status: 500\n\n");
+        return ResponseResult::Error("Status: 500\n\n");
     else if (pid == 0) // child process
     {
         close(pipefds[IN]);
@@ -70,11 +69,11 @@ ResponseResult execute(const ParsedRequest request, const Server server)
         int status;
         waitpid(pid, &status, 0);
         if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
-            return ResponseResult::Err("Status: 200\n\n");
+            return ResponseResult::Error("Status: 200\n\n");
         else
-            return ResponseResult::Err("Status: 500\n\n");
+            return ResponseResult::Error("Status: 500\n\n");
     }
-    return ResponseResult::Ok("Status: 500\n\n");
+    return ResponseResult::Success("Status: 500\n\n");
 }
 
 } // namespace cgi
