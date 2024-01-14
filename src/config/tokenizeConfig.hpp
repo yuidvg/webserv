@@ -6,13 +6,9 @@
 #include <fstream>
 #include <iostream>
 
-struct Token
-{
-    std::vector<std::string> values;
-};
+typedef utils::Result<std::vector<std::string>, std::string> TokensResult;
 
-typedef utils::Result<std::vector<Token>, std::string> TokenResult;
-
-TokenResult tokenize(const char *configPath);
+TokensResult tokenize(const char *configPath);
+TokensResult extractADirective(std::vector<std::string> &tokens);
 
 #endif

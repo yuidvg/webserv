@@ -1,7 +1,6 @@
 #include "socket.hpp"
 
-Socket::Socket()
-    : server("", 80, "", std::map<int, std::string>(), 1048576, false, "index.html", std::vector<Location>())
+Socket::Socket() : listenSocket(0), server("", 80, std::map<int, std::string>(), 1048576, std::vector<Location>())
 {
 }
 

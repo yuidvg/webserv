@@ -26,22 +26,24 @@ typedef utils::Result<std::map<int, std::string>, std::string> RedirectResult;
 
 typedef utils::Result<int, std::string> StringToIntResult;
 } // namespace parseDirective
-
-parseDirective::ServerResult parseServer(Token token, std::vector<Token> &tokens);
-parseDirective::NameResult parseServerName(const Token &token);
-parseDirective::PortResult parseListen(const Token &token);
-parseDirective::ErrorPagesResult parseErrorPage(const Token &token);
-parseDirective::ClientMaxBodySizeResult parseClientMaxBodySize(const Token &token);
 parseDirective::StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal);
-parseDirective::LocationResult parseLocationDirective(Token token, std::vector<Token> &tokens);
 
-parseDirective::RootResult parseRootDirective(const Token &token);
-parseDirective::AutoindexResult parseAutoindexDirective(const Token &token);
-parseDirective::IndexResult parseIndexDirective(const Token &token);
-parseDirective::RedirectResult parseReturnDirective(const Token &token);
-parseDirective::AllowMethodsResult parseAllowMethodDirective(const Token &token);
-parseDirective::CgiExtensionResult parseCgiExecutorDirective(const Token &token);
-parseDirective::UploadPathResult parseUploadPathDirective(const Token &token);
-parseDirective::RedirectResult parseReturnDirective(const Token &token);
+parseDirective::ServerResult parseServer(const std::vector<std::string> directiveTokens,
+                                         std::vector<std::string> &tokens);
+parseDirective::NameResult parseServerName(const std::vector<std::string> directiveTokens);
+parseDirective::PortResult parseListen(const std::vector<std::string> directiveTokens);
+parseDirective::ErrorPagesResult parseErrorPage(const std::vector<std::string> directiveTokens);
+parseDirective::ClientMaxBodySizeResult parseClientMaxBodySize(const std::vector<std::string> directiveTokens);
+parseDirective::LocationResult parseLocationDirective(const std::vector<std::string> directiveTokens,
+                                                      std::vector<std::string> &tokens);
+
+parseDirective::RootResult parseRootDirective(const std::vector<std::string> directiveTokens);
+parseDirective::AutoindexResult parseAutoindexDirective(const std::vector<std::string> directiveTokens);
+parseDirective::IndexResult parseIndexDirective(const std::vector<std::string> directiveTokens);
+parseDirective::RedirectResult parseReturnDirective(const std::vector<std::string> directiveTokens);
+parseDirective::AllowMethodsResult parseAllowMethodDirective(const std::vector<std::string> directiveTokens);
+parseDirective::CgiExtensionResult parseCgiExecutorDirective(const std::vector<std::string> directiveTokens);
+parseDirective::UploadPathResult parseUploadPathDirective(const std::vector<std::string> directiveTokens);
+parseDirective::RedirectResult parseReturnDirective(const std::vector<std::string> directiveTokens);
 
 #endif

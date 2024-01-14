@@ -28,14 +28,12 @@ StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal)
     各ディレクティブのパーサー
 */
 
-ServerResult parseServer(Token token, std::vector<Token> &tokens)
+ServerResult parseServer(const std::vector<std::string> directiveTokens, std::vector<std::string> &tokens)
 {
-    if (token.values.size() > 2)
+    if (directiveTokens.size() != 2)
         return ServerResult::Err("Config: serverの引数が多いです");
-    if (tokens.front().values[0] != OPEN_BRACKET && token.values[1] != OPEN_BRACKET)
+    if (directiveTokens[1] != OPEN_BRACKET)
         return ServerResult::Err("Config: serverブロックの開始が不正です");
-    if (tokens.front().values[0] == OPEN_BRACKET)
-        tokens.erase(tokens.begin());
 
     ParseServerResult serverRes = parseServerContext(tokens);
     if (!serverRes.ok())
@@ -44,19 +42,20 @@ ServerResult parseServer(Token token, std::vector<Token> &tokens)
     return ServerResult::Ok(serverRes.unwrap());
 }
 
-NameResult parseServerName(const Token &token)
+parseDirective::NameResult parseServerName(const std::vector<std::string> directiveTokens)
 {
-    if (token.values.size() != 2)
+    if (directiveTokens.size() != 2)
         return NameResult::Err("Config: server_nameの引数が多いです");
-    return NameResult::Ok(token.values[1]);
+    return NameResult::Ok(directiveTokens[1]);
 }
 
-PortResult parseListen(const Token &token)
+parseDirective::PortResult parseListen(const std::vector<std::string> directiveTokens)
 {
-    if (token.values.size() != 2)
+
+    if (directiveTokens.size() != 2)
         return PortResult::Err("Config: listenの引数が多いです");
 
-    StringToIntResult result = stringToInt(token.values[1], 0, 65535);
+    StringToIntResult result = stringToInt(directiveTokens[1], 0, 65535);
     if (!result.ok())
     {
         return PortResult::Err(result.unwrapErr());
@@ -65,12 +64,12 @@ PortResult parseListen(const Token &token)
     return PortResult::Ok(result.unwrap());
 }
 
-ErrorPagesResult parseErrorPage(const Token &token)
+ErrorPagesResult parseErrorPage(const std::vector<std::string> directiveTokens)
 {
-    if (token.values.size() != 3)
+    if (directiveTokens.size() != 3)
         return ErrorPagesResult::Err("Config: error_pageの引数が多いです");
 
-    StringToIntResult errorCodeResult = stringToInt(token.values[1], 100, 599);
+    StringToIntResult errorCodeResult = stringToInt(directiveTokens[1], 100, 599);
     if (!errorCodeResult.ok())
     {
         return ErrorPagesResult::Err("Config: error_pageのエラーコードが不正です");
@@ -78,16 +77,16 @@ ErrorPagesResult parseErrorPage(const Token &token)
     int errorCode = errorCodeResult.unwrap();
 
     std::map<int, std::string> errorPages;
-    errorPages[errorCode] = token.values[2];
+    errorPages[errorCode] = directiveTokens[2];
     return ErrorPagesResult::Ok(errorPages);
 }
 
-ClientMaxBodySizeResult parseClientMaxBodySize(const Token &token)
+ClientMaxBodySizeResult parseClientMaxBodySize(const std::vector<std::string> directiveTokens)
 {
-    if (token.values.size() != 2)
-        return ClientMaxBodySizeResult::Err(token.values[1] + "引数の数が不正です");
+    if (directiveTokens.size() != 2)
+        return ClientMaxBodySizeResult::Err(directiveTokens[1] + "引数の数が不正です");
 
-    StringToIntResult sizeResult = stringToInt(token.values[1], 0, INT_MAX);
+    StringToIntResult sizeResult = stringToInt(directiveTokens[1], 0, INT_MAX);
     if (!sizeResult.ok())
     {
         return ClientMaxBodySizeResult::Err("Config: client_max_body_sizeの値が不正です");
@@ -97,18 +96,14 @@ ClientMaxBodySizeResult parseClientMaxBodySize(const Token &token)
     return ClientMaxBodySizeResult::Ok(size);
 }
 
-LocationResult parseLocationDirective(Token token, std::vector<Token> &tokens)
+LocationResult parseLocationDirective(const std::vector<std::string> directiveTokens, std::vector<std::string> &tokens)
 {
-    if (token.values.size() > 4)
-        return LocationResult::Err("Config: locationの引数が多いです");
-    if (tokens.front().values[0] != OPEN_BRACKET && token.values[2] != OPEN_BRACKET)
+    if (directiveTokens.size() != 3)
+        return LocationResult::Err("Config: locationの引数が不正です");
+    if (directiveTokens[2] != OPEN_BRACKET)
         return LocationResult::Err("Config: locationブロックの開始が不正です");
 
-    std::string locationPath = token.values[1];
-    if (tokens.front().values[0] == OPEN_BRACKET)
-    {
-        tokens.erase(tokens.begin()); // OPEN_BRACKET を削除
-    }
+    std::string locationPath = directiveTokens[1];
 
     // ParseLocation 関数を呼び出して location の設定を解析
     ParseLocationResult locationResult = parseLocationContext(tokens, locationPath);
@@ -124,45 +119,45 @@ LocationResult parseLocationDirective(Token token, std::vector<Token> &tokens)
 /*
 Location
 */
-RootResult parseRootDirective(const Token &token)
+RootResult parseRootDirective(const std::vector<std::string> directiveTokens)
 {
-    if (token.values.size() != 2)
+    if (directiveTokens.size() != 2)
     {
-        return RootResult::Err(token.values[1] + "引数の数が不正です");
+        return RootResult::Err(directiveTokens[1] + "引数の数が不正です");
     }
-    return RootResult::Ok(token.values[1]);
+    return RootResult::Ok(directiveTokens[1]);
 }
 
-AutoindexResult parseAutoindexDirective(const Token &token)
+AutoindexResult parseAutoindexDirective(const std::vector<std::string> directiveTokens)
 {
-    if (token.values.size() != 2)
+    if (directiveTokens.size() != 2)
     {
-        return AutoindexResult::Err(token.values[1] + "引数の数が不正です");
+        return AutoindexResult::Err(directiveTokens[1] + "引数の数が不正です");
     }
-    bool autoindexValue = (token.values[1] == "on");
+    bool autoindexValue = (directiveTokens[1] == "on");
     return AutoindexResult::Ok(autoindexValue);
 }
 
-IndexResult parseIndexDirective(const Token &token)
+IndexResult parseIndexDirective(const std::vector<std::string> directiveTokens)
 {
-    if (token.values.size() != 2)
+    if (directiveTokens.size() != 2)
     {
-        return IndexResult::Err(token.values[1] + "引数の数が不正です");
+        return IndexResult::Err(directiveTokens[1] + "引数の数が不正です");
     }
-    return IndexResult::Ok(token.values[1]);
+    return IndexResult::Ok(directiveTokens[1]);
 }
 
 // location専用
-AllowMethodsResult parseAllowMethodDirective(const Token &token)
+AllowMethodsResult parseAllowMethodDirective(const std::vector<std::string> directiveTokens)
 {
-    if (token.values.size() > 4 || token.values.size() < 2)
+    if (directiveTokens.size() > 4 || directiveTokens.size() < 2)
     {
         return AllowMethodsResult::Err("Config: allow_methodの引数が不正です");
     }
     std::vector<std::string> methods;
-    for (size_t i = 1; i < token.values.size(); ++i)
+    for (size_t i = 1; i < directiveTokens.size(); ++i)
     {
-        std::string method = token.values[i];
+        std::string method = directiveTokens[i];
         if (method != "GET" && method != "POST" && method != "DELETE")
         {
             return AllowMethodsResult::Err("Config: 許可されないHTTPメソッドが指定されています");
@@ -172,35 +167,35 @@ AllowMethodsResult parseAllowMethodDirective(const Token &token)
     return AllowMethodsResult::Ok(methods);
 }
 
-CgiExtensionResult parseCgiExecutorDirective(const Token &token)
+CgiExtensionResult parseCgiExecutorDirective(const std::vector<std::string> directiveTokens)
 {
-    if (token.values.size() != 2)
+    if (directiveTokens.size() != 2)
     {
         return CgiExtensionResult::Err("Config: cgi_executorの引数が多いです");
     }
-    return CgiExtensionResult::Ok(token.values[1]);
+    return CgiExtensionResult::Ok(directiveTokens[1]);
 }
 
-UploadPathResult parseUploadPathDirective(const Token &token)
+UploadPathResult parseUploadPathDirective(const std::vector<std::string> directiveTokens)
 {
-    if (token.values.size() != 2)
+    if (directiveTokens.size() != 2)
     {
-        return UploadPathResult::Err(token.values[1] + "引数の数が不正です");
+        return UploadPathResult::Err(directiveTokens[1] + "引数の数が不正です");
     }
-    return UploadPathResult::Ok(token.values[1]);
+    return UploadPathResult::Ok(directiveTokens[1]);
 }
 
-RedirectResult parseReturnDirective(const Token &token)
+RedirectResult parseReturnDirective(const std::vector<std::string> directiveTokens)
 {
-    if (token.values.size() != 3)
+    if (directiveTokens.size() != 3)
     {
         return RedirectResult::Err("Config: returnの引数が不正です");
     }
 
-    StringToIntResult statusCodeResult = stringToInt(token.values[1], 300, 399);
+    StringToIntResult statusCodeResult = stringToInt(directiveTokens[1], 300, 399);
     if (!statusCodeResult.ok())
         return RedirectResult::Err("Config: returnのステータスコードが不正です");
     std::map<int, std::string> redirect;
-    redirect[statusCodeResult.unwrap()] = token.values[2];
+    redirect[statusCodeResult.unwrap()] = directiveTokens[2];
     return RedirectResult::Ok(redirect);
 }

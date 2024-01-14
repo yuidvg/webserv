@@ -17,9 +17,8 @@ typedef utils::Result<std::string, std::string> StringResult;
 
 // 設定ファイルを解析するメインの関数
 ParseResult parseConfig(const char *configPath);
-ParseServerResult parseServerContext(std::vector<Token> &tokens);
-ParseLocationResult parseLocationContext(std::vector<Token> &tokens, std::string &locationPath);
-StringResult checkBracketsBalance(const std::vector<Token> &tokens);
-void removeSemicolonFromToken(Token &token);
+ParseServerResult parseServerContext(std::vector<std::string> &tokens);
+ParseLocationResult parseLocationContext(std::vector<std::string> &tokens, std::string &locationPath);
+void removeSemicolonFromToken(std::vector<std::string> &token);
 
 #endif
