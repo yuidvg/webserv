@@ -2,6 +2,9 @@
 #define CONNECTION_HPP
 
 #include "../config/parseConfig.hpp"
+#include "../httpRequest/parseRequest.hpp"
+#include "../httpResponse/buildResponse.hpp"
+#include "../utils/utils.hpp"
 #include "socket.hpp"
 #include <algorithm>
 #include <arpa/inet.h>
@@ -17,8 +20,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-typedef utils::Result<int, std::string> NewSDResult;
-typedef utils::Result<Socket, std::string> FindConnectedVirtualServerResult;
+typedef Result<int, std::string> NewSDResult;
 
 void allcloseConnection(int &maxSd, fd_set &masterSet, std::map<int, Socket> &connSocks);
 void closeConnection(int fd, int &maxSd, fd_set &masterSet, std::map<int, Socket> &connSocks); // 接続を閉じる

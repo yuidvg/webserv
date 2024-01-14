@@ -1,27 +1,23 @@
-#include "config/parseConfig.hpp"
+#include "config/config.hpp"
 #include "server/connection.hpp"
 #include "utils/utils.hpp"
 
 int main(int argc, char **argv)
 {
-    const char *configPath;
-    if (argc < 2)
-        configPath = "config/default.conf";
-    else if (argc == 2)
-        configPath = argv[1];
-    else
+    if (argc > 2)
     {
         utils::printError("引数が多すぎます");
         return 1;
     }
+    const std::string configPath = argc == 2 ? argv[1] : "config/default.conf";
 
-    ParseResult result = parseConfig(configPath);
-    if (!result.success)
+    ConfigResult configResult = parseConfig(configPath.c_str());
+    if (!configResult.success)
     {
-        utils::printError(result.error);
+        utils::printError(configResult.error);
         return 1;
     }
-    const std::vector<Server> servers = result.value;
+    const std::vector<Server> servers = configResult.value;
 
     StartConnection(servers);
 }

@@ -6,7 +6,7 @@
 #include <fstream>
 #include <iostream>
 
-typedef utils::Result<std::vector<std::string>, std::string> TokensResult;
+typedef Result<std::vector<std::string>, std::string> TokensResult;
 
 TokensResult tokenize(const char *configPath);
 TokensResult extractADirective(std::vector<std::string> &tokens);

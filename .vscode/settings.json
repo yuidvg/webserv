@@ -58,7 +58,10 @@
 		"typeinfo": "cpp",
 		"variant": "cpp",
 		"algorithm": "cpp",
-		"*.tpp": "cpp"
+		"*.tpp": "cpp",
+		"functional": "cpp",
+		"version": "cpp",
+		"__memory": "cpp"
 	},
 	"[cpp]": {
 		"editor.wordBasedSuggestions": "off",

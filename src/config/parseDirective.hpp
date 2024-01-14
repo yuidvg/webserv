@@ -7,35 +7,35 @@
 
 namespace parseDirective
 {
-typedef utils::Result<Server, std::string> ServerResult;
-typedef utils::Result<std::string, std::string> NameResult;
-typedef utils::Result<int, std::string> PortResult;
-typedef utils::Result<Location, std::string> LocationResult;
+typedef Result<Server, std::string> ServerResult;
+typedef Result<std::string, std::string> NameResult;
+typedef Result<int, std::string> PortResult;
+typedef Result<Location, std::string> LocationResult;
 
-typedef utils::Result<std::map<int, std::string>, std::string> ErrorPagesResult;
-typedef utils::Result<size_t, std::string> ClientMaxBodySizeResult;
+typedef Result<std::map<int, std::string>, std::string> ErrorPagesResult;
+typedef Result<size_t, std::string> ClientMaxBodySizeResult;
 
-typedef utils::Result<std::string, std::string> PathResult;
-typedef utils::Result<std::string, std::string> RootResult;
-typedef utils::Result<bool, std::string> AutoindexResult;
-typedef utils::Result<std::string, std::string> IndexResult;
-typedef utils::Result<std::vector<std::string>, std::string> AllowMethodsResult;
-typedef utils::Result<std::string, std::string> CgiExtensionResult;
-typedef utils::Result<std::string, std::string> UploadPathResult;
-typedef utils::Result<std::map<int, std::string>, std::string> RedirectResult;
+typedef Result<std::string, std::string> PathResult;
+typedef Result<std::string, std::string> RootResult;
+typedef Result<bool, std::string> AutoindexResult;
+typedef Result<std::string, std::string> IndexResult;
+typedef Result<std::vector<std::string>, std::string> AllowMethodsResult;
+typedef Result<std::string, std::string> CgiExtensionResult;
+typedef Result<std::string, std::string> UploadPathResult;
+typedef Result<std::map<int, std::string>, std::string> RedirectResult;
 
-typedef utils::Result<int, std::string> StringToIntResult;
+typedef Result<int, std::string> StringToIntResult;
 } // namespace parseDirective
-parseDirective::StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal);
-
+parseDirective::LocationResult parseLocationDirective(const std::vector<std::string> directiveTokens,
+                                                      std::vector<std::string> &tokens);
 parseDirective::ServerResult parseServer(const std::vector<std::string> directiveTokens,
                                          std::vector<std::string> &tokens);
+parseDirective::StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal);
+
 parseDirective::NameResult parseServerName(const std::vector<std::string> directiveTokens);
 parseDirective::PortResult parseListen(const std::vector<std::string> directiveTokens);
 parseDirective::ErrorPagesResult parseErrorPage(const std::vector<std::string> directiveTokens);
 parseDirective::ClientMaxBodySizeResult parseClientMaxBodySize(const std::vector<std::string> directiveTokens);
-parseDirective::LocationResult parseLocationDirective(const std::vector<std::string> directiveTokens,
-                                                      std::vector<std::string> &tokens);
 
 parseDirective::RootResult parseRootDirective(const std::vector<std::string> directiveTokens);
 parseDirective::AutoindexResult parseAutoindexDirective(const std::vector<std::string> directiveTokens);

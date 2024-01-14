@@ -34,7 +34,7 @@ clean:
 	$(RM) $(OBJS_DIR) $(DEBUG_OBJS_DIR) $(DEBUG_CLIENT_OBJS)
 
 fclean: clean
-	$(RM) $(NAME) $(DEBUG_NAME) $(DEBUG_CLIENT_NAME)
+	$(RM) $(NAME) $(CLIENT_NAME)
 
 re: fclean all
 

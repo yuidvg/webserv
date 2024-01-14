@@ -1,24 +1,21 @@
 #include "parseConfig.hpp"
-#include "parseDirective.hpp"
+
 
 using namespace parseDirective;
-
 // ロケーションブロックの設定を解析
 ParseLocationResult parseLocationContext(std::vector<std::string> &tokens, std::string &locationPath)
 {
+    Location location;
     std::string path = locationPath;
-    std::string root = "";
-    bool autoindex = false;
-    std::string index = "index.html";
-    size_t clientMaxBodySize = 1048576;
-    std::map<int, std::string> errorPages;
-    std::vector<std::string> allowMethods;
-    allowMethods.push_back("GET");
-    allowMethods.push_back("POST");
-    allowMethods.push_back("DELETE");
-    std::string cgiExtension = "";
-    std::string uploadPath = "";
-    std::map<int, std::string> redirect;
+    std::string root = location.root;
+    bool autoindex = location.autoindex;
+    std::string index = location.index;
+    size_t clientMaxBodySize = location.clientMaxBodySize;
+    std::map<int, std::string> errorPages = location.errorPages;
+    std::vector<std::string> allowMethods = location.allowMethods;
+    std::string cgiExtension = location.cgiExtension;
+    std::string uploadPath = location.uploadPath;
+    std::map<int, std::string> redirect = location.redirect;
 
     while (!tokens.empty())
     {
@@ -107,10 +104,11 @@ ParseLocationResult parseLocationContext(std::vector<std::string> &tokens, std::
 // サーバーブロックの設定を解析
 ParseServerResult parseServerContext(std::vector<std::string> &tokens)
 {
-    std::string name = "";
-    size_t port = 80;
+    Server server;
+    std::string name = server.name;
+    size_t port = server.port;
     std::map<int, std::string> errorPages;
-    size_t clientMaxBodySize = 1048576;
+    size_t clientMaxBodySize = server.clientMaxBodySize;
     std::vector<Location> locations;
 
     while (!tokens.empty())
@@ -167,11 +165,11 @@ ParseServerResult parseServerContext(std::vector<std::string> &tokens)
 }
 
 // 設定ファイルを解析するメインの関数
-ParseResult parseConfig(const char *configPath)
+ConfigResult parseConfig(const char *configPath)
 {
     TokensResult tokensResult = tokenize(configPath);
     if (!tokensResult.success)
-        return ParseResult::Error(tokensResult.error);
+        return ConfigResult::Error(tokensResult.error);
     std::vector<std::string> tokens = tokensResult.value;
 
     std::vector<Server> servers;
@@ -180,20 +178,20 @@ ParseResult parseConfig(const char *configPath)
     {
         TokensResult directiveTokensResult = extractADirective(tokens);
         if (!directiveTokensResult.success)
-            return ParseResult::Error(directiveTokensResult.error);
+            return ConfigResult::Error(directiveTokensResult.error);
         std::vector<std::string> directiveTokens = directiveTokensResult.value;
 
         if (directiveTokens[0] == SERVER)
         {
             ServerResult serverRes = parseServer(directiveTokens, tokens);
             if (!serverRes.success)
-                return ParseResult::Error(serverRes.error);
+                return ConfigResult::Error(serverRes.error);
             servers.push_back(serverRes.value);
         }
         else
         {
-            return ParseResult::Error("Config: serverブロックがありません");
+            return ConfigResult::Error("Config: serverブロックがありません");
         }
     }
-    return ParseResult::Success(servers);
+    return ConfigResult::Success(servers);
 }

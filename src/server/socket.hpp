@@ -18,7 +18,7 @@
 #define GREEN "\x1b[32m"
 #define NORMAL "\x1b[0m"
 
-typedef utils::Result<int, std::string> InitializeResult;
+typedef Result<int, std::string> InitializeResult;
 
 class Socket
 {
