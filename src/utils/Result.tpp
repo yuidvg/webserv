@@ -1,56 +1,20 @@
-#ifndef RESULT_TPP
-# define RESULT_TPP
+#ifndef RESULT_HPP
+#define RESULT_HPP
 
-# include "Result.hpp"
+#include <cstring>
+#include <stdexcept>
 
-template <typename T, typename E>
-Result<T, E>::Result() : _value(NULL), _is_ok(false) {}
-
-template <typename T, typename E>
-Result<T, E>::~Result()
+template <typename T, typename E> struct Result
 {
-	if (_value)
-		delete _value;
-}
+    const T value;
+    const E error;
+    const bool success;
 
-template <typename T, typename E>
-Result<T, E>	Result<T, E>::Ok(const T &value)
-{
-	Result<T, E>	result;
-	result._value = new T(value);
-	result._is_ok = true;
-	return (result);
-}
+    Result(const T value, const E error, const bool success);
+    static Result<T, E> Success(const T value);
+    static Result<T, E> Error(const E error);
+};
 
-template <typename T, typename E>
-Result<T, E>	Result<T, E>::Err(E error)
-{
-	Result<T, E>	result;
-	result._error = error;
-	result._is_ok = false;
-	return (result);
-}
-
-template <typename T, typename E>
-bool	Result<T, E>::ok() const
-{
-	return (_is_ok);
-}
-
-template <typename T, typename E>
-T	Result<T, E>::unwrap()
-{
-	if (!_is_ok)
-		throw std::runtime_error("Attempted to unwrap an error");
-	return (*_value);
-}
-
-template <typename T, typename E>
-E	Result<T, E>::unwrapErr()
-{
-	if (_is_ok)
-		throw std::runtime_error("Attempted to unwrap a value as an error");
-	return (_error);
-}
+#include "Result.tpp"
 
 #endif

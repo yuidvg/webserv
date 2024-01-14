@@ -8,7 +8,7 @@ TokensResult tokenize(const char *configPath)
 
     if (!configFile.is_open())
     {
-        return TokensResult::Err("Failed to open file: " + std::string(configPath));
+        return TokensResult::Error("Failed to open file: " + std::string(configPath));
     }
 
     while (std::getline(configFile, line))
@@ -21,7 +21,7 @@ TokensResult tokenize(const char *configPath)
     }
 
     configFile.close();
-    return TokensResult::Ok(tokens);
+    return TokensResult::Success(tokens);
 }
 
 TokensResult extractADirective(std::vector<std::string> &tokens)
@@ -48,7 +48,7 @@ TokensResult extractADirective(std::vector<std::string> &tokens)
                 {
                     directiveTokens.push_back(token);
                 }
-                return TokensResult::Ok(directiveTokens);
+                return TokensResult::Success(directiveTokens);
             }
             else
             {
@@ -63,5 +63,5 @@ TokensResult extractADirective(std::vector<std::string> &tokens)
         }
     }
 
-    return TokensResult::Err("Config: ディレクティブが正常に終了しませんでした");
+    return TokensResult::Error("Config: ディレクティブが正常に終了しませんでした");
 }

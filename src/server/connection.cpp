@@ -1,5 +1,4 @@
 #include "connection.hpp"
-#include "../httpRequest/RequestParser.hpp"
 #include "../utils/utils.hpp"
 
 void closeConnection(int sd, int &maxSd, fd_set &masterSet, std::map<int, Socket> &connSocks)
@@ -43,7 +42,7 @@ NewSDResult acceptNewConnection(const int listenSd, int &maxSd, fd_set &masterSe
         if (errno != EWOULDBLOCK)
         {
             std::string errorMsg = "accept() failed on socket ";
-            return NewSDResult::Err(errorMsg);
+            return NewSDResult::Error(errorMsg);
         }
     }
     std::cout << GREEN << "New incoming connection " << newSd << NORMAL << std::endl;
@@ -52,7 +51,7 @@ NewSDResult acceptNewConnection(const int listenSd, int &maxSd, fd_set &masterSe
     {
         maxSd = newSd;
     }
-    return NewSDResult::Ok(newSd);
+    return NewSDResult::Success(newSd);
 }
 
 void deleteConnSock(int sd, std::map<int, Socket> &connSocks)
@@ -81,14 +80,15 @@ void processConnection(int sd, Socket &socket, int &maxSd, fd_set &masterSet, st
     }
     std::cout << "Received \n" << GREEN << len << " bytes: " << buffer << NORMAL << std::endl;
 
-    std::istringstream buf(buffer);
-    HttpParseResult parserResult = parseHttpRequest(buf, socket.getServer());
-    if (!parserResult.ok())
-    {
-        utils::printError(std::string("parseHttpRequest() failed: " + utils::to_string(parserResult.unwrapErr())));
-        closeConnection(sd, maxSd, masterSet, connSocks);
-        return;
-    }
+(void)socket;
+    // std::istringstream buf(buffer);
+    // HttpParseResult parserResult = parseHttpRequest(buf, socket.getServer());
+    // if (!parserResult.success)
+    // {
+    //     utils::printError(std::string("parseHttpRequest() failed: " + utils::to_string(parserResult.error)));
+    //     closeConnection(sd, maxSd, masterSet, connSocks);
+    //     return;
+    // }
 
     // TODO: HTTPレスポンスを作成する
     // HTTPレスポンス作成のロジックをここに実装
@@ -157,9 +157,9 @@ void StartConnection(const std::vector<Server> servers)
                 if (std::find(listenSockets.begin(), listenSockets.end(), i) != listenSockets.end())
                 {
                     NewSDResult newSDResult = acceptNewConnection(i, maxSd, masterSet);
-                    if (!newSDResult.ok())
+                    if (!newSDResult.success)
                     {
-                        utils::printError(newSDResult.unwrapErr());
+                        utils::printError(newSDResult.error);
                         allcloseConnection(maxSd, masterSet, connSocks);
                         return;
                     }
@@ -168,7 +168,7 @@ void StartConnection(const std::vector<Server> servers)
                         if (sockets[index].getListenSocket() == i)
                         {
                             std::cout << "新しい接続を受け入れた" << std::endl;
-                            connSocks.insert(std::make_pair(newSDResult.unwrap(), sockets[index]));
+                            connSocks.insert(std::make_pair(newSDResult.value, sockets[index]));
                         }
                     }
                 }

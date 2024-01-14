@@ -16,12 +16,12 @@ int main(int argc, char **argv)
     }
 
     ParseResult result = parseConfig(configPath);
-    if (!result.ok())
+    if (!result.success)
     {
-        utils::printError(result.unwrapErr());
+        utils::printError(result.error);
         return 1;
     }
-    const std::vector<Server> servers = result.unwrap();
+    const std::vector<Server> servers = result.value;
 
     StartConnection(servers);
 }

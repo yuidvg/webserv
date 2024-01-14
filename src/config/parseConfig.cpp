@@ -3,29 +3,6 @@
 
 using namespace parseDirective;
 
-void removeSemicolonFromToken(std::vector<std::string> &tokens)
-{
-    if (tokens[0] == SERVER_NAME || tokens[0] == LISTEN || tokens[0] == ALLOW_METHOD || tokens[0] == CGI_EXECUTOR ||
-        tokens[0] == UPLOAD_PATH || tokens[0] == RETURN || tokens[0] == ROOT || tokens[0] == ERROR_PAGE ||
-        tokens[0] == CLIENT_MAX_BODY_SIZE || tokens[0] == INDEX || tokens[0] == AUTOINDEX)
-    {
-        if (tokens[tokens.size() - 1] == OPEN_BRACKET || tokens[tokens.size() - 1] == CLOSE_BRACKET)
-            ;
-        else if (tokens[tokens.size() - 1][tokens[tokens.size() - 1].size() - 1] == ';')
-        {
-            std::string tmp = tokens[tokens.size() - 1];
-            tokens.pop_back();
-            // ';' を探し、見つかった場合に削除
-            size_t semicolonPos = tmp.find(';');
-            if (semicolonPos != std::string::npos)
-            {
-                tmp.erase(semicolonPos, 1);
-            }
-            tokens.push_back(tmp);
-        }
-    }
-}
-
 // ロケーションブロックの設定を解析
 ParseLocationResult parseLocationContext(std::vector<std::string> &tokens, std::string &locationPath)
 {
@@ -33,7 +10,7 @@ ParseLocationResult parseLocationContext(std::vector<std::string> &tokens, std::
     std::string root = "";
     bool autoindex = false;
     std::string index = "index.html";
-    size_t clientMaxBodySize = 0;
+    size_t clientMaxBodySize = 1048576;
     std::map<int, std::string> errorPages;
     std::vector<std::string> allowMethods;
     allowMethods.push_back("GET");
@@ -46,85 +23,85 @@ ParseLocationResult parseLocationContext(std::vector<std::string> &tokens, std::
     while (!tokens.empty())
     {
         TokensResult directiveTokensResult = extractADirective(tokens);
-        if (!directiveTokensResult.ok())
-            return ParseLocationResult::Err(directiveTokensResult.unwrapErr());
-        std::vector<std::string> directiveTokens = directiveTokensResult.unwrap();
+        if (!directiveTokensResult.success)
+            return ParseLocationResult::Error(directiveTokensResult.error);
+        std::vector<std::string> directiveTokens = directiveTokensResult.value;
 
         if (directiveTokens[0] == ROOT)
         {
             RootResult rootRes = parseRootDirective(directiveTokens);
-            if (!rootRes.ok())
-                return ParseLocationResult::Err(rootRes.unwrapErr());
-            root = rootRes.unwrap();
+            if (!rootRes.success)
+                return ParseLocationResult::Error(rootRes.error);
+            root = rootRes.value;
         }
         else if (directiveTokens[0] == AUTOINDEX)
         {
             AutoindexResult autoindexRes = parseAutoindexDirective(directiveTokens);
-            if (!autoindexRes.ok())
-                return ParseLocationResult::Err(autoindexRes.unwrapErr());
-            autoindex = autoindexRes.unwrap();
+            if (!autoindexRes.success)
+                return ParseLocationResult::Error(autoindexRes.error);
+            autoindex = autoindexRes.value;
         }
         else if (directiveTokens[0] == INDEX)
         {
             IndexResult indexRes = parseIndexDirective(directiveTokens);
-            if (!indexRes.ok())
-                return ParseLocationResult::Err(indexRes.unwrapErr());
-            index = indexRes.unwrap();
+            if (!indexRes.success)
+                return ParseLocationResult::Error(indexRes.error);
+            index = indexRes.value;
         }
         else if (directiveTokens[0] == CLIENT_MAX_BODY_SIZE)
         {
             ClientMaxBodySizeResult clientMaxBodySizeRes = parseClientMaxBodySize(directiveTokens);
-            if (!clientMaxBodySizeRes.ok())
-                return ParseLocationResult::Err(clientMaxBodySizeRes.unwrapErr());
-            clientMaxBodySize = clientMaxBodySizeRes.unwrap();
+            if (!clientMaxBodySizeRes.success)
+                return ParseLocationResult::Error(clientMaxBodySizeRes.error);
+            clientMaxBodySize = clientMaxBodySizeRes.value;
         }
         else if (directiveTokens[0] == ERROR_PAGE)
         {
             ErrorPagesResult errorPageRes = parseErrorPage(directiveTokens);
-            if (!errorPageRes.ok())
-                return ParseLocationResult::Err(errorPageRes.unwrapErr());
-            std::map<int, std::string> newErrorPages = errorPageRes.unwrap();
+            if (!errorPageRes.success)
+                return ParseLocationResult::Error(errorPageRes.error);
+            std::map<int, std::string> newErrorPages = errorPageRes.value;
             errorPages.insert(newErrorPages.begin(), newErrorPages.end());
         }
         else if (directiveTokens[0] == ALLOW_METHOD)
         {
             AllowMethodsResult allowMethodsRes = parseAllowMethodDirective(directiveTokens);
-            if (!allowMethodsRes.ok())
-                return ParseLocationResult::Err(allowMethodsRes.unwrapErr());
-            allowMethods = allowMethodsRes.unwrap();
+            if (!allowMethodsRes.success)
+                return ParseLocationResult::Error(allowMethodsRes.error);
+            allowMethods = allowMethodsRes.value;
         }
         else if (directiveTokens[0] == CGI_EXECUTOR)
         {
             CgiExtensionResult cgiExtensionRes = parseCgiExecutorDirective(directiveTokens);
-            if (!cgiExtensionRes.ok())
-                return ParseLocationResult::Err(cgiExtensionRes.unwrapErr());
-            cgiExtension = cgiExtensionRes.unwrap();
+            if (!cgiExtensionRes.success)
+                return ParseLocationResult::Error(cgiExtensionRes.error);
+            cgiExtension = cgiExtensionRes.value;
         }
         else if (directiveTokens[0] == UPLOAD_PATH)
         {
             UploadPathResult uploadPathRes = parseUploadPathDirective(directiveTokens);
-            if (!uploadPathRes.ok())
-                return ParseLocationResult::Err(uploadPathRes.unwrapErr());
-            uploadPath = uploadPathRes.unwrap();
+            if (!uploadPathRes.success)
+                return ParseLocationResult::Error(uploadPathRes.error);
+            uploadPath = uploadPathRes.value;
         }
         else if (directiveTokens[0] == RETURN)
         {
             RedirectResult redirectRes = parseReturnDirective(directiveTokens);
-            if (!redirectRes.ok())
+            if (!redirectRes.success)
             {
-                return ParseLocationResult::Err(redirectRes.unwrapErr());
+                return ParseLocationResult::Error(redirectRes.error);
             }
-            std::map<int, std::string> newRedirect = redirectRes.unwrap();
+            std::map<int, std::string> newRedirect = redirectRes.value;
             redirect.insert(newRedirect.begin(), newRedirect.end());
         }
 
         else if (directiveTokens[0] == CLOSE_BRACKET)
         {
-            return ParseLocationResult::Ok(Location(path, root, autoindex, index, clientMaxBodySize, errorPages,
+            return ParseLocationResult::Success(Location(path, root, autoindex, index, clientMaxBodySize, errorPages,
                                                     allowMethods, cgiExtension, uploadPath, redirect));
         }
     }
-    return ParseLocationResult::Err("Locationブロックで文字列が見つかりませんでした");
+    return ParseLocationResult::Error("Locationブロックで文字列が見つかりませんでした");
 }
 
 // サーバーブロックの設定を解析
@@ -139,53 +116,53 @@ ParseServerResult parseServerContext(std::vector<std::string> &tokens)
     while (!tokens.empty())
     {
         TokensResult directiveTokensResult = extractADirective(tokens);
-        if (!directiveTokensResult.ok())
-            return ParseServerResult::Err(directiveTokensResult.unwrapErr());
-        std::vector<std::string> directiveTokens = directiveTokensResult.unwrap();
+        if (!directiveTokensResult.success)
+            return ParseServerResult::Error(directiveTokensResult.error);
+        std::vector<std::string> directiveTokens = directiveTokensResult.value;
 
         if (directiveTokens[0] == LOCATION)
         {
             LocationResult locationRes = parseLocationDirective(directiveTokens, tokens);
-            if (!locationRes.ok())
-                return ParseServerResult::Err(locationRes.unwrapErr());
-            locations.push_back(locationRes.unwrap());
+            if (!locationRes.success)
+                return ParseServerResult::Error(locationRes.error);
+            locations.push_back(locationRes.value);
         }
         else if (directiveTokens[0] == SERVER_NAME)
         {
             NameResult nameRes = parseServerName(directiveTokens);
-            if (!nameRes.ok())
-                return ParseServerResult::Err(nameRes.unwrapErr());
-            name = nameRes.unwrap();
+            if (!nameRes.success)
+                return ParseServerResult::Error(nameRes.error);
+            name = nameRes.value;
         }
         else if (directiveTokens[0] == LISTEN)
         {
             PortResult listenRes = parseListen(directiveTokens);
-            if (!listenRes.ok())
-                return ParseServerResult::Err(listenRes.unwrapErr());
-            port = listenRes.unwrap();
+            if (!listenRes.success)
+                return ParseServerResult::Error(listenRes.error);
+            port = listenRes.value;
         }
         else if (directiveTokens[0] == ERROR_PAGE)
         {
             ErrorPagesResult errorPageRes = parseErrorPage(directiveTokens);
-            if (!errorPageRes.ok())
-                return ParseServerResult::Err(errorPageRes.unwrapErr());
-            std::map<int, std::string> newErrorPages = errorPageRes.unwrap();
+            if (!errorPageRes.success)
+                return ParseServerResult::Error(errorPageRes.error);
+            std::map<int, std::string> newErrorPages = errorPageRes.value;
             errorPages.insert(newErrorPages.begin(), newErrorPages.end());
         }
         else if (directiveTokens[0] == CLIENT_MAX_BODY_SIZE)
         {
             ClientMaxBodySizeResult clientMaxBodySizeRes = parseClientMaxBodySize(directiveTokens);
-            if (!clientMaxBodySizeRes.ok())
-                return ParseServerResult::Err(clientMaxBodySizeRes.unwrapErr());
-            clientMaxBodySize = clientMaxBodySizeRes.unwrap();
+            if (!clientMaxBodySizeRes.success)
+                return ParseServerResult::Error(clientMaxBodySizeRes.error);
+            clientMaxBodySize = clientMaxBodySizeRes.value;
         }
         else if (directiveTokens[0] == CLOSE_BRACKET)
         {
-            return ParseServerResult::Ok(Server(name, port, errorPages, clientMaxBodySize, locations));
+            return ParseServerResult::Success(Server(name, port, errorPages, clientMaxBodySize, locations));
         }
     }
 
-    return ParseServerResult::Err(
+    return ParseServerResult::Error(
         "Serverブロックが正常に終了しませんでした。\nserverブロックの中身が無い or } がありません");
 }
 
@@ -193,30 +170,30 @@ ParseServerResult parseServerContext(std::vector<std::string> &tokens)
 ParseResult parseConfig(const char *configPath)
 {
     TokensResult tokensResult = tokenize(configPath);
-    if (!tokensResult.ok())
-        return ParseResult::Err(tokensResult.unwrapErr());
-    std::vector<std::string> tokens = tokensResult.unwrap();
+    if (!tokensResult.success)
+        return ParseResult::Error(tokensResult.error);
+    std::vector<std::string> tokens = tokensResult.value;
 
     std::vector<Server> servers;
 
     while (!tokens.empty())
     {
         TokensResult directiveTokensResult = extractADirective(tokens);
-        if (!directiveTokensResult.ok())
-            return ParseResult::Err(directiveTokensResult.unwrapErr());
-        std::vector<std::string> directiveTokens = directiveTokensResult.unwrap();
+        if (!directiveTokensResult.success)
+            return ParseResult::Error(directiveTokensResult.error);
+        std::vector<std::string> directiveTokens = directiveTokensResult.value;
 
         if (directiveTokens[0] == SERVER)
         {
             ServerResult serverRes = parseServer(directiveTokens, tokens);
-            if (!serverRes.ok())
-                return ParseResult::Err(serverRes.unwrapErr());
-            servers.push_back(serverRes.unwrap());
+            if (!serverRes.success)
+                return ParseResult::Error(serverRes.error);
+            servers.push_back(serverRes.value);
         }
         else
         {
-            return ParseResult::Err("Config: serverブロックがありません");
+            return ParseResult::Error("Config: serverブロックがありません");
         }
     }
-    return ParseResult::Ok(servers);
+    return ParseResult::Success(servers);
 }
