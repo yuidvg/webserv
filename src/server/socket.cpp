@@ -1,6 +1,7 @@
 #include "socket.hpp"
 
-Socket::Socket() : listenSocket(0), server("", 80, std::map<int, std::string>(), 1048576, std::vector<Location>())
+Socket::Socket()
+    : listenSocket(getListenSocket()), server("", 80, std::map<int, std::string>(), 1048576, std::vector<Location>())
 {
 }
 
@@ -64,7 +65,7 @@ Server Socket::getServer() const
     return (server);
 }
 
-Socket::Socket(Server server) : server(server)
+Socket::Socket(Server server) : listenSocket(-1), server(server)
 {
     InitializeResult initializedResult = initialize();
     if (!initializedResult.ok())

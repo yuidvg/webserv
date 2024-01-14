@@ -2,20 +2,12 @@
 #include "../httpRequest/RequestParser.hpp"
 #include "../utils/utils.hpp"
 
-Connection::Connection()
-{
-}
-
-Connection::~Connection()
-{
-}
-
-void Connection::closeConnection(int sd)
+void closeConnection(int sd, int &maxSd, fd_set &masterSet, std::map<int, Socket> &connSocks)
 {
     std::cout << YELLOW << "close sd: " << NORMAL << sd << std::endl;
 
-    deleteConnSock(sd);
     close(sd);
+    deleteConnSock(sd, connSocks);
     FD_CLR(sd, &masterSet);
     if (sd == maxSd)
     {
@@ -31,18 +23,18 @@ void Connection::closeConnection(int sd)
     }
 }
 
-void Connection::allcloseConnection()
+void allcloseConnection(int &maxSd, fd_set &masterSet, std::map<int, Socket> &connSocks)
 {
     for (int i = 0; i <= maxSd; ++i)
     {
         if (FD_ISSET(i, &masterSet))
         {
-            closeConnection(i);
+            closeConnection(i, maxSd, masterSet, connSocks);
         }
     }
 }
 
-NewSDResult Connection::acceptNewConnection(const int listenSd)
+NewSDResult acceptNewConnection(const int listenSd, int &maxSd, fd_set &masterSet)
 {
     int newSd = -1;
     newSd = accept(listenSd, NULL, NULL);
@@ -65,62 +57,62 @@ NewSDResult Connection::acceptNewConnection(const int listenSd)
     return NewSDResult::Ok(newSd);
 }
 
-void Connection::deleteConnSock(int sd)
+void deleteConnSock(int sd, std::map<int, Socket> &connSocks)
 {
-    // c++98で使用可能 https://en.cppreference.com/w/cpp/container/map/erase
     connSocks.erase(sd);
 }
 
 // 接続が確立されたソケットと通信する
-void Connection::processConnection(int sd, Socket &socket)
+void processConnection(int sd, Socket &socket, int &maxSd, fd_set &masterSet, std::map<int, Socket> &connSocks)
 {
     char buffer[500000] = {0}; // Initialize buffer with null
-    int rc;
+    int len;
 
-    // Debug用
-    std::cout << GREEN;
-    std::cout << "Port = " << socket.getServer().port << std::endl;
-    std::cout << "server_name = " << socket.getServer().name << std::endl;
-    std::cout << NORMAL;
-
-    rc = recv(sd, buffer, sizeof(buffer) - 1, 0);
-    if (rc < 0)
+    len = recv(sd, buffer, sizeof(buffer) - 1, 0);
+    if (len < 0)
     {
         utils::printError(std::string("recv() failed: " + std::string(strerror(errno))));
-        closeConnection(sd);
+        closeConnection(sd, maxSd, masterSet, connSocks);
         return;
     }
-    else if (rc == 0)
+    else if (len == 0)
     {
         std::cout << "Connection closed" << std::endl;
-        closeConnection(sd);
+        closeConnection(sd, maxSd, masterSet, connSocks);
         return;
     }
-    std::cout << "Received \n" << GREEN << rc << " bytes: " << buffer << NORMAL << std::endl;
+    std::cout << "Received \n" << GREEN << len << " bytes: " << buffer << NORMAL << std::endl;
 
     std::istringstream buf(buffer);
     HttpParseResult parserResult = parseHttpRequest(buf, socket.getServer());
     if (!parserResult.ok())
     {
         utils::printError(std::string("parseHttpRequest() failed: " + utils::to_string(parserResult.unwrapErr())));
-        closeConnection(sd);
+        closeConnection(sd, maxSd, masterSet, connSocks);
         return;
     }
 
     // TODO: HTTPレスポンスを作成する
     // HTTPレスポンス作成のロジックをここに実装
     std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 22\r\n\r\n<h1>Hello Webserv</h1>";
-    rc = send(sd, response.c_str(), response.length(), 0);
-    if (rc < 0)
+    len = send(sd, response.c_str(), response.length(), 0);
+    if (len < 0)
     {
         utils::printError("send() failed: ");
-        closeConnection(sd);
+        closeConnection(sd, maxSd, masterSet, connSocks);
         return;
     }
 }
 
-void Connection::Start(const std::vector<Server> servers)
+void StartConnection(const std::vector<Server> servers)
 {
+    std::vector<int> listenSockets;
+    std::vector<Socket> sockets;
+    int maxSd = -1;
+    fd_set masterSet;
+    fd_set workingSet;
+    std::map<int, Socket> connSocks;
+
     // 各仮想サーバーのソケットを初期化し、監視セットに追加
     FD_ZERO(&masterSet);
     for (size_t i = 0; i < servers.size(); ++i)
@@ -136,13 +128,10 @@ void Connection::Start(const std::vector<Server> servers)
         }
     }
 
-    fd_set workingSet;
     struct timeval timeout;
-    int endServer = FALSE;
     timeout.tv_sec = 3 * 60;
     timeout.tv_usec = 0;
-
-    while (endServer == FALSE)
+    while (true)
     {
         memcpy(&workingSet, &masterSet, sizeof(masterSet));
 
@@ -169,11 +158,11 @@ void Connection::Start(const std::vector<Server> servers)
                 // リスニングソケットの確認
                 if (std::find(listenSockets.begin(), listenSockets.end(), i) != listenSockets.end())
                 {
-                    NewSDResult newSDResult = acceptNewConnection(i);
+                    NewSDResult newSDResult = acceptNewConnection(i, maxSd, masterSet);
                     if (!newSDResult.ok())
                     {
                         utils::printError(newSDResult.unwrapErr());
-                        allcloseConnection();
+                        allcloseConnection(maxSd, masterSet, connSocks);
                         return;
                     }
                     for (size_t index = 0; index < sockets.size(); ++index)
@@ -187,7 +176,7 @@ void Connection::Start(const std::vector<Server> servers)
                 }
                 else
                 {
-                    processConnection(i, connSocks[i]);
+                    processConnection(i, connSocks[i], maxSd, masterSet, connSocks);
                 }
 
                 // Debug用
@@ -203,5 +192,5 @@ void Connection::Start(const std::vector<Server> servers)
         }
     }
     std::cout << "Closing socket discriptor..." << std::endl;
-    allcloseConnection();
+    allcloseConnection(maxSd, masterSet, connSocks);
 }
