@@ -1,6 +1,8 @@
 #include "socket.hpp"
 
-Socket::Socket() : server("", 80, "", std::map<int, std::string>(), 1048576, false, "index.html", std::vector<Location>())
+Socket::Socket()
+    : listenSocket(-1),
+      server("", 80, "", std::map<int, std::string>(), 1048576, false, "index.html", std::vector<Location>())
 {
 }
 
@@ -12,27 +14,27 @@ InitializeResult Socket::initialize() const
 {
     int sd = socket(PF_INET, SOCK_STREAM, 0);
     if (sd < 0)
-        return (InitializeResult::Err("socket() failed"));
+        return (InitializeResult::Error("socket() failed"));
 
     // 同じローカルアドレスとポートを使用しているソケットがあっても、ソケットを再利用できるようにする
     int on = 1;
     if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on)) < 0)
     {
         close(sd);
-        return (InitializeResult::Err("setsockopt() failed"));
+        return (InitializeResult::Error("setsockopt() failed"));
     }
 
     int flags = fcntl(sd, F_GETFL, 0);
     if (flags < 0)
     {
         close(sd);
-        return (InitializeResult::Err("fcntl() failed"));
+        return (InitializeResult::Error("fcntl() failed"));
     }
     flags |= O_NONBLOCK;
     if (fcntl(sd, F_SETFL, flags) < 0)
     {
         close(sd);
-        return (InitializeResult::Err("fcntl() failed to set non-blocking"));
+        return (InitializeResult::Error("fcntl() failed to set non-blocking"));
     }
     struct sockaddr_in addr = {};
     addr.sin_family = PF_INET;
@@ -42,15 +44,16 @@ InitializeResult Socket::initialize() const
     if (bind(sd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
         close(sd);
-        return (InitializeResult::Err(std::string("bind() failed: " + std::string(strerror(errno)) + "\nポート番号" + utils::to_string(server.port))));
+        return (InitializeResult::Error(std::string("bind() failed: " + std::string(strerror(errno)) + "\nポート番号" +
+                                                    utils::to_string(server.port))));
     }
 
     if (listen(sd, 5) < 0)
     {
         close(sd);
-        return (InitializeResult::Err("listen() failed"));
+        return (InitializeResult::Error("listen() failed"));
     }
-    return InitializeResult::Ok(sd);
+    return InitializeResult::Success(sd);
 }
 
 int Socket::getListenSocket() const
@@ -66,10 +69,10 @@ Server Socket::getServer() const
 Socket::Socket(Server server) : server(server)
 {
     InitializeResult initializedResult = initialize();
-    if (!initializedResult.ok())
+    if (!initializedResult.success)
     {
-        std::cout << initializedResult.unwrapErr() << std::endl;
+        std::cout << initializedResult.error << std::endl;
         _exit(1);
     }
-    listenSocket = initializedResult.unwrap();
+    listenSocket = initializedResult.value;
 }

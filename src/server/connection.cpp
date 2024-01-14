@@ -1,9 +1,6 @@
 #include "connection.hpp"
-#include "../httpRequest/parseRequest.hpp"
-#include "../httpResponse/response.hpp"
-#include "../utils/utils.hpp"
 
-Connection::Connection()
+Connection::Connection() : maxSd(-1)
 {
 }
 
@@ -13,7 +10,7 @@ Connection::~Connection()
 
 void Connection::CloseConnection(int sd)
 {
-    std::cout << YELLOW << "close sd: " << NORMAL << sd << std::endl;
+    std::cout << "close sd: " << sd << std::endl;
 
     deleteConnSock(sd);
     close(sd);
@@ -53,17 +50,17 @@ NewSDResult Connection::AcceptNewConnection(const int listenSd)
         {
             // エラーメッセージを返す
             std::string errorMsg = "accept() failed on socket ";
-            return NewSDResult::Err(errorMsg);
+            return NewSDResult::Error(errorMsg);
         }
     }
-    std::cout << GREEN << "New incoming connection " << newSd << NORMAL << std::endl;
+    std::cout << "New incoming connection " << newSd << std::endl;
     FD_SET(newSd, &masterSet);
     if (newSd > maxSd)
     {
         maxSd = newSd;
     }
     // 新しい接続を受け入れた
-    return NewSDResult::Ok(newSd);
+    return NewSDResult::Success(newSd);
 }
 
 void Connection::deleteConnSock(int sd)
@@ -79,10 +76,8 @@ void Connection::ProcessConnection(int sd, Socket &socket)
     int rc;
 
     // Debug用
-    std::cout << GREEN;
     std::cout << "Port = " << socket.getServer().port << std::endl;
     std::cout << "server_name = " << socket.getServer().name << std::endl;
-    std::cout << NORMAL;
 
     rc = recv(sd, buffer, sizeof(buffer) - 1, 0);
     if (rc < 0)
@@ -97,19 +92,13 @@ void Connection::ProcessConnection(int sd, Socket &socket)
         CloseConnection(sd);
         return;
     }
-    std::cout << "Received \n" << GREEN << rc << " bytes: " << buffer << NORMAL << std::endl;
+    std::cout << "Received \n" << rc << " bytes: " << buffer << std::endl;
 
-	std::istringstream	buf(buffer);
-	HttpParseResult	parserResult = parseHttpRequest(buf, socket.getServer());
-	if (!parserResult.ok())
-	{
-		utils::printError(std::string("parseHttpRequest() failed: " + utils::to_string(parserResult.unwrapErr())));
-		CloseConnection(sd);
-		return;
-	}
+    std::istringstream buf(buffer);
 
-    // TODO: HTTPレスポンスを作成する
-    HttpResponse httpResponse = response(parserResult.unwrap(), socket.getServer());
+    ParseRequestResult parseRequestResult = parseHttpRequest(buf, socket.getServer());
+
+    HttpResponse httpResponse = response(parseRequestResult, socket.getServer());
     std::string responseMessage = makeResponseMessage(httpResponse);
     rc = send(sd, responseMessage.c_str(), responseMessage.size(), 0);
     if (rc < 0)
@@ -139,11 +128,10 @@ void Connection::Start(const std::vector<Server> servers)
 
     fd_set workingSet;
     struct timeval timeout;
-    int endServer = FALSE;
     timeout.tv_sec = 3 * 60;
     timeout.tv_usec = 0;
 
-    while (endServer == FALSE)
+    while (true)
     {
         memcpy(&workingSet, &masterSet, sizeof(masterSet));
 
@@ -171,9 +159,9 @@ void Connection::Start(const std::vector<Server> servers)
                 if (std::find(listenSockets.begin(), listenSockets.end(), i) != listenSockets.end())
                 {
                     NewSDResult newSDResult = AcceptNewConnection(i);
-                    if (!newSDResult.ok())
+                    if (!newSDResult.success)
                     {
-                        utils::printError(newSDResult.unwrapErr());
+                        utils::printError(newSDResult.error);
                         AllCloseConnection();
                         return;
                     }
@@ -182,7 +170,7 @@ void Connection::Start(const std::vector<Server> servers)
                         if (sockets[index].getListenSocket() == i)
                         {
                             std::cout << "新しい接続を受け入れた" << std::endl;
-                            connSocks.insert(std::make_pair(newSDResult.unwrap(), sockets[index]));
+                            connSocks.insert(std::make_pair(newSDResult.value, sockets[index]));
                         }
                     }
                 }

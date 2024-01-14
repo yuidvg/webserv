@@ -12,13 +12,13 @@ std::string &trim(std::string &str)
     return (str);
 }
 
-std::string toLower(std::string str)
+std::string lowerCase(std::string str)
 {
     std::transform(&str[0], &str[0] + str.size(), &str[0], ::tolower);
     return (str);
 }
 
-bool isNumber(const std::string &str)
+bool isNumber(const std::string str)
 {
     for (int i = 0; str[i]; i++)
     {
@@ -36,22 +36,26 @@ unsigned int lengthOfPrefixMatch(const std::string string, const std::string pat
         return 0;
 }
 
-std::string content(std::ifstream &file)
+FileContentResult content(const std::string path)
 {
+    std::ifstream ifs(path);
+    if (!ifs.is_open())
+        return (FileContentResult::Error(HttpResponse(BAD_REQUEST, Headers(), "File not found")));
+
     std::string content;
     std::string line;
 
-    while (std::getline(file, line))
+    while (std::getline(ifs, line))
     {
         content += line;
         content.push_back('\n');
     }
-    return (content);
+    return (FileContentResult::Success(content));
 }
 
-std::string contentType(std::string path)
+std::string contentType(const std::string path)
 {
-    std::string extension = path.substr(path.find_last_of(".") + 1);
+    const std::string extension = path.substr(path.find_last_of(".") + 1);
     if (extension == "html" || extension == "htm")
         return "text/html";
     else if (extension == "css")
