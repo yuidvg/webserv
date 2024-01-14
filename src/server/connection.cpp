@@ -42,7 +42,6 @@ NewSDResult acceptNewConnection(const int listenSd, int &maxSd, fd_set &masterSe
     {
         if (errno != EWOULDBLOCK)
         {
-            // エラーメッセージを返す
             std::string errorMsg = "accept() failed on socket ";
             return NewSDResult::Err(errorMsg);
         }
@@ -53,7 +52,6 @@ NewSDResult acceptNewConnection(const int listenSd, int &maxSd, fd_set &masterSe
     {
         maxSd = newSd;
     }
-    // 新しい接続を受け入れた
     return NewSDResult::Ok(newSd);
 }
 
@@ -118,9 +116,9 @@ void StartConnection(const std::vector<Server> servers)
     for (size_t i = 0; i < servers.size(); ++i)
     {
         Socket socket(servers[i]);
-        sockets.push_back(socket); // 新しいリスニングソケットを追加
+        sockets.push_back(socket);
         int listenSd = socket.getListenSocket();
-        listenSockets.push_back(listenSd); // 新しいリスニングソケットを追加
+        listenSockets.push_back(listenSd);
         FD_SET(listenSd, &masterSet);
         if (listenSd > maxSd)
         {
@@ -177,16 +175,6 @@ void StartConnection(const std::vector<Server> servers)
                 else
                 {
                     processConnection(i, connSocks[i], maxSd, masterSet, connSocks);
-                }
-
-                // Debug用
-                for (std::vector<int>::iterator it = listenSockets.begin(); it != listenSockets.end(); ++it)
-                {
-                    std::cout << *it << " :Listen socket" << std::endl;
-                }
-                for (std::map<int, Socket>::iterator it = connSocks.begin(); it != connSocks.end(); ++it)
-                {
-                    std::cout << it->first << " :" << it->second.getServer().name << std::endl;
                 }
             }
         }
