@@ -40,6 +40,17 @@ InitializeResult Socket::initialize() const
     addr.sin_addr.s_addr = htonl(INADDR_ANY); // IPv4アドレスを指定
     addr.sin_port = htons(server.port);       // ポート番号を設定
 
+//TODO: この課題要件を満たす • The first server for a host:port will be the default for this host:port (that means it will answer to all the requests that don’t belong to an other server).
+/*
+    port -
+         |- hostA - 各コンテキストの情報を持つ（default）
+         |
+         |- hostA - 各コンテキストの情報をもつ
+         |
+         |- hostB - 各コンテキストの情報をもつ
+*/
+
+
     if (bind(sd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
         close(sd);
@@ -65,7 +76,7 @@ Server Socket::getServer() const
     return (server);
 }
 
-Socket::Socket(Server server) : listenSocket(-1), server(server)
+Socket::Socket(Server server,std::vector<Server> servers) : listenSocket(-1), server(server) , serves(servers)
 {
     InitializeResult initializedResult = initialize();
     if (!initializedResult.success)

@@ -3,6 +3,7 @@
 
 #include "../config/parseConfig.hpp"
 #include "../httpRequest/parseRequest.hpp"
+#include "../httpRequest/HttpRequest.hpp"
 #include "../httpResponse/buildResponse.hpp"
 #include "../utils/utils.hpp"
 #include "socket.hpp"

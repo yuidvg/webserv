@@ -1,5 +1,5 @@
 #include "connection.hpp"
-#include "../utils/utils.hpp"
+
 
 void closeConnection(int sd, int &maxSd, fd_set &masterSet, std::map<int, Socket> &connSocks)
 {
@@ -80,15 +80,15 @@ void processConnection(int sd, Socket &socket, int &maxSd, fd_set &masterSet, st
     }
     std::cout << "Received \n" << GREEN << len << " bytes: " << buffer << NORMAL << std::endl;
 
-(void)socket;
-    // std::istringstream buf(buffer);
-    // HttpParseResult parserResult = parseHttpRequest(buf, socket.getServer());
-    // if (!parserResult.success)
-    // {
-    //     utils::printError(std::string("parseHttpRequest() failed: " + utils::to_string(parserResult.error)));
-    //     closeConnection(sd, maxSd, masterSet, connSocks);
-    //     return;
-    // }
+// (void)socket;
+    std::istringstream buf(buffer);
+    ParseRequestResult parserResult = parseHttpRequest(buf, socket.getServer());
+    if (!parserResult.success)
+    {
+        utils::printError(std::string("parseHttpRequest() failed\nstatus code: " + utils::to_string((parserResult.error.statusCode))));
+        closeConnection(sd, maxSd, masterSet, connSocks);
+        return;
+    }
 
     // TODO: HTTPレスポンスを作成する
     // HTTPレスポンス作成のロジックをここに実装
@@ -110,12 +110,27 @@ void StartConnection(const std::vector<Server> servers)
     fd_set masterSet;
     fd_set workingSet;
     std::map<int, Socket> connSocks;
+    bool samePort = false;
 
     // 各仮想サーバーのソケットを初期化し、監視セットに追加
     FD_ZERO(&masterSet);
     for (size_t i = 0; i < servers.size(); ++i)
     {
-        Socket socket(servers[i]);
+        for (size_t j = 0; j < i; ++j)
+        {
+            if (servers[i].port == servers[j].port)
+            {
+                utils::printError(std::string("ポート番号" + utils::to_string(servers[i].port) + "はすでに使用されているため、liste socketは作成しません"));
+                samePort = true;
+                break;
+            }
+        }
+        if (samePort)
+        {
+            samePort = false;
+            continue;
+        }
+        Socket socket(servers[i],servers);
         sockets.push_back(socket);
         int listenSd = socket.getListenSocket();
         listenSockets.push_back(listenSd);
