@@ -82,6 +82,7 @@ void processConnection(int sd, Socket &socket, int &maxSd, fd_set &masterSet, st
 
 // (void)socket;
     std::istringstream buf(buffer);
+    //TODO:parseHttpRequestの第３引数にserversを渡したい。
     ParseRequestResult parserResult = parseHttpRequest(buf, socket.getServer());
     if (!parserResult.success)
     {
