@@ -1,9 +1,8 @@
 #include "connection.hpp"
 
-
 void closeConnection(int sd, int &maxSd, fd_set &masterSet, std::map<int, Socket> &connSocks)
 {
-    std::cout << YELLOW << "close sd: " << NORMAL << sd << std::endl;
+    std::cout << "close sd: " << sd << std::endl;
 
     close(sd);
     deleteConnSock(sd, connSocks);
@@ -45,7 +44,7 @@ NewSDResult acceptNewConnection(const int listenSd, int &maxSd, fd_set &masterSe
             return NewSDResult::Error(errorMsg);
         }
     }
-    std::cout << GREEN << "New incoming connection " << newSd << NORMAL << std::endl;
+    std::cout << "New incoming connection " << newSd << std::endl;
     FD_SET(newSd, &masterSet);
     if (newSd > maxSd)
     {
@@ -78,15 +77,16 @@ void processConnection(int sd, Socket &socket, int &maxSd, fd_set &masterSet, st
         closeConnection(sd, maxSd, masterSet, connSocks);
         return;
     }
-    std::cout << "Received \n" << GREEN << len << " bytes: " << buffer << NORMAL << std::endl;
+    std::cout << "Received \n" << len << " bytes: " << buffer << std::endl;
 
-// (void)socket;
+    // (void)socket;
     std::istringstream buf(buffer);
-    //TODO:parseHttpRequestの第３引数にserversを渡したい。
+    // TODO:parseHttpRequestの第３引数にserversを渡したい。
     ParseRequestResult parserResult = parseHttpRequest(buf, socket.getServer());
     if (!parserResult.success)
     {
-        utils::printError(std::string("parseHttpRequest() failed\nstatus code: " + utils::to_string((parserResult.error.statusCode))));
+        utils::printError(std::string("parseHttpRequest() failed\nstatus code: " +
+                                      utils::to_string((parserResult.error.statusCode))));
         closeConnection(sd, maxSd, masterSet, connSocks);
         return;
     }
@@ -121,7 +121,8 @@ void StartConnection(const std::vector<Server> servers)
         {
             if (servers[i].port == servers[j].port)
             {
-                utils::printError(std::string("ポート番号" + utils::to_string(servers[i].port) + "はすでに使用されているため、liste socketは作成しません"));
+                utils::printError(std::string("ポート番号" + utils::to_string(servers[i].port) +
+                                              "はすでに使用されているため、liste socketは作成しません"));
                 samePort = true;
                 break;
             }
@@ -131,7 +132,7 @@ void StartConnection(const std::vector<Server> servers)
             samePort = false;
             continue;
         }
-        Socket socket(servers[i],servers);
+        Socket socket(servers[i], servers);
         sockets.push_back(socket);
         int listenSd = socket.getListenSocket();
         listenSockets.push_back(listenSd);
