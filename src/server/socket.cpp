@@ -1,8 +1,7 @@
 #include "socket.hpp"
 
 Socket::Socket()
-    : listenSocket(-1),
-      server("", 80, "", std::map<int, std::string>(), 1048576, false, "index.html", std::vector<Location>())
+    : listenSocket(getListenSocket()), server("", 80, std::map<int, std::string>(), 1048576, std::vector<Location>())
 {
 }
 
@@ -41,11 +40,22 @@ InitializeResult Socket::initialize() const
     addr.sin_addr.s_addr = htonl(INADDR_ANY); // IPv4アドレスを指定
     addr.sin_port = htons(server.port);       // ポート番号を設定
 
+//TODO: この課題要件を満たす • The first server for a host:port will be the default for this host:port (that means it will answer to all the requests that don’t belong to an other server).
+/*
+    port -
+         |- hostA - 各コンテキストの情報を持つ（default）
+         |
+         |- hostA - 各コンテキストの情報をもつ
+         |
+         |- hostB - 各コンテキストの情報をもつ
+*/
+
+
     if (bind(sd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
         close(sd);
         return (InitializeResult::Error(std::string("bind() failed: " + std::string(strerror(errno)) + "\nポート番号" +
-                                                    utils::to_string(server.port))));
+                                                  utils::to_string(server.port))));
     }
 
     if (listen(sd, 5) < 0)
@@ -66,7 +76,7 @@ Server Socket::getServer() const
     return (server);
 }
 
-Socket::Socket(Server server) : server(server)
+Socket::Socket(Server server,std::vector<Server> servers) : listenSocket(-1), server(server) , serves(servers)
 {
     InitializeResult initializedResult = initialize();
     if (!initializedResult.success)

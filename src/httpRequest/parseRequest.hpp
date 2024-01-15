@@ -10,6 +10,7 @@
 
 #include "../config/parseConfig.hpp"
 #include "../httpResponse/HttpResponse.hpp"
+#include "HttpRequest.hpp"
 #include "../utils/utils.hpp"
 
 const int MAX_LEN = 8192;
