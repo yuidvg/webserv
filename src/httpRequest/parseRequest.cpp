@@ -10,9 +10,9 @@ static bool isLineTooLong(const std::string &line)
 static bool checkMethod(const std::string &method, const std::string &uri, const Server &server)
 {
     Location matchedLocation = utils::matchedLocation(uri, server.locations);
-    for (unsigned int i = 0; i < matchedLocation.allowMethod.size(); i++)
+    for (unsigned int i = 0; i < matchedLocation.allowMethods.size(); i++)
     {
-        if (method == matchedLocation.allowMethod[i])
+        if (method == matchedLocation.allowMethods[i])
             return (true);
     }
     return (false);
@@ -27,7 +27,6 @@ static bool checkRequestLine(std::string &method, std::string &uri, std::string 
         return (false);
     }
 
-    (void)server;
     if (!checkMethod(method, uri, server))
     {
         errorCode = BAD_REQUEST;
