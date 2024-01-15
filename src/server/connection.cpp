@@ -132,7 +132,7 @@ void StartConnection(const std::vector<Server> servers)
             samePort = false;
             continue;
         }
-        Socket socket(servers[i], servers);
+        Socket socket(servers[i]);
         sockets.push_back(socket);
         int listenSd = socket.getListenSocket();
         listenSockets.push_back(listenSd);

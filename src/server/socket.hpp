@@ -19,11 +19,10 @@ class Socket
     InitializeResult initialize() const;
     int listenSocket;
     const Server server;
-    const std::vector<Server> serves;
 
   public:
     Socket();
-    Socket(Server server,std::vector<Server> servers);
+    Socket(Server server);
     ~Socket();
     Server getServer() const;
     int getListenSocket() const;

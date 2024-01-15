@@ -76,7 +76,7 @@ Server Socket::getServer() const
     return (server);
 }
 
-Socket::Socket(Server server,std::vector<Server> servers) : listenSocket(-1), server(server) , serves(servers)
+Socket::Socket(Server server) : listenSocket(-1), server(server)
 {
     InitializeResult initializedResult = initialize();
     if (!initializedResult.success)
