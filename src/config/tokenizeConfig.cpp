@@ -19,8 +19,6 @@ TokensResult tokenize(const char *configPath)
             tokens.push_back(token);
         }
     }
-
-    configFile.close();
     return TokensResult::Success(tokens);
 }
 

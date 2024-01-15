@@ -171,7 +171,7 @@ CgiExtensionResult parseCgiExecutorDirective(const std::vector<std::string> dire
 {
     if (directiveTokens.size() != 2)
     {
-        return CgiExtensionResult::Error("Config: cgi_executorの引数が多いです");
+        return CgiExtensionResult::Error("Config: cgi_extensionの引数が多いです");
     }
     return CgiExtensionResult::Success(directiveTokens[1]);
 }

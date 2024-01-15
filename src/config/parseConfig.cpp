@@ -1,6 +1,5 @@
 #include "parseConfig.hpp"
 
-
 using namespace parseDirective;
 // ロケーションブロックの設定を解析
 ParseLocationResult parseLocationContext(std::vector<std::string> &tokens, std::string &locationPath)
@@ -67,7 +66,7 @@ ParseLocationResult parseLocationContext(std::vector<std::string> &tokens, std::
                 return ParseLocationResult::Error(allowMethodsRes.error);
             allowMethods = allowMethodsRes.value;
         }
-        else if (directiveTokens[0] == CGI_EXECUTOR)
+        else if (directiveTokens[0] == CGI_EXTENSION)
         {
             CgiExtensionResult cgiExtensionRes = parseCgiExecutorDirective(directiveTokens);
             if (!cgiExtensionRes.success)
@@ -95,7 +94,7 @@ ParseLocationResult parseLocationContext(std::vector<std::string> &tokens, std::
         else if (directiveTokens[0] == CLOSE_BRACKET)
         {
             return ParseLocationResult::Success(Location(path, root, autoindex, index, clientMaxBodySize, errorPages,
-                                                    allowMethods, cgiExtension, uploadPath, redirect));
+                                                         allowMethods, cgiExtension, uploadPath, redirect));
         }
     }
     return ParseLocationResult::Error("Locationブロックで文字列が見つかりませんでした");
