@@ -52,7 +52,7 @@ template <typename Key, typename Value> Value value(const std::map<Key, Value> m
 
 template <typename T> void printError(const T &message)
 {
-    std::cerr << "\033[31m" << message << "\033[0m" << std::endl;
+    std::cerr << message << std::endl;
 }
 
 template <class T> std::string to_string(const T &value)
