@@ -19,8 +19,7 @@ int main(int argc, char **argv)
     }
     const std::vector<Server> servers = configResult.value;
 
-    Connection connection;
-    connection.Start(servers);
+    StartConnection(servers);
 }
 
 __attribute__((destructor)) static void destructor(void)

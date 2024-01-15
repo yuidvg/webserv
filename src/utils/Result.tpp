@@ -1,3 +1,4 @@
+
 #ifndef RESULT_TPP
 #define RESULT_TPP
 
