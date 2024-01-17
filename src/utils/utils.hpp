@@ -62,6 +62,22 @@ template <class T> std::string to_string(const T &value)
     return oss.str();
 }
 
+// vector
+template <typename T>
+bool contained(const T needle, const std::vector<T> haystack)
+{
+    return std::find(haystack.begin(), haystack.end(), needle) != haystack.end();
+}
+
+template <typename T> std::vector<T> combined(const std::vector<T> a, const std::vector<T> b)
+{
+    std::vector<T> combined;
+    combined.reserve(a.size() + b.size());
+    combined.insert(combined.end(), a.begin(), a.end());
+    combined.insert(combined.end(), b.begin(), b.end());
+
+    return combined;
+}
 } // namespace utils
 
 #endif

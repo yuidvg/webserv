@@ -1,12 +1,18 @@
 #include "connection.hpp"
 
-void closeConnection(int sd, fd_set &masterSet, std::map<int, Socket> &connSocks)
+void closeConnection(Socket &socket,Sockets &sockets)
 {
-    std::cout << "close sd: " << sd << std::endl;
+    std::cout << "close sd: " << socket.descriptor << std::endl;
 
-    close(sd);
-    deleteConnSock(sd, connSocks);
-    FD_CLR(sd, &masterSet);
+    close(socket.descriptor);
+    for (Sockets::iterator it = sockets.begin(); it != sockets.end(); ++it)
+    {
+        if (it->descriptor == socket.descriptor)
+        {
+            sockets.erase(it);
+            break;
+        }
+    }
     // if (sd == maxSd)
     // {
     //     while (maxSd > 0 && !FD_ISSET(maxSd, &masterSet))
@@ -21,9 +27,9 @@ void closeConnection(int sd, fd_set &masterSet, std::map<int, Socket> &connSocks
     // }
 }
 
-void allcloseConnection(fd_set &masterSet, Sockets &sockets,std::map<int, Socket> &connSockets)
+void allcloseConnection(fd_set &masterSet, Sockets &listenSockets,std::map<int, Socket> &connSockets)
 {
-    for (int i = 0; i <= getMaxSd(sockets,connSockets); ++i)
+    for (int i = 0; i <= getMaxSd(listenSockets,connSockets); ++i)
     {
         if (FD_ISSET(i, &masterSet))
         {
@@ -43,29 +49,24 @@ NewSocketResult newConnectedSocket(const Socket listenSocket)
     return NewSocketResult::Success(Socket(newSd, listenSocket.server));
 }
 
-void deleteConnSock(int sd, std::map<int, Socket> &connSocks)
-{
-    connSocks.erase(sd);
-}
 
 // 接続が確立されたソケットと通信する
-void processConnection(int sd, Socket &socket, fd_set &masterSet, std::map<int, Socket> &connSocks)
+// TODO: Result型に変更
+bool processConnection(const Socket &socket)
 {
     char buffer[500000] = {0}; // Initialize buffer with null
     int len;
 
-    len = recv(sd, buffer, sizeof(buffer) - 1, 0);
+    len = recv(socket.descriptor, buffer, sizeof(buffer) - 1, 0);
     if (len < 0)
     {
         utils::printError(std::string("recv() failed: " + std::string(strerror(errno))));
-        closeConnection(sd, masterSet, connSocks);
-        return;
+        return false;
     }
     else if (len == 0)
     {
         std::cout << "Connection closed" << std::endl;
-        closeConnection(sd, masterSet, connSocks);
-        return;
+        return false;
     }
     std::cout << "Received \n" << len << " bytes: " << buffer << std::endl;
 
@@ -76,133 +77,122 @@ void processConnection(int sd, Socket &socket, fd_set &masterSet, std::map<int, 
     {
         utils::printError(std::string("parseHttpRequest() failed\nstatus code: " +
                                       utils::to_string((parserResult.error.statusCode))));
-        closeConnection(sd, masterSet, connSocks);
-        return;
+        return false;
     }
 
     // TODO: HTTPレスポンスを作成する
     // HTTPレスポンス作成のロジックをここに実装
     std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 22\r\n\r\n<h1>Hello Webserv</h1>";
-    len = send(sd, response.c_str(), response.length(), 0);
+    len = send(socket.descriptor, response.c_str(), response.length(), 0);
     if (len < 0)
     {
         utils::printError("send() failed: ");
-        closeConnection(sd, masterSet, connSocks);
-        return;
+        return false;
     }
+    return true;
 }
 
-int getMaxSd(const Sockets sockets)
+int getMaxSd(const Sockets listenSockets)
 {
     int maxSd = 0;
-    for (size_t i = 0; i < sockets.size(); ++i)
+    for (size_t i = 0; i < listenSockets.size(); ++i)
     {
-        if (sockets[i].descriptor > maxSd)
+        if (listenSockets[i].descriptor > maxSd)
         {
-            maxSd = sockets[i].descriptor;
+            maxSd = listenSockets[i].descriptor;
         }
     }
     return maxSd;
 }
 
-fd_set fdSetFrom(const Sockets sockets)
+fd_set fdSetFrom(const Sockets listenSockets)
 {
     fd_set fdSet;
     FD_ZERO(&fdSet);
-    for (size_t i = 0; i < sockets.size(); ++i)
+    for (size_t i = 0; i < listenSockets.size(); ++i)
     {
-        FD_SET(sockets[i].listenDescriptor, &fdSet);
+        FD_SET(listenSockets[i].listenDescriptor, &fdSet);
     }
     return fdSet;
 }
 
-Sockets socketsIn(const fd_set fdSet, const Sockets sockets)
+Sockets socketsIn(const fd_set fdSet, const Sockets listenSockets)
 {
     Sockets socketsFdSet;
-    for (size_t i = 0; i < sockets.size(); ++i)
+    for (size_t i = 0; i < listenSockets.size(); ++i)
     {
-        if (FD_ISSET(sockets[i].listenDescriptor, &fdSet))
+        if (FD_ISSET(listenSockets[i].listenDescriptor, &fdSet))
         {
-            socketsFdSet.push_back(sockets[i]);
+            socketsFdSet.push_back(listenSockets[i]);
         }
     }
     return socketsFdSet;
 }
 
 typedef Result<Sockets, std::string> ReadableSocketsResult;
-ReadableSocketsResult readableSockets(const Sockets sockets)
+ReadableSocketsResult readableSockets(const Sockets listenSockets)
 {
-    fd_set readableSocketSet = fdSetFrom(sockets);
-    const int numOfReadableSDs = select(getMaxSd(sockets) + 1, &readableSocketSet, NULL, NULL, NULL);
+    fd_set readableSocketSet = fdSetFrom(listenSockets);
+    const int numOfReadableSDs = select(getMaxSd(listenSockets) + 1, &readableSocketSet, NULL, NULL, NULL);
     if (numOfReadableSDs < 0)
         return ReadableSocketsResult::Error("select() failed: " + std::string(strerror(errno)));
     else if (numOfReadableSDs == 0)
         return ReadableSocketsResult::Error("select() timed out. End program.");
-    return ReadableSocketsResult::Success(socketsIn(readableSocketSet, sockets));
+    return ReadableSocketsResult::Success(socketsIn(readableSocketSet, listenSockets));
 }
 
-void eventLoop(Sockets &sockets)
+template <typename T>
+bool contained(const T needle, const T haystack)
 {
-    fd_set masterSet;
-    fd_set readableSocketSet;
-    std::map<int, Socket> connDiscriptors;
+    return std::find(haystack.begin(), haystack.end(), needle) != haystack.end();
+}
 
+void eventLoop(const Sockets listenSockets)
+{
+    Sockets connectedSockets;
 
     while (true)
     {
-        memcpy(&readableSocketSet, &masterSet, sizeof(masterSet));
-
-        std::cout << "Waiting on select()..." << std::endl;
-        const ReadableSocketsResult readableSocketsResult = readableSockets(sockets);
+        const ReadableSocketsResult readableSocketsResult = readableSockets(combined(listenSockets, connectedSockets));
         if (!readableSocketsResult.success)
         {
             utils::printError(readableSocketsResult.error);
-            // ToDo: close all sockets/not.
+            // ToDo: close all listenSockets/not.
         }
-        const Sockets readableSockets = readableSocketsResult.value;
-        for (int i = 0; i <= getMaxSd(readableSockets); ++i)
-        {
-            if (FD_ISSET(i, &readableSocketSet))
+        Sockets readableSockets = readableSocketsResult.value;
+        for (Sockets::iterator readableSocketIt = readableSockets.begin(); readableSocketIt != readableSockets.end(); ++readableSocketIt)
+        { 
+            if (contained(*readableSocketIt, listenSockets))
             {
-                if (std::find(sockets.begin(), sockets.end(), i) != sockets.end())
-                // if (std::find(listenSockets.begin(), listenSockets.end(), i) != listenSockets.end())
-                //　新たに接続するSocket
+                const Socket listenSocket = *readableSocketIt;
+                NewSocketResult newConnectedSocketResult = newConnectedSocket(listenSocket);
+                if (!newConnectedSocketResult.success)
                 {
-                    NewSocketResult newSDResult = newConnectedSocket(i, masterSet);
-                    if (!newSDResult.success)
-                    {
-                        utils::printError(newSDResult.error);
-                        allcloseConnection(masterSet,sockets, connDiscriptors);
-                        break;
-                    }
-                    for (size_t index = 0; index < sockets.size(); ++index)
-                    {
-                        if (sockets[index].listenDescriptor == i)
-                        {
-                            std::cout << "新しい接続を受け入れた" << std::endl;
-                            connDiscriptors.insert(std::make_pair(newSDResult.value, sockets[index]));
-                        }
-                    }
+                    utils::printError(newConnectedSocketResult.error);
                 }
-                else
+                for (Sockets::iterator it2 = listenSockets.begin(); it2 != listenSockets.end(); ++it2)
                 {
-                    // connectedSocket
-                    processConnection(i, connDiscriptors[i], masterSet, connDiscriptors);
+                    if (it2->descriptor == *readableSocketIt)
+                    {
+                        std::cout << "新しい接続を受け入れた" << std::endl;
+                        connectedSockets.push_back(newConnectedSocketResult.value);
+                    }
                 }
             }
+            else
+            {
+                // connectedSocket
+                processConnection(sockets[*readableSocketIt]);
+            }
+
         }
     }
-
 }
 
 
-void startConnection(const std::vector<Server> servers)
+
+void startConnection(const Servers servers)
 {
-    Sockets sockets;
-    for (size_t i = 0; i < servers.size(); ++i)
-    {
-        Socket socket(servers[i]);
-        sockets.push_back(socket);
-    }
-    eventLoop(sockets);
+    const Sockets listenSockets = getListenSockets(servers);
+    eventLoop(listenSockets);
 }

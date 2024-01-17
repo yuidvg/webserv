@@ -41,6 +41,6 @@ struct Server
            const size_t clientMaxBodySize, const std::vector<Location> locations);
 };
 
-typedef std::vector<Server> servers;
+typedef std::vector<Server> Servers;
 
 #endif

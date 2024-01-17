@@ -5,12 +5,12 @@ Socket::Socket()
 {
 }
 
-Socket::Socket(const Server server): descriptor(getListenSocket(server)), server(server)
+Socket::Socket(const unsigned int descriptor, const Server server): descriptor(descriptor), server(server)
 {
 }
 
 
-NewSocketResult getListenSocketDescriptor(const Server server)
+NewSocketResult getListenSocket(const Server server)
 {
     const int sD = socket(PF_INET, SOCK_STREAM, 0);
     if (sD < 0)
@@ -53,5 +53,22 @@ NewSocketResult getListenSocketDescriptor(const Server server)
         close(sD);
         return (NewSocketResult::Error("listen() failed"));
     }
-    return NewSocketResult::Success(Socket());
+    return NewSocketResult::Success(Socket(sD, server));
+}
+
+Sockets getListenSockets(Servers servers)
+{
+    Sockets sockets;
+    for (Servers::iterator serverIt = servers.begin(); serverIt != servers.end(); serverIt++)
+    {
+        NewSocketResult newSocketResult = getListenSocket(*serverIt);
+        if (newSocketResult.success)
+        {
+            sockets.push_back(newSocketResult.value);
+        }
+        else
+        {
+            std::cerr << newSocketResult.error << std::endl;
+        }
+    } 
 }

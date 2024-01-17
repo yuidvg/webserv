@@ -11,18 +11,20 @@
 #include <unistd.h>
 #include <vector>
 
-typedef Result<const Socket, const std::string> NewSocketResult;
-typedef std::vector<Socket> Sockets;
 
 struct Socket
 {
     const int descriptor;
     const Server server;
     Socket();
-    Socket(const Server server);
+    Socket(const unsigned int descriptor, const Server server);
 };
 
-NewSocketResult getListenSocketDescriptor(const Server server);
+typedef Result<const Socket, const std::string> NewSocketResult;
+typedef std::vector<Socket> Sockets;
 
+NewSocketResult getListenSocket(const Server server);
+
+Sockets getListenSockets(Servers servers);
 
 #endif
