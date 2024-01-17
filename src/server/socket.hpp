@@ -11,21 +11,18 @@
 #include <unistd.h>
 #include <vector>
 
-typedef Result<int, std::string> InitializeResult;
+typedef Result<const Socket, const std::string> NewSocketResult;
+typedef std::vector<Socket> Sockets;
 
-class Socket
+struct Socket
 {
-  private:
-    InitializeResult initialize() const;
-    int listenSocket;
+    const int descriptor;
     const Server server;
-
-  public:
     Socket();
-    Socket(Server server);
-    ~Socket();
-    Server getServer() const;
-    int getListenSocket() const;
+    Socket(const Server server);
 };
+
+NewSocketResult getListenSocketDescriptor(const Server server);
+
 
 #endif

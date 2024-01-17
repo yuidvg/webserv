@@ -1,88 +1,57 @@
 #include "socket.hpp"
 
 Socket::Socket()
-    : listenSocket(getListenSocket()), server("", 80, std::map<int, std::string>(), 1048576, std::vector<Location>())
+    : descriptor(-1), server("", 80, std::map<int, std::string>(), 1048576, std::vector<Location>())
 {
 }
 
-Socket::~Socket()
+Socket::Socket(const Server server): descriptor(getListenSocket(server)), server(server)
 {
 }
 
-InitializeResult Socket::initialize() const
+
+NewSocketResult getListenSocketDescriptor(const Server server)
 {
-    int sd = socket(PF_INET, SOCK_STREAM, 0);
-    if (sd < 0)
-        return (InitializeResult::Error("socket() failed"));
+    const int sD = socket(PF_INET, SOCK_STREAM, 0);
+    if (sD < 0)
+        return (NewSocketResult::Error("socket() failed"));
 
     // 同じローカルアドレスとポートを使用しているソケットがあっても、ソケットを再利用できるようにする
-    int on = 1;
-    if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on)) < 0)
+    const int on = 1;
+    if (setsockopt(sD, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on)) < 0)
     {
-        close(sd);
-        return (InitializeResult::Error("setsockopt() failed"));
+        close(sD);
+        return (NewSocketResult::Error("setsockopt() failed"));
     }
 
-    int flags = fcntl(sd, F_GETFL, 0);
-    if (flags < 0)
+    const int socketFlags = fcntl(sD, F_GETFL, 0);
+    if (socketFlags < 0)
     {
-        close(sd);
-        return (InitializeResult::Error("fcntl() failed"));
+        close(sD);
+        return (NewSocketResult::Error("fcntl() failed"));
     }
-    flags |= O_NONBLOCK;
-    if (fcntl(sd, F_SETFL, flags) < 0)
+    const int nonblockSocketFlags = socketFlags | O_NONBLOCK;
+    if (fcntl(sD, F_SETFL, nonblockSocketFlags) < 0)
     {
-        close(sd);
-        return (InitializeResult::Error("fcntl() failed to set non-blocking"));
+        close(sD);
+        return (NewSocketResult::Error("fcntl() failed to set non-blocking"));
     }
-    struct sockaddr_in addr = {};
+    struct sockaddr_in addr;
     addr.sin_family = PF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY); // IPv4アドレスを指定
     addr.sin_port = htons(server.port);       // ポート番号を設定
 
-//TODO: この課題要件を満たす • The first server for a host:port will be the default for this host:port (that means it will answer to all the requests that don’t belong to an other server).
-/*
-    port -
-         |- hostA - 各コンテキストの情報を持つ（default）
-         |
-         |- hostA - 各コンテキストの情報をもつ
-         |
-         |- hostB - 各コンテキストの情報をもつ
-*/
-
-
-    if (bind(sd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+    if (bind(sD, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
-        close(sd);
-        return (InitializeResult::Error(std::string("bind() failed: " + std::string(strerror(errno)) + "\nポート番号" +
-                                                  utils::to_string(server.port))));
+        close(sD);
+        return (NewSocketResult::Error("bind() failed: "));
+        // return (NewSocketResult::Error(std::string("bind() failed: " + std::string(strerror(errno)) +
+        //                                               "\nポート番号" + utils::to_string(server.port))));
     }
-
-    if (listen(sd, 5) < 0)
+    if (listen(sD, 5) < 0)
     {
-        close(sd);
-        return (InitializeResult::Error("listen() failed"));
+        close(sD);
+        return (NewSocketResult::Error("listen() failed"));
     }
-    return InitializeResult::Success(sd);
-}
-
-int Socket::getListenSocket() const
-{
-    return (listenSocket);
-}
-
-Server Socket::getServer() const
-{
-    return (server);
-}
-
-Socket::Socket(Server server) : listenSocket(-1), server(server)
-{
-    InitializeResult initializedResult = initialize();
-    if (!initializedResult.success)
-    {
-        std::cout << initializedResult.error << std::endl;
-        _exit(1);
-    }
-    listenSocket = initializedResult.value;
+    return NewSocketResult::Success(Socket());
 }

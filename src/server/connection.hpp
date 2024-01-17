@@ -7,6 +7,7 @@
 #include "../httpResponse/build.hpp"
 #include "../utils/utils.hpp"
 #include "socket.hpp"
+#include "socket.hpp"
 #include <algorithm>
 #include <arpa/inet.h>
 #include <cstring>
@@ -21,13 +22,16 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-typedef Result<int, std::string> NewSDResult;
 
-void allcloseConnection(int &maxSd, fd_set &masterSet, std::map<int, Socket> &connSocks);
-void closeConnection(int fd, int &maxSd, fd_set &masterSet, std::map<int, Socket> &connSocks); // 接続を閉じる
-NewSDResult acceptNewConnection(int listenSd, int &maxSd, fd_set &masterSet); // 新規接続を受け入れる
+void allcloseConnection(fd_set &masterSet,Sockets &socketsIn, std::map<int, Socket> &connSockets);
+void closeConnection(int fd, fd_set &masterSet, std::map<int, Socket> &connSockets); // 接続を閉じる
+NewSocketResult newConnectedSocket(int listenSd, int &maxSd, fd_set &masterSet); // 新規接続を受け入れる
 void processConnection(int sd, int &maxSd, std::map<int, Socket> &connSocks); // 接続が確立されたソケットと通信する
 void deleteConnSock(int sd, std::map<int, Socket> &connSocks);
 void StartConnection(const std::vector<Server> servers); // サーバーを開始するためのメソッド
+int getMaxSd(const Sockets socketsIn, const std::map<int, Socket> &connSocks);
+void startConnection(const std::vector<Server> servers);
+// std::vector<Socket> createSockets(const Servers &servers);
+
 
 #endif
