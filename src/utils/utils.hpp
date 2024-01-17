@@ -8,6 +8,7 @@
 #include <sstream>
 #include <string>
 
+#include "../connection/socket.hpp"
 #include "../httpResponse/HttpResponse.hpp"
 #include "Headers.hpp"
 #include "Result.hpp"
@@ -30,6 +31,10 @@ template <typename T> std::string toString(const T value)
     oss << value;
     return oss.str();
 }
+
+// fd set
+fd_set fdSetFrom(const Sockets sockets);
+Sockets socketsIn(const fd_set fdSet, const Sockets sockets);
 
 typedef Result<std::string, HttpResponse> FileContentResult;
 
@@ -63,8 +68,7 @@ template <class T> std::string to_string(const T &value)
 }
 
 // vector
-template <typename T>
-bool contained(const T needle, const std::vector<T> haystack)
+template <typename T> bool contained(const T needle, const std::vector<const T> haystack)
 {
     return std::find(haystack.begin(), haystack.end(), needle) != haystack.end();
 }
@@ -72,12 +76,30 @@ bool contained(const T needle, const std::vector<T> haystack)
 template <typename T> std::vector<T> combined(const std::vector<T> a, const std::vector<T> b)
 {
     std::vector<T> combined;
-    combined.reserve(a.size() + b.size());
-    combined.insert(combined.end(), a.begin(), a.end());
-    combined.insert(combined.end(), b.begin(), b.end());
-
+    for (typename std::vector<T>::const_iterator it = a.begin(); it != a.end(); ++it)
+    {
+        combined.push_back(*it);
+    }
+    for (typename std::vector<T>::const_iterator it = b.begin(); it != b.end(); ++it)
+    {
+        combined.push_back(*it);
+    }
     return combined;
 }
+
+template <typename T> std::vector<const T> excluded(const std::vector<const T> haystack, const T needle)
+{
+    std::vector<const T> excluded;
+    for (typename std::vector<const T>::const_iterator it = haystack.begin(); it != haystack.end(); ++it)
+    {
+        if (*it != needle)
+        {
+            excluded.push_back(*it);
+        }
+    }
+    return excluded;
+}
+
 } // namespace utils
 
 #endif

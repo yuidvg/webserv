@@ -65,19 +65,17 @@ unsigned int getMaxSd(const Sockets listenSockets)
     return maxSd;
 }
 
-
-
 typedef Result<Sockets, std::string> ReadableSocketsResult;
 ReadableSocketsResult readableSockets(const Sockets sockets)
 {
-    fd_set readableSocketSet = fdSetFrom(sockets);
-std::cout<<"Waiting for select()..."<<std::endl;
+    fd_set readableSocketSet = utils::fdSetFrom(sockets);
+    std::cout << "Waiting for select()..." << std::endl;
     const int numOfReadableSDs = select(getMaxSd(sockets) + 1, &readableSocketSet, NULL, NULL, NULL);
     if (numOfReadableSDs < 0)
         return ReadableSocketsResult::Error("select() failed: " + std::string(strerror(errno)));
     else if (numOfReadableSDs == 0)
         return ReadableSocketsResult::Error("select() timed out. End program.");
-    return ReadableSocketsResult::Success(socketsIn(readableSocketSet, sockets));
+    return ReadableSocketsResult::Success(utils::socketsIn(readableSocketSet, sockets));
 }
 
 

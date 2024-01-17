@@ -17,7 +17,7 @@ int main(int argc, char **argv)
         utils::printError(configResult.error);
         return 1;
     }
-    const std::vector<Server> servers = configResult.value;
+    const Servers servers = configResult.value;
 
     startConnection(servers);
 }

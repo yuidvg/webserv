@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-typedef Result<std::vector<Server>, std::string> ConfigResult;
+typedef Result<const std::vector<const Server>, std::string> ConfigResult;
 typedef Result<Server, std::string> ParseServerResult;
 typedef Result<Location, std::string> ParseLocationResult;
 typedef Result<std::string, std::string> StringResult;

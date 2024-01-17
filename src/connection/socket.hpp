@@ -18,10 +18,12 @@ struct Socket
     const Server server;
     Socket();
     Socket(const unsigned int descriptor, const Server server);
+    bool operator==(const Socket other) const;
+    bool operator!=(const Socket other) const;
 };
 
 typedef Result<const Socket, const std::string> NewSocketResult;
-typedef std::vector<Socket> Sockets;
+typedef std::vector<const Socket> Sockets;
 
 NewSocketResult getListenSocket(const Server server);
 
