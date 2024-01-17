@@ -1,8 +1,8 @@
 #include "connection.hpp"
 
-void closeConnection(int sd, int &maxSd, fd_set &masterSet, std::map<int, Socket> &connSocks)
+void closeConnection(const int sd, const int &maxSd, const fd_set &masterSet, const std::map<int, Socket> &connSocks)
 {
-    std::cout << "close sd: " << sd << std::endl;
+    std::cout << "closing sd: " << sd << std::endl;
 
     close(sd);
     deleteConnSock(sd, connSocks);
@@ -21,7 +21,7 @@ void closeConnection(int sd, int &maxSd, fd_set &masterSet, std::map<int, Socket
     }
 }
 
-void allcloseConnection(int &maxSd, fd_set &masterSet, std::map<int, Socket> &connSocks)
+void allcloseConnection(const int &maxSd, const fd_set &masterSet, const std::map<int, Socket> &connSocks)
 {
     for (int i = 0; i <= maxSd; ++i)
     {
@@ -53,13 +53,14 @@ NewSDResult acceptNewConnection(const int listenSd, int &maxSd, fd_set &masterSe
     return NewSDResult::Success(newSd);
 }
 
-void deleteConnSock(int sd, std::map<int, Socket> &connSocks)
+void deleteConnSock(const int sd, const std::map<int, Socket> &connSocks)
 {
     connSocks.erase(sd);
 }
 
 // 接続が確立されたソケットと通信する
-void processConnection(int sd, Socket &socket, int &maxSd, fd_set &masterSet, std::map<int, Socket> &connSocks)
+void processConnection(const int sd, const Socket &socket, const int &maxSd, const fd_set &masterSet,
+                       const std::map<int, Socket> &connSocks)
 {
     char buffer[500000] = {0}; // Initialize buffer with null
     int len;
@@ -105,41 +106,36 @@ void processConnection(int sd, Socket &socket, int &maxSd, fd_set &masterSet, st
 
 void StartConnection(const std::vector<Server> servers)
 {
-    std::vector<int> listenSockets;
+    const std::vector<int> listenSockets;
     std::vector<Socket> sockets;
-    int maxSd = -1;
-    fd_set masterSet;
-    fd_set workingSet;
-    std::map<int, Socket> connSocks;
-    bool samePort = false;
+    const int maxSd = -1;
+    const fd_set masterSet;
+    const fd_set workingSet;
+    const std::map<int, Socket> connSocks;
+    const bool samePort = false;
 
     // 各仮想サーバーのソケットを初期化し、監視セットに追加
     FD_ZERO(&masterSet);
     for (size_t i = 0; i < servers.size(); ++i)
     {
-        for (size_t j = 0; j < i; ++j)
+        const Server server = servers[i];
+        if (server.port)
         {
-            if (servers[i].port == servers[j].port)
+            utils::printError(std::string("Port number" + utils::to_string(server.port) +
+                                          "is already in use, so a listen socket for" + server.name +
+                                          "won't be created."));
+        }
+        else
+        {
+            Socket socket(server, servers);
+            sockets.push_back(socket);
+            int listenSd = socket.getListenSocket();
+            listenSockets.push_back(listenSd);
+            FD_SET(listenSd, &masterSet);
+            if (listenSd > maxSd)
             {
-                utils::printError(std::string("ポート番号" + utils::to_string(servers[i].port) +
-                                              "はすでに使用されているため、liste socketは作成しません"));
-                samePort = true;
-                break;
+                maxSd = listenSd;
             }
-        }
-        if (samePort)
-        {
-            samePort = false;
-            continue;
-        }
-        Socket socket(servers[i], servers);
-        sockets.push_back(socket);
-        int listenSd = socket.getListenSocket();
-        listenSockets.push_back(listenSd);
-        FD_SET(listenSd, &masterSet);
-        if (listenSd > maxSd)
-        {
-            maxSd = listenSd;
         }
     }
 
