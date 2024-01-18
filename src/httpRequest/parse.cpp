@@ -39,25 +39,19 @@ static bool isAllowedMethod(const std::string &method, const std::string &uri, c
     return (false);
 }
 
-static bool isValidRequestLine(RequestLine requestLine, int &errorCode, const Server &server)
+static int isValidRequestLine(RequestLine requestLine, const Server &server)
 {
-    if (requestLine.uri.find(':') != std::string::npos && requestLine.uri.find('*') != std::string::npos) // CONNECT, OPTIONSは非対応
-    {
-        errorCode = BAD_REQUEST;
-        return (false);
-    }
+    if (requestLine.uri.find(':') != std::string::npos &&
+        requestLine.uri.find('*') != std::string::npos) // CONNECT, OPTIONSは非対応
+        return (BAD_REQUEST);
 
     if (!isAllowedMethod(requestLine.method, requestLine.uri, server))
-    {
-        errorCode = BAD_REQUEST;
-        return (false);
-    }
+        return (BAD_REQUEST);
+
     if (requestLine.version != SERVER_PROTOCOL)
-    {
-        errorCode = BAD_REQUEST;
-        return (false);
-    }
-    return (true);
+        return (BAD_REQUEST);
+
+    return (SUCCESS);
 }
 
 static std::string getMessageLine(std::istream &stream)
@@ -112,11 +106,10 @@ ParseRequestLineResult parseHttpRequestLine(std::istream &httpRequest, const Ser
         return (ParseRequestLineResult::Error(getRequestLineResult.error));
 
     /* エラーチェック */
-    int errorCode = SUCCESS;
-    if (!isValidRequestLine(getRequestLineResult.value, errorCode, server))
-        return (ParseRequestLineResult::Error(errorCode));
+    int statusCode = isValidRequestLine(getRequestLineResult.value, server);
 
-    return (ParseRequestLineResult::Success(getRequestLineResult.value));
+    return (statusCode != SUCCESS) ? ParseRequestLineResult::Error(statusCode)
+                                   : ParseRequestLineResult::Success(getRequestLineResult.value);
 }
 
 ParseHeaderResult parseHttpHeaders(std::istream &httpRequest)
