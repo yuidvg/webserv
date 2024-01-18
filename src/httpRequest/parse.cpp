@@ -1,8 +1,8 @@
-#include "parseRequest.hpp"
+#include "parse.hpp"
 
-ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Server &server)
+ParseRequestResult parseHttpRequest(std::istream &httpRequest)
 {
-    ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(httpRequest, server);
+    ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(httpRequest);
     if (!parseRequestLineResult.success)
         return (ParseRequestResult::Error(HttpResponse(parseRequestLineResult.error)));
 
@@ -27,37 +27,16 @@ static bool isLineTooLong(const std::string &line)
     return (false);
 }
 
-static bool isAllowedMethod(const std::string &method, const std::string &uri, const Server &server)
+static int isValidRequestLine(RequestLine requestLine)
 {
-    const Location matchedLocation = utils::matchedLocation(uri, server.locations);
+    if (requestLine.uri.find(':') != std::string::npos &&
+        requestLine.uri.find('*') != std::string::npos) // CONNECT, OPTIONSは非対応
+        return (BAD_REQUEST);
 
-    for (unsigned int i = 0; i < matchedLocation.allowMethods.size(); i++)
-    {
-        if (method == matchedLocation.allowMethods[i])
-            return (true);
-    }
-    return (false);
-}
-
-static bool isValidRequestLine(RequestLine requestLine, int &errorCode, const Server &server)
-{
-    if (requestLine.uri.find(':') != std::string::npos && requestLine.uri.find('*') != std::string::npos) // CONNECT, OPTIONSは非対応
-    {
-        errorCode = BAD_REQUEST;
-        return (false);
-    }
-
-    if (!isAllowedMethod(requestLine.method, requestLine.uri, server))
-    {
-        errorCode = BAD_REQUEST;
-        return (false);
-    }
     if (requestLine.version != SERVER_PROTOCOL)
-    {
-        errorCode = BAD_REQUEST;
-        return (false);
-    }
-    return (true);
+        return (BAD_REQUEST);
+
+    return (SUCCESS);
 }
 
 static std::string getMessageLine(std::istream &stream)
@@ -105,18 +84,17 @@ static GetRequestLineResult getRequestLine(std::istream &httpRequest)
     return (GetRequestLineResult::Success(requestLineData));
 }
 
-ParseRequestLineResult parseHttpRequestLine(std::istream &httpRequest, const Server &server)
+ParseRequestLineResult parseHttpRequestLine(std::istream &httpRequest)
 {
     GetRequestLineResult getRequestLineResult = getRequestLine(httpRequest);
     if (!getRequestLineResult.success)
         return (ParseRequestLineResult::Error(getRequestLineResult.error));
 
     /* エラーチェック */
-    int errorCode = SUCCESS;
-    if (!isValidRequestLine(getRequestLineResult.value, errorCode, server))
-        return (ParseRequestLineResult::Error(errorCode));
+    int statusCode = isValidRequestLine(getRequestLineResult.value);
 
-    return (ParseRequestLineResult::Success(getRequestLineResult.value));
+    return (statusCode != SUCCESS) ? ParseRequestLineResult::Error(statusCode)
+                                   : ParseRequestLineResult::Success(getRequestLineResult.value);
 }
 
 ParseHeaderResult parseHttpHeaders(std::istream &httpRequest)
