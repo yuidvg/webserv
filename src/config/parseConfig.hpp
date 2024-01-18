@@ -1,8 +1,7 @@
-#ifndef parseConfig_HPP
-#define parseConfig_HPP
+#ifndef PARSECONFIG_HPP
+#define PARSECONFIG_HPP
 
-#include "../types/all.hpp"
-#include "parseDirective.hpp"
+#include "../webserv.hpp"
 
 ConfigResult parseConfig(const char *configPath);
 ParseServerResult parseServerContext(std::vector<std::string> &tokens);

@@ -1,4 +1,6 @@
 #include "parseConfig.hpp"
+#include "parseDirective.hpp"
+#include "tokenizeConfig.hpp"
 
 using namespace parseDirective;
 // ロケーションブロックの設定を解析
