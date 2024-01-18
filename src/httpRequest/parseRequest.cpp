@@ -43,20 +43,35 @@ static bool isValidRequestLine(RequestLine requestLine, int &errorCode, const Se
 static std::string getMessageLine(std::istream &stream)
 {
     std::string line;
+    char c;
 
-    while (std::getline(stream, line) && line.empty())
-        ; // 空行を読み飛ばす
-
+    while (stream.get(c))
+    {
+        if (c == '\r')
+        {
+            if (stream.peek() == '\n')
+            {
+                stream.get(); // \nを読み飛ばす
+                break;
+            }
+            else // \r\nでない場合, \nに置き換える
+                c = '\n';
+        }
+        line += c;
+    }
     return (line);
 }
 
 static GetRequestLineResult getRequestLine(std::istream &httpRequest)
 {
-    const std::string line = getMessageLine(httpRequest);
     std::string method, uri, version;
+    std::string line;
+
+    while ((line = getMessageLine(httpRequest)) == "\r")
+        ;
 
     // 有効なリクエストラインがない場合
-    if (line.empty())
+    if (httpRequest.eof())
         return (GetRequestLineResult::Error(BAD_REQUEST));
     if (isLineTooLong(line))
         return (GetRequestLineResult::Error(BAD_REQUEST));
