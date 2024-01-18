@@ -1,20 +1,7 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
-#include "../config/config.hpp"
-#include <cstring>
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <string>
-
-#include "../connection/socket.hpp"
-#include "../httpResponse/HttpResponse.hpp"
-#include "Headers.hpp"
-#include "Result.hpp"
-#include "consts.hpp"
-
-struct HttpResponse;
+#include "../types/all.hpp"
 
 namespace utils
 {

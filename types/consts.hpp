@@ -1,7 +1,7 @@
 #ifndef CONSTS_HPP
 #define CONSTS_HPP
 
-#include <string>
+#include "../types/all.hpp"
 
 const std::string SERVER_PROTOCOL = "HTTP/1.1";
 const std::string GATEWAY_INTERFACE = "CGI/1.1";
@@ -39,5 +39,8 @@ const std::string INDEX = "index";
 const std::string AUTOINDEX = "autoindex";
 const std::string OPEN_BRACKET = "{";
 const std::string CLOSE_BRACKET = "}";
+
+// httpRequest
+const int MAX_LEN = 8192;
 
 #endif

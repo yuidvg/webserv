@@ -1,8 +1,7 @@
 #ifndef HEADERS_HPP
 #define HEADERS_HPP
 
-#include <map>
-#include <string>
+#include "external.hpp"
 
 struct Headers : public std::map<std::string, std::string>
 {

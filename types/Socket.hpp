@@ -1,16 +1,8 @@
 #ifndef SOCKET_HPP
 #define SOCKET_HPP
 
-#include "../config/parseConfig.hpp"
-#include "../utils/utils.hpp"
-#include <cerrno>
-#include <fcntl.h>
-#include <iostream>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <vector>
-
+#include "Server.hpp"
+#include "external.hpp"
 
 struct Socket
 {
@@ -22,11 +14,6 @@ struct Socket
     bool operator!=(const Socket other) const;
 };
 
-typedef Result<const Socket, const std::string> NewSocketResult;
-typedef std::vector<const Socket> Sockets;
 
-NewSocketResult getListenSocket(const Server server);
-
-Sockets getListenSockets(Servers servers);
 
 #endif

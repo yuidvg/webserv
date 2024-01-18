@@ -1,9 +1,10 @@
 #ifndef PARSE_DIRECTIVE_HPP
 #define PARSE_DIRECTIVE_HPP
 
-#include "../utils/utils.hpp"
-#include "config.hpp"
+#include "../types/all.hpp"
+#include "../utils/all.hpp"
 #include "parseConfig.hpp"
+#include "tokenizeConfig.hpp"
 
 namespace parseDirective
 {

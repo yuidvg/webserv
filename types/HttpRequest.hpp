@@ -1,7 +1,7 @@
 #ifndef HTTPREQUEST_HPP
 #define HTTPREQUEST_HPP
 
-#include "../utils/Headers.hpp"
+#include "Headers.hpp"
 
 struct HttpRequest
 {
