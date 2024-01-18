@@ -5,7 +5,7 @@
 
 // get
 NewSocketResult getListenSocket(const Server server);
-Sockets getListenSockets(Servers servers);
+CreatedSocketsResult getListenSockets(Servers servers);
 NewSocketResult newConnectedSocket(const Socket listenSocket);
 
 // find

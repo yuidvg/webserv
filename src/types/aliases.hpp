@@ -24,8 +24,9 @@ typedef Result<std::string, HttpResponse> ParseBodyResult;
 typedef Result<HttpRequest, HttpResponse> ParseRequestResult;
 
 // socket
-typedef Result<const Socket, const std::string> NewSocketResult;
 typedef std::vector<const Socket> Sockets;
+typedef Result<const Socket, const std::string> NewSocketResult;
+typedef Result<Sockets, std::string> CreatedSocketsResult;
 typedef Result<Sockets, std::string> ReadableSocketsResult;
 
 namespace cgi

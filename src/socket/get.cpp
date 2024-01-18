@@ -57,7 +57,7 @@ NewSocketResult getListenSocket(const Server server)
     return NewSocketResult::Success(Socket(sD, server));
 }
 
-Sockets getListenSockets(Servers servers)
+CreatedSocketsResult getListenSockets(Servers servers)
 {
     Sockets sockets;
     for (Servers::iterator serverIt = servers.begin(); serverIt != servers.end(); serverIt++)
@@ -69,8 +69,8 @@ Sockets getListenSockets(Servers servers)
         }
         else
         {
-            std::cerr << newSocketResult.error << std::endl;
+            return CreatedSocketsResult::Error(newSocketResult.error);
         }
     }
-    return sockets;
+    return CreatedSocketsResult::Success(sockets);
 }
