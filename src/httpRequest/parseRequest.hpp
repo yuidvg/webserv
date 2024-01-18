@@ -3,17 +3,6 @@
 
 #include "../webserv.hpp"
 
-const int MAX_LEN = 8192;
-
-#include "HttpRequest.hpp"
-
-struct RequestLine
-{
-    std::string method;
-    std::string uri;
-    std::string version;
-};
-
 typedef Result<RequestLine, int> GetRequestLineResult;
 
 typedef Result<RequestLine, HttpResponse> ParseRequestLineResult;

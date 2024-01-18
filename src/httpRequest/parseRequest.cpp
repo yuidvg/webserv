@@ -2,9 +2,9 @@
 
 ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Server &server)
 {
-    ParseRequestLineResult parseResult = parseHttpRequestLine(httpRequest, server);
-    if (!parseResult.success)
-        return (ParseRequestResult::Error(HttpResponse(parseResult.error)));
+    ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(httpRequest, server);
+    if (!parseRequestLineResult.success)
+        return (ParseRequestResult::Error(HttpResponse(parseRequestLineResult.error)));
 
     ParseHeaderResult headersResult = parseHttpHeaders(httpRequest);
     if (!headersResult.success)
@@ -15,7 +15,7 @@ ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Server &ser
     if (!body.success)
         return (ParseRequestResult::Error(HttpResponse(body.error)));
 
-    RequestLine requestLine = parseResult.value;
+    RequestLine requestLine = parseRequestLineResult.value;
     HttpRequest result(requestLine.method, requestLine.uri, requestLine.version, headers, body.value);
     return (ParseRequestResult::Success(result));
 }
