@@ -18,21 +18,20 @@ static bool checkMethod(const std::string &method, const std::string &uri, const
     return (false);
 }
 
-static bool checkRequestLine(std::string &method, std::string &uri, std::string &version, int &errorCode,
-                             const Server &server)
+static bool checkRequestLine(RequestLine requestLine, int &errorCode, const Server &server)
 {
-    if (uri.find(':') != std::string::npos && uri.find('*') != std::string::npos) // CONNECT, OPTIONSは非対応
+    if (requestLine.uri.find(':') != std::string::npos && requestLine.uri.find('*') != std::string::npos) // CONNECT, OPTIONSは非対応
     {
         errorCode = BAD_REQUEST;
         return (false);
     }
 
-    if (!checkMethod(method, uri, server))
+    if (!checkMethod(requestLine.method, requestLine.uri, server))
     {
         errorCode = BAD_REQUEST;
         return (false);
     }
-    if (version != "Http/1.1")
+    if (requestLine.version != "Http/1.1")
     {
         errorCode = BAD_REQUEST;
         return (false);
@@ -40,7 +39,7 @@ static bool checkRequestLine(std::string &method, std::string &uri, std::string 
     return (true);
 }
 
-ParseRequestLineResult parseHttpRequestLine(std::istream &httpRequest, const Server &server)
+static GetRequestLineResult getRequestLine(std::istream &httpRequest)
 {
     std::string line;
     std::string method, uri, version;
@@ -50,22 +49,33 @@ ParseRequestLineResult parseHttpRequestLine(std::istream &httpRequest, const Ser
 
     // 有効なリクエストラインがない場合
     if (line.empty())
-        return (ParseRequestLineResult::Error(BAD_REQUEST));
+        return (GetRequestLineResult::Error(BAD_REQUEST));
     if (isLineTooLong(line))
-        return (ParseRequestLineResult::Error(BAD_REQUEST));
+        return (GetRequestLineResult::Error(BAD_REQUEST));
 
     std::istringstream requestLine(line);
     if (!(requestLine >> method >> uri >> version) ||
         !requestLine.eof()) // メソッドとターゲット、バージョンに分けて格納する
-        return (ParseRequestLineResult::Error(BAD_REQUEST));
+        return (GetRequestLineResult::Error(BAD_REQUEST));
+
+    RequestLine requestLineData = {method, uri, version};
+    return (GetRequestLineResult::Success(requestLineData));
+}
+
+ParseRequestLineResult parseHttpRequestLine(std::istream &httpRequest, const Server &server)
+{
+    GetRequestLineResult getRequestLineResult = getRequestLine(httpRequest);
+    if (!getRequestLineResult.success)
+        return (ParseRequestLineResult::Error(getRequestLineResult.error));
+
+    RequestLine requestLine = getRequestLineResult.value;
 
     /* エラーチェック */
     int errorCode = SUCCESS;
-    if (!checkRequestLine(method, uri, version, errorCode, server))
+    if (!checkRequestLine(requestLine, errorCode, server))
         return (ParseRequestLineResult::Error(errorCode));
 
-    RequestLine requestLineData = {method, uri, version};
-    return (ParseRequestLineResult::Success(requestLineData));
+    return (ParseRequestLineResult::Success(requestLine));
 }
 
 ParseHeaderResult parseHttpHeaders(std::istream &httpRequest)

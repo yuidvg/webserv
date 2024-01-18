@@ -24,6 +24,7 @@ struct RequestLine
     std::string version;
 };
 
+typedef Result<RequestLine, int> GetRequestLineResult;
 
 typedef Result<RequestLine, HttpResponse> ParseRequestLineResult;
 ParseRequestLineResult parseHttpRequestLine(std::istream &httpRequest, const Server &server);
