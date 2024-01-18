@@ -1,5 +1,25 @@
 #include "parseRequest.hpp"
 
+ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Server &server)
+{
+    ParseRequestLineResult parseResult = parseHttpRequestLine(httpRequest, server);
+    if (!parseResult.success)
+        return (ParseRequestResult::Error(HttpResponse(parseResult.error)));
+
+    ParseHeaderResult headersResult = parseHttpHeaders(httpRequest);
+    if (!headersResult.success)
+        return (ParseRequestResult::Error(HttpResponse(headersResult.error)));
+
+    Headers headers = headersResult.value;
+    ParseBodyResult body = parseHttpBody(httpRequest, headers);
+    if (!body.success)
+        return (ParseRequestResult::Error(HttpResponse(body.error)));
+
+    RequestLine requestLine = parseResult.value;
+    HttpRequest result(requestLine.method, requestLine.uri, requestLine.version, headers, body.value);
+    return (ParseRequestResult::Success(result));
+}
+
 static bool isLineTooLong(const std::string &line)
 {
     if (line.length() > MAX_LEN)
@@ -104,7 +124,7 @@ ParseHeaderResult parseHttpHeaders(std::istream &httpRequest)
     std::string line;
     Headers headers;
 
-    while (std::getline(httpRequest, line))
+    while ((line = getMessageLine(httpRequest)) != "\r")
     {
         if (line.empty())
             break;
@@ -140,10 +160,8 @@ ParseBodyResult parseChunkedBody(std::istream &httpRequest, std::map<std::string
         return (ParseBodyResult::Error(HttpResponse(BAD_REQUEST)));
 
     std::string body;
-    while (std::getline(httpRequest, line))
+    while ((line = getMessageLine(httpRequest)) != "\r")
     {
-        // if (line.empty())
-        // 	break ;
         if (isLineTooLong(line))
             return (ParseBodyResult::Error(HttpResponse(BAD_REQUEST)));
 
@@ -197,24 +215,4 @@ ParseBodyResult parseHttpBody(std::istream &httpRequest, std::map<std::string, s
         return (parsePlainBody(httpRequest, headers));
     else
         return (ParseBodyResult::Success(""));
-}
-
-ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Server &server)
-{
-    ParseRequestLineResult parseResult = parseHttpRequestLine(httpRequest, server);
-    if (!parseResult.success)
-        return (ParseRequestResult::Error(HttpResponse(parseResult.error)));
-
-    ParseHeaderResult headersResult = parseHttpHeaders(httpRequest);
-    if (!headersResult.success)
-        return (ParseRequestResult::Error(HttpResponse(headersResult.error)));
-
-    Headers headers = headersResult.value;
-    ParseBodyResult body = parseHttpBody(httpRequest, headers);
-    if (!body.success)
-        return (ParseRequestResult::Error(HttpResponse(body.error)));
-
-    RequestLine requestLine = parseResult.value;
-    HttpRequest result(requestLine.method, requestLine.uri, requestLine.version, headers, body.value);
-    return (ParseRequestResult::Success(result));
 }
