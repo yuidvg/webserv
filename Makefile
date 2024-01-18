@@ -1,5 +1,5 @@
 #OMIT BEFORE SUBMITTING
-DEBUG_FLAGS = -g
+DEBUG_FLAGS = -g -O0
 
 CXX = c++
 CXXFLAGS = $(DEBUG_FLAGS) -Wall -Werror -Wextra -std=c++98 -MMD -I src

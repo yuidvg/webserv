@@ -1,5 +1,5 @@
 #include "process.hpp"
-#include "../httpRequest/parseRequest.hpp"
+#include "../httpRequest/parse.hpp"
 #include "../socket/all.hpp"
 #include "eventLoop.hpp"
 
@@ -20,7 +20,7 @@ bool processConnection(const Socket &socket)
     std::cout << "Received \n" << receivedLength << " bytes: " << buffer << std::endl;
 
     std::istringstream buf(buffer);
-    ParseRequestResult parseHttpRequestResult = parseHttpRequest(buf, socket.server);
+    ParseRequestResult parseHttpRequestResult = parseHttpRequest(buf);
     if (parseHttpRequestResult.success)
     {
         const std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 22\r\n\r\n<h1>Hello Webserv</h1>";

@@ -3,13 +3,13 @@
 	"tasks": [
 		{
 			"label": "buildWithDebug",
-			"command": "make",
 			"type": "shell",
+			"command": "make",
 			"args": [
 				"re"
 			],
 			"problemMatcher": [
-				"$tsc"
+				"$gcc"
 			],
 			"presentation": {
 				"reveal": "always"
