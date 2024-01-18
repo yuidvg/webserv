@@ -3,6 +3,6 @@
 #include "../webserv.hpp"
 
 HttpResponse response(const ParseRequestResult requestResult, const Server server);
-std::string makeResponseMessage(const HttpResponse response);
+std::string responseText(const HttpResponse response);
 
 #endif

@@ -17,7 +17,7 @@ HttpResponse response(const ParseRequestResult requestResult, const Server serve
     return requestResult.success ? responseToValidRequest(requestResult.value, server) : requestResult.error;
 }
 
-std::string makeResponseMessage(const HttpResponse response)
+std::string responseText(const HttpResponse response)
 {
     std::string text = SERVER_PROTOCOL + " " + std::to_string(response.statusCode) + CRLF;
     for (std::map<std::string, std::string>::const_iterator it = response.headers.begin(); it != response.headers.end();

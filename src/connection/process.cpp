@@ -1,5 +1,6 @@
 #include "process.hpp"
 #include "../httpRequest/parseRequest.hpp"
+#include "../httpResponse/build.hpp"
 #include "../socket/all.hpp"
 #include "eventLoop.hpp"
 
@@ -21,24 +22,16 @@ bool processConnection(const Socket &socket)
 
     std::istringstream buf(buffer);
     ParseRequestResult parseHttpRequestResult = parseHttpRequest(buf, socket.server);
-    if (parseHttpRequestResult.success)
+    const HttpResponse httpResponse = response(parseHttpRequestResult, socket.server);
+    const std::string httpResponseText = responseText(httpResponse);
+    const int sentLength = send(socket.descriptor, httpResponseText.c_str(), httpResponseText.length(), 0);
+    if (sentLength > 0)
     {
-        const std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 22\r\n\r\n<h1>Hello Webserv</h1>";
-        const int sentLength = send(socket.descriptor, response.c_str(), response.length(), 0);
-        if (sentLength > 0)
-        {
-            return true;
-        }
-        else
-        {
-            utils::printError("send() failed.");
-            return false;
-        }
+        return true;
     }
     else
     {
-        utils::printError(std::string("parseHttpRequest() failed\nstatus code: " +
-                                      utils::to_string((parseHttpRequestResult.error.statusCode))));
+        utils::printError("send() failed.");
         return false;
     }
 }
