@@ -51,7 +51,7 @@ ParseRequestLineResult parseHttpRequestLine(std::istream &httpRequest, const Ser
     // 有効なリクエストラインがない場合
     if (line.empty())
         return (ParseRequestLineResult::Error(BAD_REQUEST));
-    if (isLineTooLong(line) == true)
+    if (isLineTooLong(line))
         return (ParseRequestLineResult::Error(BAD_REQUEST));
 
     std::istringstream requestLine(line);
@@ -77,7 +77,7 @@ ParseHeaderResult parseHttpHeaders(std::istream &httpRequest)
     {
         if (line.empty())
             break;
-        if (isLineTooLong(line) == true)
+        if (isLineTooLong(line))
             return (ParseHeaderResult::Error(BAD_REQUEST));
         if (std::isspace(line[0]))
             return (ParseHeaderResult::Error(BAD_REQUEST));
@@ -113,7 +113,7 @@ ParseBodyResult parseChunkedBody(std::istream &httpRequest, std::map<std::string
     {
         // if (line.empty())
         // 	break ;
-        if (isLineTooLong(line) == true)
+        if (isLineTooLong(line))
             return (ParseBodyResult::Error(HttpResponse(BAD_REQUEST)));
 
         std::istringstream chunkSizeLine(line);
