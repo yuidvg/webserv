@@ -1,6 +1,7 @@
 #include "parseDirective.hpp"
 
-using namespace parseDirective;
+namespace parseDirective
+{
 
 StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal)
 {
@@ -198,4 +199,6 @@ RedirectResult parseReturnDirective(const std::vector<std::string> directiveToke
     std::map<int, std::string> redirect;
     redirect[statusCodeResult.value] = directiveTokens[2];
     return RedirectResult::Success(redirect);
+}
+
 }
