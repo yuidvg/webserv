@@ -52,7 +52,7 @@ static bool isValidRequestLine(RequestLine requestLine, int &errorCode, const Se
         errorCode = BAD_REQUEST;
         return (false);
     }
-    if (requestLine.version != "Http/1.1")
+    if (requestLine.version != SERVER_PROTOCOL)
     {
         errorCode = BAD_REQUEST;
         return (false);
