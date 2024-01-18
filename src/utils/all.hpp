@@ -27,6 +27,7 @@ typedef Result<std::string, HttpResponse> FileContentResult;
 
 FileContentResult content(const std::string path);
 std::string contentType(const std::string path);
+std::string getLine(std::istream &stream);
 
 // map
 template <typename Key, typename Value> Value value(const std::map<Key, Value> myMap, const Key key)
