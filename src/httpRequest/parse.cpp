@@ -84,14 +84,14 @@ static GetRequestLineResult getRequestLine(std::istream &httpRequest)
     return (GetRequestLineResult::Success(requestLineData));
 }
 
-ParseRequestLineResult parseHttpRequestLine(std::istream &httpRequest, const Server &server)
+ParseRequestLineResult parseHttpRequestLine(std::istream &httpRequest)
 {
     GetRequestLineResult getRequestLineResult = getRequestLine(httpRequest);
     if (!getRequestLineResult.success)
         return (ParseRequestLineResult::Error(getRequestLineResult.error));
 
     /* エラーチェック */
-    int statusCode = isValidRequestLine(getRequestLineResult.value, server);
+    int statusCode = isValidRequestLine(getRequestLineResult.value);
 
     return (statusCode != SUCCESS) ? ParseRequestLineResult::Error(statusCode)
                                    : ParseRequestLineResult::Success(getRequestLineResult.value);
