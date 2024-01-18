@@ -1,8 +1,8 @@
 #include "parse.hpp"
 
-ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Server &server)
+ParseRequestResult parseHttpRequest(std::istream &httpRequest)
 {
-    ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(httpRequest, server);
+    ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(httpRequest);
     if (!parseRequestLineResult.success)
         return (ParseRequestResult::Error(HttpResponse(parseRequestLineResult.error)));
 
@@ -27,25 +27,10 @@ static bool isLineTooLong(const std::string &line)
     return (false);
 }
 
-static bool isAllowedMethod(const std::string &method, const std::string &uri, const Server &server)
-{
-    const Location matchedLocation = utils::matchedLocation(uri, server.locations);
-
-    for (unsigned int i = 0; i < matchedLocation.allowMethods.size(); i++)
-    {
-        if (method == matchedLocation.allowMethods[i])
-            return (true);
-    }
-    return (false);
-}
-
-static int isValidRequestLine(RequestLine requestLine, const Server &server)
+static int isValidRequestLine(RequestLine requestLine)
 {
     if (requestLine.uri.find(':') != std::string::npos &&
         requestLine.uri.find('*') != std::string::npos) // CONNECT, OPTIONSは非対応
-        return (BAD_REQUEST);
-
-    if (!isAllowedMethod(requestLine.method, requestLine.uri, server))
         return (BAD_REQUEST);
 
     if (requestLine.version != SERVER_PROTOCOL)
