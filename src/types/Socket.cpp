@@ -1,4 +1,4 @@
-#include "socket.hpp"
+#include "Socket.hpp"
 
 Socket::Socket() : descriptor(-1), server("", 80, std::map<int, std::string>(), 1048576, std::vector<Location>())
 {

@@ -2,6 +2,7 @@
 #define EXTERNAL_HPP
 
 #include <algorithm>
+#include <fstream>
 #include <iostream>
 #include <map>
 #include <sstream>

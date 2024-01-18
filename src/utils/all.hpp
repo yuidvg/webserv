@@ -1,5 +1,5 @@
-#ifndef UTILS_HPP
-#define UTILS_HPP
+#ifndef UTILS_ALL_HPP
+#define UTILS_ALL_HPP
 
 #include "../types/all.hpp"
 

@@ -26,11 +26,11 @@ typedef Result<HttpRequest, HttpResponse> ParseRequestResult;
 // socket
 typedef Result<const Socket, const std::string> NewSocketResult;
 typedef std::vector<const Socket> Sockets;
+typedef Result<Sockets, std::string> ReadableSocketsResult;
 
 namespace cgi
 {
 typedef Result<std::string, std::string> ResponseResult;
 } // namespace cgi
-
 
 #endif

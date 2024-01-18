@@ -1,7 +1,7 @@
 #ifndef CONSTS_HPP
 #define CONSTS_HPP
 
-#include "../types/all.hpp"
+#include "types/all.hpp"
 
 const std::string SERVER_PROTOCOL = "HTTP/1.1";
 const std::string GATEWAY_INTERFACE = "CGI/1.1";

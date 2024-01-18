@@ -1,8 +1,7 @@
 #ifndef PARSE_DIRECTIVE_HPP
 #define PARSE_DIRECTIVE_HPP
 
-#include "../types/all.hpp"
-#include "../utils/all.hpp"
+#include "../webserv.hpp"
 #include "parseConfig.hpp"
 #include "tokenizeConfig.hpp"
 

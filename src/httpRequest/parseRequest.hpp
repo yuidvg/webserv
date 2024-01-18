@@ -1,7 +1,7 @@
 #ifndef PARSEREQUEST_HPP
 #define PARSEREQUEST_HPP
 
-#include "../types/all.hpp"
+#include "../webserv.hpp"
 
 ParseRequestLineResult parseHttpRequestLine(std::istream &httpRequest, const Server &server);
 ParseHeaderResult parseHttpHeaders(std::istream &httpRequest);

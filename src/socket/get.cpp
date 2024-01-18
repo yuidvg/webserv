@@ -1,4 +1,15 @@
-#include "get.hpp"
+#include "all.hpp"
+
+NewSocketResult newConnectedSocket(const Socket listenSocket)
+{
+    const int newSd = accept(listenSocket.descriptor, NULL, NULL);
+    if (newSd < 0)
+    {
+        return NewSocketResult::Error("accept() failed: " + std::string(strerror(errno)));
+    }
+    std::cout << "New conected socket: " << newSd << std::endl;
+    return NewSocketResult::Success(Socket(newSd, listenSocket.server));
+}
 
 NewSocketResult getListenSocket(const Server server)
 {

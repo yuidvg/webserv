@@ -1,4 +1,6 @@
 #include "eventLoop.hpp"
+#include "../socket/all.hpp"
+#include "process.hpp"
 
 void eventLoop(const Sockets listenSockets)
 {

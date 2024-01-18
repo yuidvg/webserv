@@ -4,7 +4,6 @@
 #include "../types/all.hpp"
 #include "parseDirective.hpp"
 
-
 ConfigResult parseConfig(const char *configPath);
 ParseServerResult parseServerContext(std::vector<std::string> &tokens);
 ParseLocationResult parseLocationContext(std::vector<std::string> &tokens, std::string &locationPath);

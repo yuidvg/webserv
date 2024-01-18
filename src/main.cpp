@@ -1,6 +1,7 @@
-#include "config/config.hpp"
-#include "server/connection.hpp"
-#include "utils/utils.hpp"
+#include "config/parseConfig.hpp"
+#include "connection/eventLoop.hpp"
+#include "socket/all.hpp"
+#include "webserv.hpp"
 
 int main(int argc, char **argv)
 {
@@ -19,7 +20,7 @@ int main(int argc, char **argv)
     }
     const Servers servers = configResult.value;
 
-    startConnection(servers);
+    eventLoop(getListenSockets(servers));
 }
 
 __attribute__((destructor)) static void destructor(void)

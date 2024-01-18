@@ -1,5 +1,7 @@
 #include "all.hpp"
 
+namespace utils
+{
 fd_set fdSetFrom(const Sockets sockets)
 {
     fd_set fdSet;
@@ -23,3 +25,5 @@ Sockets socketsIn(const fd_set fdSet, const Sockets sockets)
     }
     return socketsFdSet;
 }
+
+} // namespace utils
