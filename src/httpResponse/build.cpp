@@ -1,10 +1,8 @@
-#include "../httpRequest/parseRequest.hpp"
-#include "../utils/utils.hpp"
-#include "HttpResponse.hpp"
+#include "build.hpp"
 
 static HttpResponse responseToValidRequest(const HttpRequest request, const Server server)
 {
-    //TODO: server.rootの部分でエラーが出るため、locations[0].rootに変更
+    // TODO: server.rootの部分でエラーが出るため、locations[0].rootに変更
     const std::string fullPath = server.locations[0].root + request.uri;
     const utils::FileContentResult openedFile = utils::content(fullPath);
     return openedFile.success

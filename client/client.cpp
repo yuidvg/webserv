@@ -7,6 +7,8 @@
 #include <iostream>
 #include <string>
 
+#define TRUE 1
+
 bool is_digits_only(const char* str) {
 	while (*str) {
 		if (!isdigit((unsigned char)*str))

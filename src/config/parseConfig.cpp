@@ -171,7 +171,7 @@ ConfigResult parseConfig(const char *configPath)
         return ConfigResult::Error(tokensResult.error);
     std::vector<std::string> tokens = tokensResult.value;
 
-    std::vector<Server> servers;
+    std::vector<const Server> servers;
 
     while (!tokens.empty())
     {

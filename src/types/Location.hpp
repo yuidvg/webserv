@@ -1,14 +1,7 @@
-#ifndef CONFIG_HPP
-#define CONFIG_HPP
+#ifndef LOCATION_HPP
+#define LOCATION_HPP
 
-#include <iostream>
-#include <map>
-#include <string>
-#include <vector>
-
-#include "../utils/consts.hpp"
-
-std::vector<std::string> initializeAllowedMethods();
+#include "external.hpp"
 
 struct Location
 {
@@ -27,18 +20,6 @@ struct Location
              const size_t clientMaxBodySize, const std::map<int, std::string> errorPages,
              const std::vector<std::string> allowMethods, const std::string cgiExtension, const std::string uploadPath,
              const std::map<int, std::string> redirect);
-};
-
-struct Server
-{
-    const std::string name; // サーバー名
-    const size_t port;
-    const std::map<int, std::string> errorPages;
-    const size_t clientMaxBodySize; // リクエストボディ最大サイズ
-    const std::vector<Location> locations;
-    Server();
-    Server(const std::string name, const size_t port, const std::map<int, std::string> errorPages,
-           const size_t clientMaxBodySize, const std::vector<Location> locations);
 };
 
 #endif

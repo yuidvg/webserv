@@ -1,13 +1,8 @@
 #ifndef HTTPRESPONSE_HPP
 #define HTTPRESPONSE_HPP
 
-#include "../httpRequest/HttpRequest.hpp"
-#include "../utils/utils.hpp"
-
-#include <cstring>
-#include <fstream>
-#include <iostream>
-#include <map>
+#include "Headers.hpp"
+#include "external.hpp"
 
 struct HttpResponse
 {
