@@ -7,9 +7,10 @@ static bool isLineTooLong(const std::string &line)
     return (false);
 }
 
-static bool checkMethod(const std::string &method, const std::string &uri, const Server &server)
+static bool isAllowedMethod(const std::string &method, const std::string &uri, const Server &server)
 {
-    Location matchedLocation = utils::matchedLocation(uri, server.locations);
+    const Location matchedLocation = utils::matchedLocation(uri, server.locations);
+
     for (unsigned int i = 0; i < matchedLocation.allowMethods.size(); i++)
     {
         if (method == matchedLocation.allowMethods[i])
@@ -18,7 +19,7 @@ static bool checkMethod(const std::string &method, const std::string &uri, const
     return (false);
 }
 
-static bool checkRequestLine(RequestLine requestLine, int &errorCode, const Server &server)
+static bool isValidRequestLine(RequestLine requestLine, int &errorCode, const Server &server)
 {
     if (requestLine.uri.find(':') != std::string::npos && requestLine.uri.find('*') != std::string::npos) // CONNECT, OPTIONSは非対応
     {
@@ -26,7 +27,7 @@ static bool checkRequestLine(RequestLine requestLine, int &errorCode, const Serv
         return (false);
     }
 
-    if (!checkMethod(requestLine.method, requestLine.uri, server))
+    if (!isAllowedMethod(requestLine.method, requestLine.uri, server))
     {
         errorCode = BAD_REQUEST;
         return (false);
@@ -39,13 +40,20 @@ static bool checkRequestLine(RequestLine requestLine, int &errorCode, const Serv
     return (true);
 }
 
-static GetRequestLineResult getRequestLine(std::istream &httpRequest)
+static std::string getMessageLine(std::istream &stream)
 {
     std::string line;
-    std::string method, uri, version;
 
-    while (std::getline(httpRequest, line) && line.empty())
+    while (std::getline(stream, line) && line.empty())
         ; // 空行を読み飛ばす
+
+    return (line);
+}
+
+static GetRequestLineResult getRequestLine(std::istream &httpRequest)
+{
+    const std::string line = getMessageLine(httpRequest);
+    std::string method, uri, version;
 
     // 有効なリクエストラインがない場合
     if (line.empty())
@@ -68,14 +76,12 @@ ParseRequestLineResult parseHttpRequestLine(std::istream &httpRequest, const Ser
     if (!getRequestLineResult.success)
         return (ParseRequestLineResult::Error(getRequestLineResult.error));
 
-    RequestLine requestLine = getRequestLineResult.value;
-
     /* エラーチェック */
     int errorCode = SUCCESS;
-    if (!checkRequestLine(requestLine, errorCode, server))
+    if (!isValidRequestLine(getRequestLineResult.value, errorCode, server))
         return (ParseRequestLineResult::Error(errorCode));
 
-    return (ParseRequestLineResult::Success(requestLine));
+    return (ParseRequestLineResult::Success(getRequestLineResult.value));
 }
 
 ParseHeaderResult parseHttpHeaders(std::istream &httpRequest)

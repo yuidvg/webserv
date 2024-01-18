@@ -102,4 +102,12 @@ std::string contentType(const std::string path)
         return "text/plain";
 }
 
+std::string getLine(std::istream &stream)
+{
+    std::string line;
+
+    std::getline(stream, line);
+    return (line);
+}
+
 } // namespace utils
