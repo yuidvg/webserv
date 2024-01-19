@@ -11,7 +11,7 @@ make
 
 **クライアント**
 ```
-./cliennt <port number>
+curl localhost:<port>
 ```
 
 ## 依存関係図
