@@ -11,5 +11,5 @@ make
 
 **クライアント**
 ```
-./cliennt <port number>
+curl localhost:<port>
 ```
