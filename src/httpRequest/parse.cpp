@@ -27,7 +27,7 @@ static bool isLineTooLong(const std::string &line)
     return (false);
 }
 
-static int isValidRequestLine(RequestLine requestLine)
+static int getRequestLineStatusCode(RequestLine requestLine)
 {
     if (requestLine.uri.find(':') != std::string::npos &&
         requestLine.uri.find('*') != std::string::npos) // CONNECT, OPTIONSは非対応
@@ -91,7 +91,7 @@ ParseRequestLineResult parseHttpRequestLine(std::istream &httpRequest)
         return (ParseRequestLineResult::Error(getRequestLineResult.error));
 
     /* エラーチェック */
-    int statusCode = isValidRequestLine(getRequestLineResult.value);
+    int statusCode = getRequestLineStatusCode(getRequestLineResult.value);
 
     return (statusCode != SUCCESS) ? ParseRequestLineResult::Error(statusCode)
                                    : ParseRequestLineResult::Success(getRequestLineResult.value);
