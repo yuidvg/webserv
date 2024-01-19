@@ -27,7 +27,7 @@ static bool isLineTooLong(const std::string &line)
     return (false);
 }
 
-static int isValidRequestLine(RequestLine requestLine)
+static int getRequestLineStatusCode(RequestLine requestLine)
 {
     if (requestLine.uri.find(':') != std::string::npos &&
         requestLine.uri.find('*') != std::string::npos) // CONNECT, OPTIONSは非対応
@@ -50,10 +50,10 @@ static std::string getMessageLine(std::istream &stream)
         {
             if (stream.peek() == '\n')
             {
-                stream.get(); // \nを読み飛ばす
+                stream.get();
                 break;
             }
-            else // \r\nでない場合, \nに置き換える
+            else
                 c = '\n';
         }
         line += c;
@@ -91,7 +91,7 @@ ParseRequestLineResult parseHttpRequestLine(std::istream &httpRequest)
         return (ParseRequestLineResult::Error(getRequestLineResult.error));
 
     /* エラーチェック */
-    int statusCode = isValidRequestLine(getRequestLineResult.value);
+    int statusCode = getRequestLineStatusCode(getRequestLineResult.value);
 
     return (statusCode != SUCCESS) ? ParseRequestLineResult::Error(statusCode)
                                    : ParseRequestLineResult::Success(getRequestLineResult.value);
@@ -117,12 +117,12 @@ ParseHeaderResult parseHttpHeaders(std::istream &httpRequest)
 
         std::getline(headerLine, key, ':');
         std::getline(headerLine, value);
-        utils::trim(value); // valueの前後の空白を削除する
+        utils::trim(value);
 
         if (key.empty() || std::isspace(*(key.end() - 1)) || value.empty())
             return (ParseHeaderResult::Error(BAD_REQUEST));
 
-        headers[utils::lowerCase(key)] = value; // keyを小文字に変換して格納する
+        headers[utils::lowerCase(key)] = value;
     }
     if (!line.empty() || headers.empty())
         return (ParseHeaderResult::Error(BAD_REQUEST));

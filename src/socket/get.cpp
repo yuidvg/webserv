@@ -17,7 +17,6 @@ NewSocketResult getListenSocket(const Server server)
     if (sD < 0)
         return (NewSocketResult::Error("socket() failed"));
 
-    // 同じローカルアドレスとポートを使用しているソケットがあっても、ソケットを再利用できるようにする
     const int on = 1;
     if (setsockopt(sD, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on)) < 0)
     {
@@ -39,8 +38,8 @@ NewSocketResult getListenSocket(const Server server)
     }
     struct sockaddr_in addr;
     addr.sin_family = PF_INET;
-    addr.sin_addr.s_addr = htonl(INADDR_ANY); // IPv4アドレスを指定
-    addr.sin_port = htons(server.port);       // ポート番号を設定
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr.sin_port = htons(server.port);
 
     if (bind(sD, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {

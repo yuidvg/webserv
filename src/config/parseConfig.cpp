@@ -1,7 +1,9 @@
 #include "parseConfig.hpp"
+#include "parseDirective.hpp"
+#include "tokenizeConfig.hpp"
 
 using namespace parseDirective;
-// ロケーションブロックの設定を解析
+
 ParseLocationResult parseLocationContext(std::vector<std::string> &tokens, std::string &locationPath)
 {
     Location location;
@@ -100,7 +102,6 @@ ParseLocationResult parseLocationContext(std::vector<std::string> &tokens, std::
     return ParseLocationResult::Error("Locationブロックで文字列が見つかりませんでした");
 }
 
-// サーバーブロックの設定を解析
 ParseServerResult parseServerContext(std::vector<std::string> &tokens)
 {
     Server server;
@@ -163,7 +164,7 @@ ParseServerResult parseServerContext(std::vector<std::string> &tokens)
         "Serverブロックが正常に終了しませんでした。\nserverブロックの中身が無い or } がありません");
 }
 
-// 設定ファイルを解析するメインの関数
+
 ConfigResult parseConfig(const char *configPath)
 {
     TokensResult tokensResult = tokenize(configPath);

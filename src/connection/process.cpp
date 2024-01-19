@@ -1,5 +1,6 @@
 #include "process.hpp"
 #include "../httpRequest/parse.hpp"
+#include "../httpResponse/build.hpp"
 #include "../socket/all.hpp"
 #include "eventLoop.hpp"
 

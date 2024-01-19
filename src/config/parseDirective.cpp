@@ -1,6 +1,8 @@
 #include "parseDirective.hpp"
+#include "parseConfig.hpp"
 
-using namespace parseDirective;
+namespace parseDirective
+{
 
 StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal)
 {
@@ -25,7 +27,7 @@ StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal)
 }
 
 /*
-    各ディレクティブのパーサー
+    Server directive
 */
 
 ServerResult parseServer(const std::vector<std::string> directiveTokens, std::vector<std::string> &tokens)
@@ -105,19 +107,17 @@ LocationResult parseLocationDirective(const std::vector<std::string> directiveTo
 
     std::string locationPath = directiveTokens[1];
 
-    // ParseLocation 関数を呼び出して location の設定を解析
     ParseLocationResult locationResult = parseLocationContext(tokens, locationPath);
     if (!locationResult.success)
     {
         return LocationResult::Error(locationResult.error);
     }
 
-    // 成功した場合、解析結果を返す
     return LocationResult::Success(locationResult.value);
 }
 
-/*
-Location
+/* 
+location directive
 */
 RootResult parseRootDirective(const std::vector<std::string> directiveTokens)
 {
@@ -147,7 +147,6 @@ IndexResult parseIndexDirective(const std::vector<std::string> directiveTokens)
     return IndexResult::Success(directiveTokens[1]);
 }
 
-// location専用
 AllowMethodsResult parseAllowMethodDirective(const std::vector<std::string> directiveTokens)
 {
     if (directiveTokens.size() > 4 || directiveTokens.size() < 2)
@@ -198,4 +197,6 @@ RedirectResult parseReturnDirective(const std::vector<std::string> directiveToke
     std::map<int, std::string> redirect;
     redirect[statusCodeResult.value] = directiveTokens[2];
     return RedirectResult::Success(redirect);
+}
+
 }
