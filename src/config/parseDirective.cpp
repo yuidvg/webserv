@@ -1,4 +1,5 @@
 #include "parseDirective.hpp"
+#include "parseConfig.hpp"
 
 namespace parseDirective
 {
