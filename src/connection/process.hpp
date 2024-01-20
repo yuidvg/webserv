@@ -3,6 +3,6 @@
 
 #include "../webserv.hpp"
 
-bool processConnection(const Socket &socket); // 接続が確立されたソケットと通信する
+bool processConnection(const Socket &socket);
 
 #endif

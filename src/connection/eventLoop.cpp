@@ -13,7 +13,6 @@ void eventLoop(const Sockets listenSockets)
         if (!readableSocketsResult.success)
         {
             utils::printError(readableSocketsResult.error);
-            // ToDo: close all listenSockets/not.
         }
         Sockets readableSockets = readableSocketsResult.value;
         for (Sockets::iterator readableSocketIt = readableSockets.begin(); readableSocketIt != readableSockets.end();

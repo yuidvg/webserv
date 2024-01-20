@@ -20,5 +20,5 @@ AllowMethodsResult parseAllowMethodDirective(const std::vector<std::string> dire
 CgiExtensionResult parseCgiExecutorDirective(const std::vector<std::string> directiveTokens);
 UploadPathResult parseUploadPathDirective(const std::vector<std::string> directiveTokens);
 RedirectResult parseReturnDirective(const std::vector<std::string> directiveTokens);
-} // namespace parseDirective
+}
 #endif
