@@ -27,11 +27,22 @@ bool processConnection(const Socket &socket)
     const int sentLength = send(socket.descriptor, httpResponseText.c_str(), httpResponseText.length(), 0);
     if (sentLength > 0)
     {
-        return true;
+        const std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 22\r\n\r\n<h1>Hello Webserv</h1>";
+        const int sentLength = send(socket.descriptor, response.c_str(), response.length(), 0);
+        if (sentLength > 0)
+        {
+            return true;
+        }
+        else
+        {
+            utils::printError("send() failed.");
+            return false;
+        }
     }
     else
     {
-        utils::printError("send() failed.");
+        utils::printError(std::string("parseHttpRequest() failed\nstatus code: " +
+                                      utils::to_string((parseHttpRequestResult.error.statusCode))));
         return false;
     }
 }
