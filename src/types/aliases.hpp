@@ -23,6 +23,10 @@ typedef Result<Headers, HttpResponse> ParseHeaderResult;
 typedef Result<std::string, HttpResponse> ParseBodyResult;
 typedef Result<HttpRequest, HttpResponse> ParseRequestResult;
 
+// autoindex
+typedef Result<std::string, std::string> DirectoryListHtmlResult;
+typedef Result<std::string, std::string> GetIndexFilePathResult;
+
 // socket
 typedef std::vector<const Socket> Sockets;
 typedef Result<const Socket, const std::string> NewSocketResult;
