@@ -27,7 +27,7 @@ typedef Result<std::string, HttpResponse> FileContentResult;
 
 FileContentResult content(const std::string path);
 std::string contentType(const std::string path);
-std::string getLine(std::istream &stream);
+char *toChar(std::string str);
 
 // map
 template <typename Key, typename Value> Value value(const std::map<Key, Value> myMap, const Key key)
@@ -88,6 +88,9 @@ template <typename T> std::vector<const T> excluded(const std::vector<const T> h
     return excluded;
 }
 
+std::string rooted(const std::string uri, const Location location);
+std::string indexed(const std::string uri, const Location location);
+std::string concatPath(const std::string pathA, const std::string pathB);
 } // namespace utils
 
 #endif

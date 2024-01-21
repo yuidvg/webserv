@@ -102,12 +102,12 @@ std::string contentType(const std::string path)
         return "text/plain";
 }
 
-std::string getLine(std::istream &stream)
+char *toChar(std::string str)
 {
-    std::string line;
+    char *cstr = new char[str.length() + 1];
 
-    std::getline(stream, line);
-    return (line);
+    std::strcpy(cstr, str.c_str());
+    return (cstr);
 }
 
 } // namespace utils

@@ -8,16 +8,14 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <cstring>
 
+#include <dirent.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
-
-#include <algorithm>
 #include <arpa/inet.h>
-#include <cstring>
 #include <errno.h>
 #include <fcntl.h>
-#include <iostream>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,5 +23,6 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <dirent.h>
 
 #endif
