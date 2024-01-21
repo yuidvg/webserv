@@ -21,8 +21,8 @@ template <typename T> std::string toString(const T value)
 }
 
 // fd set
-fd_set fdSetFrom(const Sockets sockets);
-Sockets socketsIn(const fd_set fdSet, const Sockets sockets);
+fd_set fdSetFrom(const Sds sds);
+Sds sdsIn(const fd_set fdSet, const Sds sds);
 
 typedef Result<std::string, HttpResponse> FileContentResult;
 
@@ -89,12 +89,26 @@ template <typename T> std::vector<const T> excluded(const std::vector<const T> h
     return excluded;
 }
 
-std::string rooted(const std::string uri, const Location location);
-std::string indexed(const std::string uri, const Location location);
+std::string root(const std::string uri, const Location location);
+std::string index(const std::string uri, const Location location);
 std::string concatPath(const std::string pathA, const std::string pathB);
 
 // stat
 IsDirectoryResult isDirectory(const std::string path);
+
+// number
+template <typename T> unsigned int max(const std::vector<T> list)
+{
+    unsigned int maxSd = 0;
+    for (size_t i = 0; i < list.size(); ++i)
+    {
+        if (static_cast<int>(list[i]) > static_cast<int>(maxSd))
+        {
+            maxSd = list[i];
+        }
+    }
+    return maxSd;
+}
 
 } // namespace utils
 

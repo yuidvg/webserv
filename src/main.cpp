@@ -20,13 +20,13 @@ int main(int argc, char **argv)
     }
     const Servers servers = configResult.value;
 
-    CreatedSocketsResult createdSocketsResult = getListenSockets(servers);
-    if (!createdSocketsResult.success)
+    GetListenSdsResult createdSdsResult = getListenSds(servers);
+    if (!createdSdsResult.success)
     {
-        utils::printError(createdSocketsResult.error);
+        utils::printError(createdSdsResult.error);
         return 1;
     }
-    eventLoop(createdSocketsResult.value);
+    eventLoop(createdSdsResult.value);
 }
 
 __attribute__((destructor)) static void destructor(void)

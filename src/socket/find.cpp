@@ -1,26 +1,13 @@
 #include "all.hpp"
 
-unsigned int getMaxSd(const Sockets listenSockets)
+ReadableSdsResult readableSds(const Sds sds)
 {
-    unsigned int maxSd = 0;
-    for (size_t i = 0; i < listenSockets.size(); ++i)
-    {
-        if (listenSockets[i].descriptor > static_cast<int>(maxSd))
-        {
-            maxSd = listenSockets[i].descriptor;
-        }
-    }
-    return maxSd;
-}
-
-ReadableSocketsResult readableSockets(const Sockets sockets)
-{
-    fd_set readableSocketSet = utils::fdSetFrom(sockets);
+    fd_set readableSdSet = utils::fdSetFrom(sds);
     std::cout << "Waiting for select()..." << std::endl;
-    const int numOfReadableSDs = select(getMaxSd(sockets) + 1, &readableSocketSet, NULL, NULL, NULL);
-    if (numOfReadableSDs < 0)
-        return ReadableSocketsResult::Error("select() failed: " + std::string(strerror(errno)));
-    else if (numOfReadableSDs == 0)
-        return ReadableSocketsResult::Error("select() timed out. End program.");
-    return ReadableSocketsResult::Success(utils::socketsIn(readableSocketSet, sockets));
+    const int numOfReadableSds = select(utils::max(sds) + 1, &readableSdSet, NULL, NULL, NULL);
+    if (numOfReadableSds < 0)
+        return ReadableSdsResult::Error("select() failed: " + std::string(strerror(errno)));
+    else if (numOfReadableSds == 0)
+        return ReadableSdsResult::Error("select() timed out. End program.");
+    return ReadableSdsResult::Success(utils::sdsIn(readableSdSet, sds));
 }
