@@ -13,7 +13,7 @@ static HttpResponse responseToValidRequest(const HttpRequest request, const Serv
         {
             if (location.autoindex)
             {
-                const DirectoryListHtmlResult directoryListHtmlResult = utils::directoryListHtml(indexedPath);
+                const DirectoryListHtmlResult directoryListHtmlResult = directoryListHtml(indexedPath);
                 return directoryListHtmlResult.success
                            ? HttpResponse(SUCCESS,
                                           Headers(utils::contentType(".html"),
