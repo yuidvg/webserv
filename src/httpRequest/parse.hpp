@@ -3,12 +3,10 @@
 
 #include "../webserv.hpp"
 
-typedef Result<RequestLine, int> GetRequestLineResult;
-
-typedef Result<RequestLine, HttpResponse> ParseRequestLineResult;
+ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Servers &servers, const Socket &socket);
 ParseRequestLineResult parseHttpRequestLine(std::istream &httpRequest);
 ParseHeaderResult parseHttpHeaders(std::istream &httpRequest);
-ParseBodyResult parseHttpBody(std::istream &httpRequest, std::map<std::string, std::string> &headers);
-ParseRequestResult parseHttpRequest(std::istream &httpRequest);
+ParseBodyResult parseHttpBody(std::istream &httpRequest, const Headers &headers,
+                              const Server &server);
 
 #endif

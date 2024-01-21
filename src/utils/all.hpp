@@ -91,6 +91,10 @@ template <typename T> std::vector<const T> excluded(const std::vector<const T> h
 std::string rooted(const std::string uri, const Location location);
 std::string indexed(const std::string uri, const Location location);
 std::string concatPath(const std::string pathA, const std::string pathB);
+
+// server
+Server matchedServer(const std::string host, const Servers servers, const Socket socket);
+
 } // namespace utils
 
 #endif

@@ -18,6 +18,7 @@ struct RequestLine
     std::string uri;
     std::string version;
 };
+typedef Result<RequestLine, int> GetRequestLineResult;
 typedef Result<RequestLine, HttpResponse> ParseRequestLineResult;
 typedef Result<Headers, HttpResponse> ParseHeaderResult;
 typedef Result<std::string, HttpResponse> ParseBodyResult;
