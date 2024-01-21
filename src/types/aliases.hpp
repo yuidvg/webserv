@@ -24,7 +24,7 @@ typedef Result<std::string, HttpResponse> ParseBodyResult;
 typedef Result<HttpRequest, HttpResponse> ParseRequestResult;
 
 // autoindex
-typedef Result<std::string, std::string> DirectoryListHtmlResult;
+typedef Result<std::string, HttpResponse> DirectoryListHtmlResult;
 typedef Result<std::string, std::string> GetIndexFilePathResult;
 
 // socket

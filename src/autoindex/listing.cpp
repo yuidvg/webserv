@@ -33,38 +33,10 @@ DirectoryListHtmlResult directoryListHtml(const std::string& path)
     std::vector<std::string> files = readDirectory(path);
 
     if (files.empty())
-        return DirectoryListHtmlResult::Error("<html><body><p>Directory not found.</p></body></html>");
+    {
+        std::string body = "<html><body><p>Directory not found.</p></body></html>";
+        return DirectoryListHtmlResult::Error(HttpResponse(400, Headers(utils::contentType(path), utils::toString(body.length()), body)));
+    }
 
     return DirectoryListHtmlResult::Success(createHtmlList(files, path));
 }
-
-
-GetIndexFilePathResult getIndexFilePath(const std::string& directoryPath, const std::string& indexFileName)
-{
-    std::string indexPath = directoryPath + "/" + indexFileName;
-    std::ifstream file(utils::toChar(indexPath));
-    if (file.good())
-        return GetIndexFilePathResult::Success(indexPath);
-
-    return GetIndexFilePathResult::Error("index file not found");
-}
-
-std::string getContentForRequest(const std::string& path, const Location &location)
-{
-    GetIndexFilePathResult indexFilePath = getIndexFilePath(path, location.index);
-
-    if (indexFilePath.success)
-    {
-        return indexFilePath.value;
-    }
-    if (location.autoindex)
-    {
-        DirectoryListHtmlResult html = directoryListHtml(path);
-        if (html.success)
-        {
-            return html.value;
-        }
-    }
-    return "400 BAD REQUEST"; // カスタムエラーページに置き換えることが可能
-}
-
