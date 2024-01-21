@@ -88,6 +88,9 @@ template <typename T> std::vector<const T> excluded(const std::vector<const T> h
     return excluded;
 }
 
+std::string rooted(const std::string uri, const Location location);
+std::string indexed(const std::string uri, const Location location);
+std::string concatPath(const std::string pathA, const std::string pathB);
 } // namespace utils
 
 #endif
