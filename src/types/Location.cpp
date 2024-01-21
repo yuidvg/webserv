@@ -20,7 +20,7 @@ static std::vector<std::string> initializeAllowedMethods()
 }
 
 Location::Location()
-    : path(""), root(""), autoindex(false), index("index.html"), clientMaxBodySize(1048576),
+    : path(""), root(""), autoindex(false), index(""), clientMaxBodySize(1048576),
       errorPages(std::map<int, std::string>()), allowMethods(std::vector<std::string>(initializeAllowedMethods())),
       cgiExtension(""), uploadPath(""), redirect(std::map<int, std::string>())
 {
