@@ -2,12 +2,14 @@
 
 static HttpResponse responseToValidRequest(const HttpRequest request, const Server server)
 {
-    const std::string fullPath = server.locations[0].root + request.uri;
-    const utils::FileContentResult openedFile = utils::content(fullPath);
-    return openedFile.success
+    const Location location = utils::matchedLocation(request.uri, server.locations);
+    const std::string rootedPath = utils::rooted(request.uri, location);
+    const std::string indexedPath = utils::indexed(rootedPath, location);
+    const utils::FileContentResult fileContentResult = utils::content(rootedPath);
+    return fileContentResult.success
                ? HttpResponse(SUCCESS,
-                              Headers(utils::contentType(fullPath), utils::toString(openedFile.value.length())),
-                              openedFile.value)
+                              Headers(utils::contentType(rootedPath), utils::toString(fileContentResult.value.length())),
+                              fileContentResult.value)
                : HttpResponse(BAD_REQUEST, Headers(), "");
 }
 
