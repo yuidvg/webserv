@@ -5,9 +5,9 @@ namespace utils
 IsDirectoryResult isDirectory(const std::string path)
 {
     struct stat statbuf;
-    if (stat(path.c_str(), &statbuf) != 0)
+    if (stat(utils::toChar(path), &statbuf) != 0)
     {
-        return IsDirectoryResult::Error(HttpResponse(BAD_REQUEST, Headers(), ""));
+        return IsDirectoryResult::Error(BAD_REQUEST_RESPONSE);
     }
     return IsDirectoryResult::Success(S_ISDIR(statbuf.st_mode));
 }
