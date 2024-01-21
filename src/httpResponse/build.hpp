@@ -4,6 +4,6 @@
 
 HttpResponse response(const ParseRequestResult requestResult, const Server server);
 std::string responseText(const HttpResponse response);
-std::string directoryListHtml(const std::string path);
+Result<std::string, HttpResponse> directoryListHtml(const std::string path);
 
 #endif
