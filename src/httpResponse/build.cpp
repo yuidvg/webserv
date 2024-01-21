@@ -1,4 +1,5 @@
 #include "build.hpp"
+#include "../autoindex/all.hpp"
 
 static HttpResponse responseToValidRequest(const HttpRequest request, const Server server)
 {
@@ -19,11 +20,11 @@ static HttpResponse responseToValidRequest(const HttpRequest request, const Serv
                                           Headers(utils::contentType(".html"),
                                                   utils::toString(directoryListHtmlResult.value.length())),
                                           directoryListHtmlResult.value)
-                           : HttpResponse(BAD_REQUEST, Headers(), "");
+                           : BAD_REQUEST_RESPONSE;
             }
             else
             {
-                return HttpResponse(BAD_REQUEST, Headers(), "");
+                return BAD_REQUEST_RESPONSE;
             }
         }
         else // when indexedPath is assumed to be a file.
@@ -33,7 +34,7 @@ static HttpResponse responseToValidRequest(const HttpRequest request, const Serv
                                                             Headers(utils::contentType(indexedPath),
                                                                     utils::toString(fileContentResult.value.length())),
                                                             fileContentResult.value)
-                                             : HttpResponse(BAD_REQUEST, Headers(), "");
+                                             : BAD_REQUEST_RESPONSE;
         }
     }
     else
