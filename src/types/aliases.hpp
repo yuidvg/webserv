@@ -18,25 +18,29 @@ struct RequestLine
     std::string uri;
     std::string version;
 };
-typedef Result<RequestLine, int> GetRequestLineResult;
-typedef Result<RequestLine, HttpResponse> ParseRequestLineResult;
-typedef Result<Headers, HttpResponse> ParseHeaderResult;
-typedef Result<std::string, HttpResponse> ParseBodyResult;
-typedef Result<HttpRequest, HttpResponse> ParseRequestResult;
+typedef Result<const RequestLine, const HttpResponse> ParseRequestLineResult;
+typedef Result<const Headers, const HttpResponse> ParseHeaderResult;
+typedef Result<const std::string, const HttpResponse> ParseBodyResult;
+typedef Result<const HttpRequest, const HttpResponse> ParseRequestResult;
 
 // autoindex
-typedef Result<std::string, HttpResponse> DirectoryListHtmlResult;
-typedef Result<std::string, std::string> GetIndexFilePathResult;
+typedef Result<const std::string, const HttpResponse> DirectoryListHtmlResult;
+typedef Result<const std::string, const std::string> GetIndexFilePathResult;
 
 // socket
-typedef std::vector<const Socket> Sockets;
-typedef Result<const Socket, const std::string> NewSocketResult;
-typedef Result<Sockets, std::string> CreatedSocketsResult;
-typedef Result<Sockets, std::string> ReadableSocketsResult;
+typedef unsigned int Sd;
+typedef std::vector<const Sd> Sds;
+typedef Result<const Sd, const std::string> NewListenSdResult;
+typedef Result<Sds, std::string> GetListenSdsResult;
+typedef Result<Sds, std::string> ReadableSdsResult;
+
+typedef Result<const unsigned int, const HttpResponse> PortNumberResult;
+
+typedef Result<const Server, const HttpResponse> MatchedServerResult;
 
 namespace cgi
 {
-typedef Result<std::string, std::string> ResponseResult;
+typedef Result<const std::string, const HttpResponse> ResponseResult;
 } // namespace cgi
 
 namespace parseDirective

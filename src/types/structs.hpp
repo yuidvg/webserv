@@ -7,6 +7,5 @@
 #include "Location.hpp"
 #include "Result.hpp"
 #include "Server.hpp"
-#include "Socket.hpp"
 
 #endif

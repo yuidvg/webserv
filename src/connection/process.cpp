@@ -4,10 +4,10 @@
 #include "../socket/all.hpp"
 #include "eventLoop.hpp"
 
-bool processConnection(const Socket &socket)
+bool processConnection(const Sd &sd)
 {
     char buffer[500000];
-    const int receivedLength = recv(socket.descriptor, buffer, sizeof(buffer) - 1, 0);
+    const int receivedLength = recv(sd, buffer, sizeof(buffer) - 1, 0);
     if (receivedLength < 0)
     {
         utils::printError(std::string("recv() failed: " + std::string(strerror(errno))));
@@ -22,9 +22,9 @@ bool processConnection(const Socket &socket)
 
     std::istringstream buf(buffer);
     const ParseRequestResult parseHttpRequestResult = parseHttpRequest(buf);
-    const HttpResponse httpResponse = response(parseHttpRequestResult, socket.server);
+    const HttpResponse httpResponse = response(parseHttpRequestResult, sd);
     const std::string httpResponseText = responseText(httpResponse);
-    const int sentLength = send(socket.descriptor, utils::toChar(httpResponseText), httpResponseText.length(), 0);
+    const int sentLength = send(sd, utils::toChar(httpResponseText), httpResponseText.length(), 0);
     if (sentLength > 0)
     {
         return true;
