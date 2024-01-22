@@ -55,4 +55,6 @@ const HttpResponse SERVER_ERROR_RESPONSE =
                  "Error</h1> <p>The server encountered an internal error or misconfiguration and was unable to "
                  "complete your request.<br /></p> </body> </html>");
 
+const HttpResponse SUCCESS_RESPONSE = HttpResponse(SUCCESS, Headers(), "");
+
 #endif
