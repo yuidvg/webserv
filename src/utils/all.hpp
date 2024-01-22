@@ -94,9 +94,6 @@ std::string root(const std::string uri, const Location location);
 std::string index(const std::string uri, const Location location);
 std::string concatPath(const std::string pathA, const std::string pathB);
 
-// server
-Server matchedServer(const std::string host, const Servers servers, const Socket socket);
-
 // number
 template <typename T> unsigned int max(const std::vector<T> list)
 {
@@ -113,6 +110,7 @@ template <typename T> unsigned int max(const std::vector<T> list)
 
 // host name
 std::string host(const std::string &uri);
+IsDirectoryResult isDirectory(const std::string &path);
 } // namespace utils
 
 #endif

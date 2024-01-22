@@ -1,7 +1,9 @@
 #include "build.hpp"
 #include "../autoindex/all.hpp"
 
-static HttpResponse responseToValidRequest(const HttpRequest request, const Server server)
+namespace
+{
+HttpResponse responseToValidRequest(const HttpRequest &request, const Server &server)
 {
     const Location location = utils::matchedLocation(request.uri, server.locations);
     const std::string rootedPath = utils::root(request.uri, location);
@@ -42,8 +44,9 @@ static HttpResponse responseToValidRequest(const HttpRequest request, const Serv
         return isDirectoryResult.error;
     }
 }
+} // namespace
 
-HttpResponse response(const ParseRequestResult requestResult, const Sd sd, const Servers servers)
+HttpResponse response(const ParseRequestResult &requestResult, const Sd &sd, const Servers &servers)
 {
     if (requestResult.success)
     {
@@ -64,7 +67,7 @@ HttpResponse response(const ParseRequestResult requestResult, const Sd sd, const
     }
 }
 
-std::string responseText(const HttpResponse response)
+std::string responseText(const HttpResponse &response)
 {
     std::string text = SERVER_PROTOCOL + " " + std::to_string(response.statusCode) + CRLF;
     for (std::map<std::string, std::string>::const_iterator it = response.headers.begin(); it != response.headers.end();

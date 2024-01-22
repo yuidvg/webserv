@@ -4,7 +4,7 @@
 #include "../socket/all.hpp"
 #include "eventLoop.hpp"
 
-bool processConnection(const Sd &sd, const Servers servers)
+bool processConnection(const Sd &sd, const Servers &servers)
 {
     char buffer[500000];
     const int receivedLength = recv(sd, buffer, sizeof(buffer) - 1, 0);
@@ -21,7 +21,7 @@ bool processConnection(const Sd &sd, const Servers servers)
     std::cout << "Received \n" << receivedLength << " bytes: " << buffer << std::endl;
 
     std::istringstream buf(buffer);
-    const ParseRequestResult parseHttpRequestResult = parseHttpRequest(buf);
+    const ParseRequestResult parseHttpRequestResult = parseHttpRequest(buf, servers, sd);
     const HttpResponse httpResponse = response(parseHttpRequestResult, sd, servers);
     const std::string httpResponseText = responseText(httpResponse);
     const int sentLength = send(sd, utils::toChar(httpResponseText), httpResponseText.length(), 0);

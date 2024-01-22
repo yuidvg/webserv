@@ -2,7 +2,7 @@
 
 namespace utils
 {
-IsDirectoryResult isDirectory(const std::string path)
+IsDirectoryResult isDirectory(const std::string &path)
 {
     struct stat statbuf;
     if (stat(utils::toChar(path), &statbuf) != 0)

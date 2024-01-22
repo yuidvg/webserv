@@ -3,6 +3,6 @@
 
 #include "../webserv.hpp"
 
-bool processConnection(const Sd &socket, const Servers servers);
+bool processConnection(const Sd &socket, const Servers &servers);
 
 #endif

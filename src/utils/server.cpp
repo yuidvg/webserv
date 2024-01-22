@@ -42,14 +42,21 @@ MatchedServerResult matchedServer(const std::string uri, const Servers servers, 
     {
         const unsigned int port = portNumberResult.value;
         const Servers serversWithPort = filter(servers, port);
-        const Servers serversWithPortAndName = filter(serversWithPort, uri);
-        if (serversWithPortAndName.size() > 0)
+        if (serversWithPort.size() > 0)
         {
-            return MatchedServerResult::Success(serversWithPortAndName[0]);
+            const Servers serversWithPortAndName = filter(serversWithPort, uri);
+            if (serversWithPortAndName.size() > 0)
+            {
+                return MatchedServerResult::Success(serversWithPortAndName[0]);
+            }
+            else
+            {
+                return MatchedServerResult::Success(serversWithPort[0]);
+            }
         }
         else
         {
-            return MatchedServerResult::Error(SERVER_ERROR_RESPONSE);
+            return MatchedServerResult::Error(BAD_REQUEST_RESPONSE);
         }
     }
     else
