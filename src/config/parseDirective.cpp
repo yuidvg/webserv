@@ -1,7 +1,7 @@
-#include "parseDirective.hpp"
 #include "parseConfig.hpp"
+#include "parseDirective.hpp"
 
-namespace parseDirective
+namespace parseConfig
 {
 
 StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal)
@@ -44,14 +44,14 @@ ServerResult parseServer(const std::vector<std::string> directiveTokens, std::ve
     return ServerResult::Success(serverRes.value);
 }
 
-parseDirective::NameResult parseServerName(const std::vector<std::string> directiveTokens)
+NameResult parseServerName(const std::vector<std::string> directiveTokens)
 {
     if (directiveTokens.size() != 2)
         return NameResult::Error("Config: server_nameの引数が多いです");
     return NameResult::Success(directiveTokens[1]);
 }
 
-parseDirective::PortResult parseListen(const std::vector<std::string> directiveTokens)
+PortResult parseListen(const std::vector<std::string> directiveTokens)
 {
 
     if (directiveTokens.size() != 2)
