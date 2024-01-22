@@ -93,8 +93,8 @@ std::string rooted(const std::string uri, const Location location);
 std::string indexed(const std::string uri, const Location location);
 std::string concatPath(const std::string pathA, const std::string pathB);
 
-// stat
-IsDirectoryResult isDirectory(const std::string path);
+// server
+Server matchedServer(const std::string host, const Servers servers, const Socket socket);
 
 } // namespace utils
 
