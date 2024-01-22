@@ -2,7 +2,8 @@
 #include "parseDirective.hpp"
 #include "tokenizeConfig.hpp"
 
-using namespace parseDirective;
+namespace parseConfig
+{
 
 ParseLocationResult parseLocationContext(std::vector<std::string> &tokens, std::string &locationPath)
 {
@@ -194,4 +195,5 @@ ConfigResult parseConfig(const char *configPath)
         }
     }
     return ConfigResult::Success(servers);
+}
 }

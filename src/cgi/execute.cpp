@@ -49,17 +49,16 @@ ResponseResult execute(const HttpRequest request, const Server server)
     if (pipe(pipefds) == -1)
     {
         std::cerr << "pipe failed" << std::endl;
-        return ResponseResult::Error("Status: 500\n\n");
+        return ResponseResult::Error(SERVER_ERROR_RESPONSE);
     }
     const pid_t pid = fork();
     if (pid == -1)
-        return ResponseResult::Error("Status: 500\n\n");
+        return ResponseResult::Error(SERVER_ERROR_RESPONSE);
     else if (pid == 0) // child process
     {
         close(pipefds[IN]);
         execve(utils::toChar(request.uri), NULL, enviromentVariables(request, server));
         std::cerr << "execve failed" << std::endl;
-        write(STDOUT_FILENO, "Status: 500\n\n", 13);
     }
     else // parent process
     {
@@ -68,11 +67,11 @@ ResponseResult execute(const HttpRequest request, const Server server)
         int status;
         waitpid(pid, &status, 0);
         if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
-            return ResponseResult::Error("Status: 200\n\n");
+            return ResponseResult::Error(SERVER_ERROR_RESPONSE);
         else
-            return ResponseResult::Error("Status: 500\n\n");
+            return ResponseResult::Error(SERVER_ERROR_RESPONSE);
     }
-    return ResponseResult::Success("Status: 500\n\n");
+    return ResponseResult::Success(SUCCESS_RESPONSE);
 }
 
 } // namespace cgi

@@ -4,12 +4,14 @@
 #include "../webserv.hpp"
 
 // get
-NewSocketResult getListenSocket(const Server server);
-CreatedSocketsResult getListenSockets(Servers servers);
-NewSocketResult newConnectedSocket(const Socket listenSocket);
+NewListenSdResult getListenSd(const Server server);
+GetListenSdsResult getListenSds(const Servers servers);
+NewListenSdResult newConnectedSd(const Sd listenSd);
 
 // find
-unsigned int getMaxSd(const Sockets socketsIn, const std::map<int, Socket> &connSocks);
-ReadableSocketsResult readableSockets(const Sockets sockets);
+ReadableSdsResult readableSds(const Sds sds);
+
+// stats
+PortNumberResult portNumber(const Sd sd);
 
 #endif
