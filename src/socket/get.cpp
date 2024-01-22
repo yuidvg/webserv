@@ -1,75 +1,71 @@
 #include "all.hpp"
 
-NewSocketResult newConnectedSocket(const Socket listenSocket)
+NewListenSdResult newConnectedSd(const Sd listenSd)
 {
-    const int newSd = accept(listenSocket.descriptor, NULL, NULL);
+    const int newSd = accept(static_cast<int>(listenSd), NULL, NULL);
     if (newSd < 0)
     {
-        return NewSocketResult::Error("accept() failed: " + std::string(strerror(errno)));
+        return NewListenSdResult::Error("accept() failed: " + std::string(strerror(errno)));
     }
     std::cout << "New conected socket: " << newSd << std::endl;
-    return NewSocketResult::Success(Socket(newSd, listenSocket.server));
+    return NewListenSdResult::Success(newSd);
 }
 
-NewSocketResult getListenSocket(const Server server)
+NewListenSdResult getListenSd(const Server server)
 {
-    const int sD = socket(PF_INET, SOCK_STREAM, 0);
-    if (sD < 0)
-        return (NewSocketResult::Error("socket() failed"));
+    const int sd = socket(PF_INET, SOCK_STREAM, 0);
+    if (sd < 0)
+        return (NewListenSdResult::Error("socket() failed"));
 
     const int on = 1;
-    if (setsockopt(sD, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on)) < 0)
+    if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on)) < 0)
     {
-        close(sD);
-        return (NewSocketResult::Error("setsockopt() failed"));
+        close(sd);
+        return (NewListenSdResult::Error("setsockopt() failed"));
     }
 
-    const int socketFlags = fcntl(sD, F_GETFL, 0);
-    if (socketFlags < 0)
+    const int nonblockSocketFlags = O_NONBLOCK;
+    if (fcntl(sd, F_SETFL, nonblockSocketFlags) < 0)
     {
-        close(sD);
-        return (NewSocketResult::Error("fcntl() failed"));
+        close(sd);
+        return (NewListenSdResult::Error("fcntl() failed to set non-blocking"));
     }
-    const int nonblockSocketFlags = socketFlags | O_NONBLOCK;
-    if (fcntl(sD, F_SETFL, nonblockSocketFlags) < 0)
-    {
-        close(sD);
-        return (NewSocketResult::Error("fcntl() failed to set non-blocking"));
-    }
+
     struct sockaddr_in addr;
     addr.sin_family = PF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
     addr.sin_port = htons(server.port);
 
-    if (bind(sD, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+    if (bind(sd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
-        close(sD);
-        return (NewSocketResult::Error("bind() failed: "));
-        // return (NewSocketResult::Error(std::string("bind() failed: " + std::string(strerror(errno)) +
+        close(sd);
+        return (NewListenSdResult::Error("bind() failed: "));
+        // return (NewListenSdResult::Error(std::string("bind() failed: " + std::string(strerror(errno)) +
         //                                               "\nポート番号" + utils::to_string(server.port))));
     }
-    if (listen(sD, 5) < 0)
+
+    if (listen(sd, 5) < 0)
     {
-        close(sD);
-        return (NewSocketResult::Error("listen() failed"));
+        close(sd);
+        return (NewListenSdResult::Error("listen() failed"));
     }
-    return NewSocketResult::Success(Socket(sD, server));
+    return NewListenSdResult::Success(sd);
 }
 
-CreatedSocketsResult getListenSockets(Servers servers)
+GetListenSdsResult getListenSds(Servers servers)
 {
-    Sockets sockets;
+    Sds sds;
     for (Servers::iterator serverIt = servers.begin(); serverIt != servers.end(); serverIt++)
     {
-        NewSocketResult newSocketResult = getListenSocket(*serverIt);
-        if (newSocketResult.success)
+        NewListenSdResult newSdResult = getListenSd(*serverIt);
+        if (newSdResult.success)
         {
-            sockets.push_back(newSocketResult.value);
+            sds.push_back(newSdResult.value);
         }
         else
         {
-            return CreatedSocketsResult::Error(newSocketResult.error);
+            return GetListenSdsResult::Error(newSdResult.error);
         }
     }
-    return CreatedSocketsResult::Success(sockets);
+    return GetListenSdsResult::Success(sds);
 }

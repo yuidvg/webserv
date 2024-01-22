@@ -49,4 +49,12 @@ const HttpResponse BAD_REQUEST_RESPONSE =
                  " <html> <head> <title>400 Bad Request</title> </head> <body> <h1>400 Bad Request</h1> <p>Your "
                  "browser sent a request that this server could not understand.<br /></p> </body> </html>");
 
+const HttpResponse SERVER_ERROR_RESPONSE =
+    HttpResponse(SERVER_ERROR, Headers(),
+                 " <html> <head> <title>500 Internal Server Error</title> </head> <body> <h1>500 Internal Server "
+                 "Error</h1> <p>The server encountered an internal error or misconfiguration and was unable to "
+                 "complete your request.<br /></p> </body> </html>");
+
+const HttpResponse SUCCESS_RESPONSE = HttpResponse(SUCCESS, Headers(), "");
+
 #endif

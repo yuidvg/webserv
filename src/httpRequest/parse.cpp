@@ -1,24 +1,27 @@
 #include "parse.hpp"
 
-ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Servers &servers, const Socket &socket)
+ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Servers &servers, const Sd &sd)
 {
     ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(httpRequest);
     if (!parseRequestLineResult.success)
         return ParseRequestResult::Error(HttpResponse(parseRequestLineResult.error));
 
-    Server server = utils::matchedServer(parseRequestLineResult.value.uri, servers, socket);
+    const MatchedServerResult matchedServerResult = utils::matchedServer(parseRequestLineResult.value.uri, servers, sd);
+    if (!matchedServerResult.success)
+        return ParseRequestResult::Error(HttpResponse(matchedServerResult.error));
+    const Server server = matchedServerResult.value;
 
-    ParseHeaderResult headersResult = parseHttpHeaders(httpRequest);
+    const ParseHeaderResult headersResult = parseHttpHeaders(httpRequest);
     if (!headersResult.success)
         return ParseRequestResult::Error(HttpResponse(headersResult.error));
 
-    Headers headers = headersResult.value;
-    ParseBodyResult body = parseHttpBody(httpRequest, headers, server);
+    const Headers headers = headersResult.value;
+    const ParseBodyResult body = parseHttpBody(httpRequest, headers, server);
     if (!body.success)
         return ParseRequestResult::Error(HttpResponse(body.error));
 
-    RequestLine requestLine = parseRequestLineResult.value;
-    HttpRequest result(requestLine.method, requestLine.uri, requestLine.version, headers, body.value);
+    const RequestLine requestLine = parseRequestLineResult.value;
+    const HttpRequest result(requestLine.method, requestLine.uri, requestLine.version, headers, body.value);
     return ParseRequestResult::Success(result);
 }
 
@@ -29,7 +32,7 @@ static bool isLineTooLong(const std::string &line)
     return false;
 }
 
-static int getRequestLineStatusCode(RequestLine requestLine)
+static int getRequestLineStatusCode(const RequestLine requestLine)
 {
     if (requestLine.uri.find(':') != std::string::npos &&
         requestLine.uri.find('*') != std::string::npos) // CONNECT, OPTIONSは非対応
@@ -155,6 +158,7 @@ ParseBodyResult parseChunkedBody(std::istream &httpRequest, const Headers &heade
 {
     std::string line;
 
+    (void)server;
     std::map<std::string, std::string>::const_iterator it = headers.find("transfer-encoding");
     if (it->second != "chunked")
         return ParseBodyResult::Error(HttpResponse(BAD_REQUEST));

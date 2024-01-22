@@ -2,28 +2,28 @@
 
 namespace utils
 {
-fd_set fdSetFrom(const Sockets sockets)
+fd_set fdSetFrom(const Sds sds)
 {
     fd_set fdSet;
     FD_ZERO(&fdSet);
-    for (size_t i = 0; i < sockets.size(); ++i)
+    for (size_t i = 0; i < sds.size(); ++i)
     {
-        FD_SET(sockets[i].descriptor, &fdSet);
+        FD_SET(sds[i], &fdSet);
     }
     return fdSet;
 }
 
-Sockets socketsIn(const fd_set fdSet, const Sockets sockets)
+Sds sdsIn(const fd_set fdSet, const Sds sds)
 {
-    Sockets socketsFdSet;
-    for (size_t i = 0; i < sockets.size(); ++i)
+    Sds sdsInFdSet;
+    for (size_t i = 0; i < sds.size(); ++i)
     {
-        if (FD_ISSET(sockets[i].descriptor, &fdSet))
+        if (FD_ISSET(sds[i], &fdSet))
         {
-            socketsFdSet.push_back(sockets[i]);
+            sdsInFdSet.push_back(sds[i]);
         }
     }
-    return socketsFdSet;
+    return sdsInFdSet;
 }
 
 } // namespace utils

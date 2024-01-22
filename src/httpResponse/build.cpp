@@ -1,11 +1,13 @@
 #include "build.hpp"
 #include "../autoindex/all.hpp"
 
-static HttpResponse responseToValidRequest(const HttpRequest request, const Server server)
+namespace
+{
+HttpResponse responseToValidRequest(const HttpRequest &request, const Server &server)
 {
     const Location location = utils::matchedLocation(request.uri, server.locations);
-    const std::string rootedPath = utils::rooted(request.uri, location);
-    const std::string indexedPath = utils::indexed(rootedPath, location);
+    const std::string rootedPath = utils::root(request.uri, location);
+    const std::string indexedPath = utils::index(rootedPath, location);
     const IsDirectoryResult isDirectoryResult = utils::isDirectory(indexedPath);
     if (isDirectoryResult.success)
     {
@@ -42,13 +44,30 @@ static HttpResponse responseToValidRequest(const HttpRequest request, const Serv
         return isDirectoryResult.error;
     }
 }
+} // namespace
 
-HttpResponse response(const ParseRequestResult requestResult, const Server server)
+HttpResponse response(const ParseRequestResult &requestResult, const Sd &sd, const Servers &servers)
 {
-    return requestResult.success ? responseToValidRequest(requestResult.value, server) : requestResult.error;
+    if (requestResult.success)
+    {
+        const MatchedServerResult serverResult = utils::matchedServer(requestResult.value.uri, servers, sd);
+        if (serverResult.success)
+        {
+            const Server server = serverResult.value;
+            return responseToValidRequest(requestResult.value, server);
+        }
+        else
+        {
+            return serverResult.error;
+        }
+    }
+    else
+    {
+        return requestResult.error;
+    }
 }
 
-std::string responseText(const HttpResponse response)
+std::string responseText(const HttpResponse &response)
 {
     std::string text = SERVER_PROTOCOL + " " + std::to_string(response.statusCode) + CRLF;
     for (std::map<std::string, std::string>::const_iterator it = response.headers.begin(); it != response.headers.end();

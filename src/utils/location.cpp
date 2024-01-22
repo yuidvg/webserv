@@ -15,12 +15,12 @@ Location matchedLocation(const std::string uri, const std::vector<Location> rout
     return routes[matchedIndex];
 }
 
-std::string rooted(const std::string uri, const Location location)
+std::string root(const std::string uri, const Location location)
 {
     return location.root + uri.substr(location.path.length());
 }
 
-std::string indexed(const std::string path, const Location location)
+std::string index(const std::string path, const Location location)
 {
     return concatPath(path, location.index);
 }

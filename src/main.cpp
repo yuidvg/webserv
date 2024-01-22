@@ -12,7 +12,7 @@ int main(int argc, char **argv)
     }
     const std::string configPath = argc == 2 ? argv[1] : "config/default.conf";
 
-    ConfigResult configResult = parseConfig(utils::toChar(configPath));
+    ConfigResult configResult = parseConfig::parseConfig(utils::toChar(configPath));
     if (!configResult.success)
     {
         utils::printError(configResult.error);
@@ -20,13 +20,13 @@ int main(int argc, char **argv)
     }
     const Servers servers = configResult.value;
 
-    CreatedSocketsResult createdSocketsResult = getListenSockets(servers);
-    if (!createdSocketsResult.success)
+    GetListenSdsResult createdSdsResult = getListenSds(servers);
+    if (!createdSdsResult.success)
     {
-        utils::printError(createdSocketsResult.error);
+        utils::printError(createdSdsResult.error);
         return 1;
     }
-    eventLoop(createdSocketsResult.value);
+    eventLoop(createdSdsResult.value, servers);
 }
 
 __attribute__((destructor)) static void destructor(void)
