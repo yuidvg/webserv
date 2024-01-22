@@ -3,7 +3,7 @@
 
 #include "../webserv.hpp"
 
-namespace parseDirective
+namespace parseConfig
 {
 LocationResult parseLocationDirective(const std::vector<std::string> directiveTokens, std::vector<std::string> &tokens);
 ServerResult parseServer(const std::vector<std::string> directiveTokens, std::vector<std::string> &tokens);

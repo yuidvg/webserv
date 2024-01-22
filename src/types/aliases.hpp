@@ -5,7 +5,7 @@
 #include "structs.hpp"
 
 // config
-typedef Result<const std::vector<const std::string>, const std::string> TokensResult;
+typedef Result<const std::vector<std::string>, const std::string> TokensResult;
 typedef Result<const Servers, const std::string> ConfigResult;
 typedef Result<const Server, const std::string> ParseServerResult;
 typedef Result<const Location, const std::string> ParseLocationResult;
@@ -43,7 +43,7 @@ namespace cgi
 typedef Result<const HttpResponse, const HttpResponse> ResponseResult;
 } // namespace cgi
 
-namespace parseDirective
+namespace parseConfig
 {
 typedef Result<const Server, const std::string> ServerResult;
 typedef Result<const std::string, const std::string> NameResult;
@@ -58,11 +58,11 @@ typedef Result<const std::string, const std::string> IndexResult;
 typedef Result<const std::vector<std::string>, const std::string> AllowMethodsResult;
 typedef Result<const std::string, const std::string> CgiExtensionResult;
 typedef Result<const std::string, const std::string> UploadPathResult;
-typedef Result<const std::map<int, const std::string>, const std::string> RedirectResult;
+typedef Result<const std::map<int, std::string>, const std::string> RedirectResult;
 
 typedef Result<const int, const std::string> StringToIntResult;
 
-} // namespace parseDirective
+} // namespace parseConfig
 typedef Result<const bool, const HttpResponse> IsDirectoryResult;
 
 #endif
