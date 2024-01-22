@@ -2,7 +2,7 @@
 #include "../socket/all.hpp"
 #include "process.hpp"
 
-void eventLoop(const Sds listenSds)
+void eventLoop(const Sds listenSds, const Servers servers)
 {
     Sds connectedSds;
 
@@ -31,7 +31,7 @@ void eventLoop(const Sds listenSds)
             }
             else
             {
-                if (!processConnection(*readableSdIt))
+                if (!processConnection(*readableSdIt, servers))
                 {
                     close(*readableSdIt);
                     connectedSds = utils::excluded(connectedSds, *readableSdIt);

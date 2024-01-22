@@ -8,6 +8,7 @@ namespace utils
 {
 Location matchedLocation(const std::string uri, const std::vector<Location> locations);
 unsigned int lengthOfPrefixMatch(const std::string string, const std::string pattern);
+MatchedServerResult matchedServer(const std::string uri, const Servers servers, const Sd sd);
 
 // string
 std::string &trim(std::string &str);
@@ -110,6 +111,8 @@ template <typename T> unsigned int max(const std::vector<T> list)
     return maxSd;
 }
 
+// host name
+std::string host(const std::string &uri);
 } // namespace utils
 
 #endif

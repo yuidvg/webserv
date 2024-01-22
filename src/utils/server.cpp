@@ -4,7 +4,10 @@
 namespace utils
 {
 
-static Servers filter(const Servers servers, const unsigned int port)
+namespace
+{
+
+Servers filter(const Servers servers, const unsigned int port)
 {
     Servers filtered;
 
@@ -18,18 +21,19 @@ static Servers filter(const Servers servers, const unsigned int port)
     return filtered;
 }
 
-static Server filter(const std::string uri, const Servers servers)
+Servers filter(const Servers servers, const std::string uri)
 {
-    std::vector<int> matchedIndexes;
-    for (unsigned int i = 0; i < matchedIndexes.size(); i++)
+    Servers filtered;
+    for (unsigned int i = 0; i < servers.size(); i++)
     {
-        // ToDo: std::string hostName(const std::string uri)
-        if (servers[matchedIndexes[i]].name == uri)
+        if (servers[i].name == host(uri))
         {
-            return (servers[matchedIndexes[i]]);
+            filtered.push_back(servers[i]);
         }
     }
+    return filtered;
 }
+} // namespace
 
 MatchedServerResult matchedServer(const std::string uri, const Servers servers, const Sd sd)
 {
@@ -38,8 +42,15 @@ MatchedServerResult matchedServer(const std::string uri, const Servers servers, 
     {
         const unsigned int port = portNumberResult.value;
         const Servers serversWithPort = filter(servers, port);
-        const Server serversWithPortAndName = filter(uri, serversWithPort);
-        return MatchedServerResult::Success(serversWithPortAndName);
+        const Servers serversWithPortAndName = filter(serversWithPort, uri);
+        if (serversWithPortAndName.size() > 0)
+        {
+            return MatchedServerResult::Success(serversWithPortAndName[0]);
+        }
+        else
+        {
+            return MatchedServerResult::Error(SERVER_ERROR_RESPONSE);
+        }
     }
     else
     {
