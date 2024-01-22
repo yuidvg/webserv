@@ -5,7 +5,7 @@
 
 // get
 NewListenSdResult getListenSd(const Server server);
-GetListenSdsResult getListenSds(Servers servers);
+GetListenSdsResult getListenSds(const Servers servers);
 NewListenSdResult newConnectedSd(const Sd listenSd);
 
 // find

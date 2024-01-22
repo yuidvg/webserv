@@ -3,6 +3,6 @@
 
 #include "../webserv.hpp"
 
-void eventLoop(const Sds listenSds);
+void eventLoop(const Sds listenSds, const Servers servers);
 
 #endif

@@ -26,7 +26,7 @@ int main(int argc, char **argv)
         utils::printError(createdSdsResult.error);
         return 1;
     }
-    eventLoop(createdSdsResult.value);
+    eventLoop(createdSdsResult.value, servers);
 }
 
 __attribute__((destructor)) static void destructor(void)
