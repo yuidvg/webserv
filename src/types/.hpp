@@ -1,8 +1,5 @@
-#ifndef TYPES_ALL_HPP
-#define TYPES_ALL_HPP
+#pragma once
 
 #include "aliases.hpp"
 #include "external.hpp"
 #include "structs.hpp"
-
-#endif

@@ -1,6 +1,5 @@
-#include "eventLoop.hpp"
-#include "../socket/all.hpp"
-#include "process.hpp"
+#include "../socket/.hpp"
+#include ".hpp"
 
 void eventLoop(const Sds listenSds, const Servers servers)
 {
@@ -15,8 +14,7 @@ void eventLoop(const Sds listenSds, const Servers servers)
             utils::printError(readableSdsResult.error);
         }
         Sds readableSds = readableSdsResult.value;
-        for (Sds::iterator readableSdIt = readableSds.begin(); readableSdIt != readableSds.end();
-             ++readableSdIt)
+        for (Sds::iterator readableSdIt = readableSds.begin(); readableSdIt != readableSds.end(); ++readableSdIt)
         {
             if (utils::contains(*readableSdIt, listenSds))
             {

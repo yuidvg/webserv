@@ -1,5 +1,4 @@
-#ifndef SERVER_HPP
-#define SERVER_HPP
+#pragma once
 
 #include "Location.hpp"
 #include "external.hpp"
@@ -17,5 +16,3 @@ struct Server
 };
 
 typedef std::vector<const Server> Servers;
-
-#endif

@@ -1,6 +1,4 @@
-#ifndef HTTPRESPONSE_HPP
-#define HTTPRESPONSE_HPP
-
+#pragma once
 #include "Headers.hpp"
 #include "external.hpp"
 
@@ -13,5 +11,3 @@ struct HttpResponse
     HttpResponse();
     HttpResponse(const unsigned int statusCode, const Headers headers = Headers(), const std::string body = "");
 };
-
-#endif

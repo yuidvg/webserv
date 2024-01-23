@@ -1,6 +1,6 @@
 #include "config/parseConfig.hpp"
 #include "connection/eventLoop.hpp"
-#include "socket/all.hpp"
+#include "socket/.hpp"
 #include "webserv.hpp"
 
 int main(int argc, char **argv)

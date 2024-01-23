@@ -1,5 +1,7 @@
-#include "../webserv.hpp"
+#include ".hpp"
 
+namespace
+{
 std::vector<std::string> readDirectory(const std::string &path)
 {
     std::vector<std::string> files;
@@ -27,6 +29,7 @@ std::string createHtmlList(const std::vector<std::string> &files, const std::str
     html << "</ul></body></html>";
     return html.str();
 }
+} // namespace
 
 DirectoryListHtmlResult directoryListHtml(const std::string &path)
 {

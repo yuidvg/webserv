@@ -1,5 +1,4 @@
-#ifndef PARSE_DIRECTIVE_HPP
-#define PARSE_DIRECTIVE_HPP
+#pragma once
 
 #include "../webserv.hpp"
 
@@ -21,4 +20,4 @@ CgiExtensionResult parseCgiExecutorDirective(const std::vector<std::string> dire
 UploadPathResult parseUploadPathDirective(const std::vector<std::string> directiveTokens);
 RedirectResult parseReturnDirective(const std::vector<std::string> directiveTokens);
 }
-#endif
+

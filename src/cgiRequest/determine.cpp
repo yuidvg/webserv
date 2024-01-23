@@ -1,5 +1,5 @@
-#include "../config/find.hpp"
-#include "cgi.hpp"
+#include "../httpRequestAndConfig/.hpp"
+#include ".hpp"
 
 namespace cgi
 {

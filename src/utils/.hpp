@@ -1,8 +1,7 @@
-#ifndef UTILS_ALL_HPP
-#define UTILS_ALL_HPP
+#pragma once
 
 #include "../consts.hpp"
-#include "../types/all.hpp"
+#include "../types/.hpp"
 #include "template.tpp"
 
 namespace utils
@@ -20,12 +19,10 @@ Sds sdsIn(const fd_set fdSet, const Sds sds);
 
 // file
 FileContentResult content(const std::string &path);
+HttpResponse writeToFile(const std::string &path, const std::string &content);
 std::string contentType(const std::string &path);
-
 IsDirectoryResult isDirectory(const std::string &path);
 
 // vector
 std::string join(const std::vector<std::string> &list, const std::string &delimiter);
 } // namespace utils
-
-#endif

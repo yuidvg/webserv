@@ -1,5 +1,4 @@
-#ifndef LOCATION_HPP
-#define LOCATION_HPP
+#pragma once
 
 #include "external.hpp"
 
@@ -18,5 +17,3 @@ struct Location
              const std::vector<std::string> allowMethods, const std::string cgiExtension, const std::string uploadPath,
              const std::map<int, std::string> redirect);
 };
-
-#endif

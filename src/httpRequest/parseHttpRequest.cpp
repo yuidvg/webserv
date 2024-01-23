@@ -1,5 +1,5 @@
-#include "parse.hpp"
-#include "../config/find.hpp"
+#include ".hpp"
+#include "../httpRequestAndConfig/.hpp"
 
 ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Servers &servers, const Sd &sd)
 {

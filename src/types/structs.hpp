@@ -1,5 +1,4 @@
-#ifndef STRUCTS_HPP
-#define STRUCTS_HPP
+#pragma once
 
 #include "Headers.hpp"
 #include "HttpRequest.hpp"
@@ -7,5 +6,3 @@
 #include "Location.hpp"
 #include "Result.hpp"
 #include "Server.hpp"
-
-#endif

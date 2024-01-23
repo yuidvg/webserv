@@ -1,6 +1,4 @@
-#ifndef HTTPREQUEST_HPP
-#define HTTPREQUEST_HPP
-
+#pragma once
 #include "Headers.hpp"
 
 struct HttpRequest
@@ -16,5 +14,3 @@ struct HttpRequest
     HttpRequest(const std::string m, const std::string u, const std::string v, const Headers h, const std::string b,
                 const std::string host);
 };
-
-#endif

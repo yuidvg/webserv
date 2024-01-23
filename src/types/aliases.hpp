@@ -1,6 +1,4 @@
-#ifndef ALIASES_HPP
-#define ALIASES_HPP
-
+#pragma once
 #include "external.hpp"
 #include "structs.hpp"
 
@@ -66,5 +64,3 @@ typedef Result<const int, const std::string> StringToIntResult;
 
 typedef Result<const bool, const HttpResponse> IsDirectoryResult;
 typedef Result<std::string, HttpResponse> FileContentResult;
-
-#endif
