@@ -1,4 +1,4 @@
-#include "all.hpp"
+#include ".hpp"
 
 namespace utils
 {
@@ -18,6 +18,20 @@ FileContentResult content(const std::string &path)
         content.push_back('\n');
     }
     return (FileContentResult::Success(content));
+}
+
+HttpResponse writeToFile(const std::string &path, const std::string &content)
+{
+    std::ofstream ofs(path);
+    if (ofs.is_open())
+    {
+        ofs << content;
+        return (HttpResponse(SUCCESS, Headers(), ""));
+    }
+    else
+    {
+        return (BAD_REQUEST_RESPONSE);
+    }
 }
 
 std::string contentType(const std::string &path)
@@ -73,7 +87,7 @@ IsDirectoryResult isDirectory(const std::string &path)
     struct stat statbuf;
     if (stat(path.c_str(), &statbuf) != 0)
     {
-        return IsDirectoryResult::Error(BAD_REQUEST_RESPONSE);
+        return IsDirectoryResult::Error(SERVER_ERROR_RESPONSE);
     }
     return IsDirectoryResult::Success(S_ISDIR(statbuf.st_mode));
 }

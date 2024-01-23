@@ -1,5 +1,5 @@
-#include "find.hpp"
-#include "../socket/all.hpp"
+#include ".hpp"
+#include "../socket/.hpp"
 
 namespace
 {
@@ -59,16 +59,4 @@ MatchedServerResult matchedServer(const std::string &host, const Servers &server
     {
         return MatchedServerResult::Error(portNumberResult.error);
     }
-}
-
-Location matchedLocation(const std::string &target, const std::vector<const Location> &locations)
-{
-    unsigned int matchedIndex = 0;
-    for (unsigned int i = 1; i < locations.size(); i++)
-    {
-        if (utils::lengthOfPrefixMatch(target, locations[i].path) >
-            utils::lengthOfPrefixMatch(target, locations[matchedIndex].path))
-            matchedIndex = i;
-    }
-    return locations[matchedIndex];
 }

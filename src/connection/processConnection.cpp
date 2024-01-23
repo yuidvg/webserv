@@ -1,8 +1,7 @@
-#include "process.hpp"
-#include "../httpRequest/parse.hpp"
-#include "../httpResponse/build.hpp"
-#include "../socket/all.hpp"
-#include "eventLoop.hpp"
+#include "../socket/.hpp"
+#include "../httpRequest/.hpp"
+#include "../httpResponse/.hpp"
+#include ".hpp"
 
 bool processConnection(const Sd &sd, const Servers &servers)
 {

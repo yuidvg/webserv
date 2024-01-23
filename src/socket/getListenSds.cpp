@@ -1,16 +1,6 @@
-#include "all.hpp"
-
-NewListenSdResult newConnectedSd(const Sd listenSd)
+#include ".hpp"
+namespace
 {
-    const int newSd = accept(static_cast<int>(listenSd), NULL, NULL);
-    if (newSd < 0)
-    {
-        return NewListenSdResult::Error("accept() failed: " + std::string(strerror(errno)));
-    }
-    std::cout << "New conected socket: " << newSd << std::endl;
-    return NewListenSdResult::Success(newSd);
-}
-
 NewListenSdResult getListenSd(const Server server)
 {
     const int sd = socket(PF_INET, SOCK_STREAM, 0);
@@ -51,7 +41,7 @@ NewListenSdResult getListenSd(const Server server)
     }
     return NewListenSdResult::Success(sd);
 }
-
+} // namespace
 GetListenSdsResult getListenSds(Servers servers)
 {
     Sds sds;

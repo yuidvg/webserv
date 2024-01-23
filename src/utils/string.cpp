@@ -1,4 +1,4 @@
-#include "all.hpp"
+#include ".hpp"
 
 namespace utils
 {
@@ -35,6 +35,5 @@ unsigned int lengthOfPrefixMatch(const std::string string, const std::string pat
     else
         return 0;
 }
-
 
 } // namespace utils
