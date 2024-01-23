@@ -27,6 +27,7 @@ typedef Result<const RequestLine, const int> GetRequestLineResult;
 // autoindex
 typedef Result<const std::string, const HttpResponse> DirectoryListHtmlResult;
 typedef Result<const std::string, const std::string> GetIndexFilePathResult;
+typedef Result<const Server, const HttpResponse> MatchedServerResult;
 
 // socket
 typedef unsigned int Sd;
@@ -36,8 +37,6 @@ typedef Result<const Sds, const std::string> GetListenSdsResult;
 typedef Result<const Sds, const std::string> ReadableSdsResult;
 
 typedef Result<const unsigned int, const HttpResponse> PortNumberResult;
-
-typedef Result<const Server, const HttpResponse> MatchedServerResult;
 
 namespace cgi
 {
@@ -64,6 +63,8 @@ typedef Result<const std::map<int, std::string>, const std::string> RedirectResu
 typedef Result<const int, const std::string> StringToIntResult;
 
 } // namespace parseConfig
+
 typedef Result<const bool, const HttpResponse> IsDirectoryResult;
+typedef Result<std::string, HttpResponse> FileContentResult;
 
 #endif

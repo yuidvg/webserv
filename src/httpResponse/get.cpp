@@ -1,11 +1,11 @@
 #include "../autoindex/all.hpp"
+#include "../config/path.hpp"
 #include "build.hpp"
 
 HttpResponse conductGet(const HttpRequest &request, const Location &location)
 {
-    const std::string rootedPath = utils::root(request.target, location);
-    const std::string indexedPath = utils::index(rootedPath, location);
-    const IsDirectoryResult isDirectoryResult = utils::isDirectory(indexedPath);
+    const std::string targetResourcePath = comply(request.target, location);
+    const IsDirectoryResult isDirectoryResult = utils::isDirectory(targetResourcePath);
     if (isDirectoryResult.success)
     {
         const bool isDirectory = isDirectoryResult.value;
@@ -13,7 +13,7 @@ HttpResponse conductGet(const HttpRequest &request, const Location &location)
         {
             if (location.autoindex)
             {
-                const DirectoryListHtmlResult directoryListHtmlResult = directoryListHtml(indexedPath);
+                const DirectoryListHtmlResult directoryListHtmlResult = directoryListHtml(targetResourcePath);
                 return directoryListHtmlResult.success
                            ? HttpResponse(SUCCESS,
                                           Headers(utils::contentType(".html"),
@@ -26,11 +26,11 @@ HttpResponse conductGet(const HttpRequest &request, const Location &location)
                 return BAD_REQUEST_RESPONSE;
             }
         }
-        else // when indexedPath is assumed to be a file.
+        else // when targetResourcePath is assumed to be a file.
         {
-            const utils::FileContentResult fileContentResult = utils::content(indexedPath);
+            const utils::FileContentResult fileContentResult = utils::content(targetResourcePath);
             return fileContentResult.success ? HttpResponse(SUCCESS,
-                                                            Headers(utils::contentType(indexedPath),
+                                                            Headers(utils::contentType(targetResourcePath),
                                                                     utils::toString(fileContentResult.value.length())),
                                                             fileContentResult.value)
                                              : BAD_REQUEST_RESPONSE;

@@ -1,4 +1,5 @@
 #include "parse.hpp"
+#include "../config/find.hpp"
 
 ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Servers &servers, const Sd &sd)
 {
@@ -19,7 +20,7 @@ ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Servers &se
     const std::string host = it->second;
 
     /* サーバの選択 */
-    const MatchedServerResult matchedServerResult = utils::matchedServer(host, servers, sd);
+    const MatchedServerResult matchedServerResult = matchedServer(host, servers, sd);
     if (!matchedServerResult.success)
         return ParseRequestResult::Error(HttpResponse(matchedServerResult.error));
     const Server server = matchedServerResult.value;
@@ -193,6 +194,7 @@ ParseBodyResult parseChunkedBody(std::istream &httpRequest, const Headers &heade
         // チャンクの末尾のCRLFを読み飛ばす
         std::getline(httpRequest, line);
     }
+    line += EOF;
 
     return ParseBodyResult::Success(body);
 }

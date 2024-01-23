@@ -116,7 +116,7 @@ LocationResult parseLocationDirective(const std::vector<std::string> directiveTo
     return LocationResult::Success(locationResult.value);
 }
 
-/* 
+/*
 location directive
 */
 RootResult parseRootDirective(const std::vector<std::string> directiveTokens)

@@ -18,7 +18,7 @@ void eventLoop(const Sds listenSds, const Servers servers)
         for (Sds::iterator readableSdIt = readableSds.begin(); readableSdIt != readableSds.end();
              ++readableSdIt)
         {
-            if (utils::contained(*readableSdIt, listenSds))
+            if (utils::contains(*readableSdIt, listenSds))
             {
                 const Sd listenSd = *readableSdIt;
                 NewListenSdResult newConnectedSdResult = newConnectedSd(listenSd);

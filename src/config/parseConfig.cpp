@@ -82,12 +82,13 @@ ParseLocationResult parseLocationContext(std::vector<std::string> &tokens, std::
 
         else if (directiveTokens[0] == CLOSE_BRACKET)
         {
-            return ParseLocationResult::Success(Location(path, root, autoindex, index,
-                                                         allowMethods, cgiExtension, uploadPath, redirect));
+            return ParseLocationResult::Success(
+                Location(path, root, autoindex, index, allowMethods, cgiExtension, uploadPath, redirect));
         }
         else
         {
-            return ParseLocationResult::Error(std::string("Locationコンテキストの[" + directiveTokens[0] + "]が不正です"));
+            return ParseLocationResult::Error(
+                std::string("Locationコンテキストの[" + directiveTokens[0] + "]が不正です"));
         }
     }
     return ParseLocationResult::Error("Locationブロックで文字列が見つかりませんでした");
@@ -140,7 +141,6 @@ ParseServerResult parseServerContext(std::vector<std::string> &tokens)
             {
                 errorPages.insert(*it);
             }
-
         }
         else if (directiveTokens[0] == CLIENT_MAX_BODY_SIZE)
         {
@@ -162,7 +162,6 @@ ParseServerResult parseServerContext(std::vector<std::string> &tokens)
     return ParseServerResult::Error(
         "Serverブロックが正常に終了しませんでした。\nserverブロックの中身が無い or } がありません");
 }
-
 
 ConfigResult parseConfig(const char *configPath)
 {
@@ -194,4 +193,4 @@ ConfigResult parseConfig(const char *configPath)
     }
     return ConfigResult::Success(servers);
 }
-}
+} // namespace parseConfig

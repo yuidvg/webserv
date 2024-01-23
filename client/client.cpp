@@ -84,14 +84,14 @@ int main(int argc, char **argv)
         // メッセージの送信
         if (argc > 2)
         {
-            send(sock, utils::toChar(httpRequest), httpRequest.length(), 0);
+            send(sock, httpRequest.c_str(), httpRequest.length(), 0);
             std::cout << "HTTPリクエスト送信: " << std::endl << httpRequest << std::endl;
             std::cout << "Message sent" << std::endl;
         }
         else
         {
             std::string message = "Hello Server " + std::string(argv[1]) + " ^_^";
-            send(sock, utils::toChar(message), message.length(), 0);
+            send(sock, message.c_str(), message.length(), 0);
             std::cout << "Message sent" << std::endl;
         }
 

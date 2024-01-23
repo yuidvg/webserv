@@ -1,12 +1,8 @@
+#include "find.hpp"
 #include "../socket/all.hpp"
-#include "all.hpp"
-
-namespace utils
-{
 
 namespace
 {
-
 Servers filter(const Servers &servers, const unsigned int &port)
 {
     Servers filtered;
@@ -64,4 +60,15 @@ MatchedServerResult matchedServer(const std::string &host, const Servers &server
         return MatchedServerResult::Error(portNumberResult.error);
     }
 }
-} // namespace utils
+
+Location matchedLocation(const std::string &target, const std::vector<const Location> &locations)
+{
+    unsigned int matchedIndex = 0;
+    for (unsigned int i = 1; i < locations.size(); i++)
+    {
+        if (utils::lengthOfPrefixMatch(target, locations[i].path) >
+            utils::lengthOfPrefixMatch(target, locations[matchedIndex].path))
+            matchedIndex = i;
+    }
+    return locations[matchedIndex];
+}

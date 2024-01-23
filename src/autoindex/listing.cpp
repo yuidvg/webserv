@@ -3,7 +3,7 @@
 std::vector<std::string> readDirectory(const std::string &path)
 {
     std::vector<std::string> files;
-    DIR *dir = opendir(utils::toChar(path));
+    DIR *dir = opendir(path.c_str());
 
     if (dir != NULL)
     {

@@ -1,5 +1,5 @@
 #include "build.hpp"
-
+#include "../config/find.hpp"
 namespace
 {
 bool isMethodAllowed(const HttpRequest &request, const Location &location)
@@ -12,7 +12,7 @@ bool isMethodAllowed(const HttpRequest &request, const Location &location)
 }
 HttpResponse responseToValidRequest(const HttpRequest &request, const Server &server)
 {
-    const Location location = utils::matchedLocation(request.target, server.locations);
+    const Location location = matchedLocation(request.target, server.locations);
     if (isMethodAllowed(request, location))
     {
         if (request.method == "GET")
@@ -36,26 +36,20 @@ HttpResponse response(const ParseRequestResult &requestResult, const Sd &sd, con
     if (requestResult.success)
     {
         const HttpRequest request = requestResult.value;
-        const std::map<std::string, std::string>::const_iterator hostIt = request.headers.find("host");
-        if (hostIt != request.headers.end())
+        const MatchedServerResult serverResult = matchedServer(request.host, servers, sd);
+        if (serverResult.success)
         {
-            const MatchedServerResult serverResult = utils::matchedServer(request.host, servers, sd);
-            if (serverResult.success)
-            {
-                const Server server = serverResult.value;
-                return responseToValidRequest(requestResult.value, server);
-            }
-            else
-            {
-                return serverResult.error;
-            }
+            const Server server = serverResult.value;
+            return responseToValidRequest(requestResult.value, server);
         }
         else
         {
+            return serverResult.error;
         }
     }
     else
     {
+        // TODO: エラーページのレスポンスを返すを関数を作成。
         return requestResult.error;
     }
 }

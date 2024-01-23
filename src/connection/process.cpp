@@ -24,7 +24,7 @@ bool processConnection(const Sd &sd, const Servers &servers)
     const ParseRequestResult parseHttpRequestResult = parseHttpRequest(buf, servers, sd);
     const HttpResponse httpResponse = response(parseHttpRequestResult, sd, servers);
     const std::string httpResponseText = responseText(httpResponse);
-    const int sentLength = send(sd, utils::toChar(httpResponseText), httpResponseText.length(), 0);
+    const int sentLength = send(sd, httpResponseText.c_str(), httpResponseText.length(), 0);
     if (sentLength > 0)
     {
         return true;
