@@ -2,26 +2,34 @@
 
 ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Servers &servers, const Sd &sd)
 {
-    ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(httpRequest);
+    const ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(httpRequest);
     if (!parseRequestLineResult.success)
         return ParseRequestResult::Error(HttpResponse(parseRequestLineResult.error));
-
-    const MatchedServerResult matchedServerResult = utils::matchedServer(parseRequestLineResult.value.target, servers, sd);
-    if (!matchedServerResult.success)
-        return ParseRequestResult::Error(HttpResponse(matchedServerResult.error));
-    const Server server = matchedServerResult.value;
 
     const ParseHeaderResult headersResult = parseHttpHeaders(httpRequest);
     if (!headersResult.success)
         return ParseRequestResult::Error(HttpResponse(headersResult.error));
 
     const Headers headers = headersResult.value;
+
+    /* hostの取得 */
+    Headers::const_iterator it;
+    if ((it = headers.find("host")) == headers.end())
+        return ParseRequestResult::Error(HttpResponse(BAD_REQUEST));
+    const std::string host = it->second;
+
+    /* サーバの選択 */
+    const MatchedServerResult matchedServerResult = utils::matchedServer(host, servers, sd);
+    if (!matchedServerResult.success)
+        return ParseRequestResult::Error(HttpResponse(matchedServerResult.error));
+    const Server server = matchedServerResult.value;
+
     const ParseBodyResult body = parseHttpBody(httpRequest, headers, server);
     if (!body.success)
         return ParseRequestResult::Error(HttpResponse(body.error));
 
     const RequestLine requestLine = parseRequestLineResult.value;
-    const HttpRequest result(requestLine.method, requestLine.target, requestLine.version, headers, body.value);
+    const HttpRequest result(requestLine.method, requestLine.target, requestLine.version, headers, body.value, host);
     return ParseRequestResult::Success(result);
 }
 
@@ -91,12 +99,12 @@ static GetRequestLineResult getRequestLine(std::istream &httpRequest)
 
 ParseRequestLineResult parseHttpRequestLine(std::istream &httpRequest)
 {
-    GetRequestLineResult getRequestLineResult = getRequestLine(httpRequest);
+    const GetRequestLineResult getRequestLineResult = getRequestLine(httpRequest);
     if (!getRequestLineResult.success)
         return ParseRequestLineResult::Error(getRequestLineResult.error);
 
     /* エラーチェック */
-    int statusCode = getRequestLineStatusCode(getRequestLineResult.value);
+    const int statusCode = getRequestLineStatusCode(getRequestLineResult.value);
 
     return (statusCode != SUCCESS) ? ParseRequestLineResult::Error(statusCode)
                                    : ParseRequestLineResult::Success(getRequestLineResult.value);
@@ -139,11 +147,11 @@ ParseBodyResult parsePlainBody(std::istream &httpRequest, const Headers &headers
 {
     std::string line;
 
-    std::map<std::string, std::string>::const_iterator it = headers.find("content-length");
+    Headers::const_iterator it = headers.find("content-length");
     if (it == headers.end() || !utils::isNumber(it->second))
         return ParseBodyResult::Error(BAD_REQUEST);
 
-    size_t contentLength = std::stoul(it->second);
+    const size_t contentLength = std::stoul(it->second);
     if (contentLength > MAX_LEN)
         return ParseBodyResult::Error(BAD_REQUEST);
 
@@ -158,13 +166,12 @@ ParseBodyResult parseChunkedBody(std::istream &httpRequest, const Headers &heade
 {
     std::string line;
 
-    (void)server;
-    std::map<std::string, std::string>::const_iterator it = headers.find("transfer-encoding");
+    Headers::const_iterator it = headers.find("transfer-encoding");
     if (it->second != "chunked")
         return ParseBodyResult::Error(HttpResponse(BAD_REQUEST));
 
-    std::string body;
-    while ((line = getMessageLine(httpRequest)) != "\r")
+    std::string body = "";
+    while ((line = getMessageLine(httpRequest)) != "\r" && body.length() < server.clientMaxBodySize)
     {
         if (isLineTooLong(line))
             return ParseBodyResult::Error(HttpResponse(BAD_REQUEST));
