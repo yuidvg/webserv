@@ -6,9 +6,9 @@
 
 namespace utils
 {
-Location matchedLocation(const std::string uri, const std::vector<Location> locations);
+Location matchedLocation(const std::string &uri, const std::vector<const Location> &locations);
 unsigned int lengthOfPrefixMatch(const std::string string, const std::string pattern);
-MatchedServerResult matchedServer(const std::string uri, const Servers servers, const Sd sd);
+MatchedServerResult matchedServer(const std::string &host, const Servers &servers, const Sd &sd);
 
 // string
 std::string &trim(std::string &str);
@@ -90,9 +90,9 @@ template <typename T> std::vector<const T> excluded(const std::vector<const T> h
     return excluded;
 }
 
-std::string root(const std::string uri, const Location location);
-std::string index(const std::string uri, const Location location);
-std::string concatPath(const std::string pathA, const std::string pathB);
+std::string root(const std::string &uri, const Location &location);
+std::string index(const std::string &uri, const Location &location);
+std::string concatPath(const std::string &pathA, const std::string &pathB);
 
 // number
 template <typename T> unsigned int max(const std::vector<T> list)

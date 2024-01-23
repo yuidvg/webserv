@@ -7,7 +7,7 @@ namespace utils
 namespace
 {
 
-Servers filter(const Servers servers, const unsigned int port)
+Servers filter(const Servers &servers, const unsigned int &port)
 {
     Servers filtered;
 
@@ -21,12 +21,12 @@ Servers filter(const Servers servers, const unsigned int port)
     return filtered;
 }
 
-Servers filter(const Servers servers, const std::string uri)
+Servers filter(const Servers &servers, const std::string &host)
 {
     Servers filtered;
     for (unsigned int i = 0; i < servers.size(); i++)
     {
-        if (servers[i].name == host(uri))
+        if (servers[i].name == host)
         {
             filtered.push_back(servers[i]);
         }
@@ -35,7 +35,7 @@ Servers filter(const Servers servers, const std::string uri)
 }
 } // namespace
 
-MatchedServerResult matchedServer(const std::string uri, const Servers servers, const Sd sd)
+MatchedServerResult matchedServer(const std::string host, const Servers servers, const Sd sd)
 {
     const PortNumberResult portNumberResult = portNumber(sd);
     if (portNumberResult.success)
@@ -44,7 +44,7 @@ MatchedServerResult matchedServer(const std::string uri, const Servers servers, 
         const Servers serversWithPort = filter(servers, port);
         if (serversWithPort.size() > 0)
         {
-            const Servers serversWithPortAndName = filter(serversWithPort, uri);
+            const Servers serversWithPortAndName = filter(serversWithPort, host);
             if (serversWithPortAndName.size() > 0)
             {
                 return MatchedServerResult::Success(serversWithPortAndName[0]);
