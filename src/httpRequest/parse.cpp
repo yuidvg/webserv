@@ -5,32 +5,32 @@ ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Servers &se
 {
     const ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(httpRequest);
     if (!parseRequestLineResult.success)
-        return ParseRequestResult::Error(HttpResponse(parseRequestLineResult.error));
+        return ParseRequestResult::Error(HttpRequest(parseRequestLineResult.error));
 
     const ParseHeaderResult headersResult = parseHttpHeaders(httpRequest);
     if (!headersResult.success)
-        return ParseRequestResult::Error(HttpResponse(headersResult.error));
+        return ParseRequestResult::Error(HttpRequest(headersResult.error));
 
     const Headers headers = headersResult.value;
 
     /* hostの取得 */
     Headers::const_iterator it;
     if ((it = headers.find("host")) == headers.end())
-        return ParseRequestResult::Error(HttpResponse(BAD_REQUEST));
+        return ParseRequestResult::Error(HttpRequest(BAD_REQUEST));
     const std::string host = it->second;
 
     /* サーバの選択 */
     const MatchedServerResult matchedServerResult = matchedServer(host, servers, sd);
     if (!matchedServerResult.success)
-        return ParseRequestResult::Error(HttpResponse(matchedServerResult.error));
+        return ParseRequestResult::Error(HttpRequest(matchedServerResult.error.statusCode, host));
     const Server server = matchedServerResult.value;
 
     const ParseBodyResult body = parseHttpBody(httpRequest, headers, server);
     if (!body.success)
-        return ParseRequestResult::Error(HttpResponse(body.error));
+        return ParseRequestResult::Error(HttpRequest(body.error.statusCode, host));
 
     const RequestLine requestLine = parseRequestLineResult.value;
-    const HttpRequest result(requestLine.method, requestLine.target, requestLine.version, headers, body.value, host);
+    const HttpRequest result(SUCCESS, host, requestLine.method, requestLine.target, requestLine.version, headers, body.value);
     return ParseRequestResult::Success(result);
 }
 
@@ -169,18 +169,18 @@ ParseBodyResult parseChunkedBody(std::istream &httpRequest, const Headers &heade
 
     Headers::const_iterator it = headers.find("transfer-encoding");
     if (it->second != "chunked")
-        return ParseBodyResult::Error(HttpResponse(BAD_REQUEST));
+        return ParseBodyResult::Error(HttpRequest(BAD_REQUEST));
 
     std::string body = "";
     while ((line = getMessageLine(httpRequest)) != "\r" && body.length() < server.clientMaxBodySize)
     {
         if (isLineTooLong(line))
-            return ParseBodyResult::Error(HttpResponse(BAD_REQUEST));
+            return ParseBodyResult::Error(HttpRequest(BAD_REQUEST));
 
         std::istringstream chunkSizeLine(line);
         int chunkSize;
         if (!(chunkSizeLine >> std::hex >> chunkSize) || !chunkSizeLine.eof())
-            return ParseBodyResult::Error(HttpResponse(BAD_REQUEST));
+            return ParseBodyResult::Error(HttpRequest(BAD_REQUEST));
 
         // チャンクのサイズを読み取り、0でない限り続ける
         if (chunkSize == 0)
