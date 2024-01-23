@@ -1,5 +1,6 @@
 #include "../httpRequestAndConfig/.hpp"
 #include ".hpp"
+
 namespace
 {
 bool isMethodAllowed(const HttpRequest &request, const Location &location)
