@@ -97,7 +97,7 @@ ParseServerResult parseServerContext(std::vector<std::string> &tokens)
     size_t port = server.port;
     std::map<int, std::string> errorPages;
     size_t clientMaxBodySize = server.clientMaxBodySize;
-    std::vector<Location> locations;
+    std::vector<const Location> locations;
 
     while (!tokens.empty())
     {
