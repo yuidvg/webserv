@@ -6,7 +6,7 @@
 
 namespace utils
 {
-Location matchedLocation(const std::string &uri, const std::vector<const Location> &locations);
+Location matchedLocation(const std::string &target, const std::vector<const Location> &locations);
 unsigned int lengthOfPrefixMatch(const std::string string, const std::string pattern);
 MatchedServerResult matchedServer(const std::string &host, const Servers &servers, const Sd &sd);
 
@@ -111,6 +111,9 @@ template <typename T> unsigned int max(const std::vector<T> list)
 // host name
 std::string host(const std::string &uri);
 IsDirectoryResult isDirectory(const std::string &path);
+
+std::string join(const std::vector<std::string> &list, const std::string &delimiter);
+
 } // namespace utils
 
 #endif

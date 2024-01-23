@@ -1,47 +1,32 @@
 #include "build.hpp"
-#include "../autoindex/all.hpp"
 
 namespace
 {
+bool isMethodAllowed(const HttpRequest &request, const Location &location)
+{
+    for (std::vector<std::string>::const_iterator it = location.allowMethods.begin(); it != location.allowMethods.end();
+         ++it)
+        if (*it == request.method)
+            return true;
+    return false;
+}
 HttpResponse responseToValidRequest(const HttpRequest &request, const Server &server)
 {
     const Location location = utils::matchedLocation(request.target, server.locations);
-    const std::string rootedPath = utils::root(request.target, location);
-    const std::string indexedPath = utils::index(rootedPath, location);
-    const IsDirectoryResult isDirectoryResult = utils::isDirectory(indexedPath);
-    if (isDirectoryResult.success)
+    if (isMethodAllowed(request, location))
     {
-        const bool isDirectory = isDirectoryResult.value;
-        if (isDirectory)
-        {
-            if (location.autoindex)
-            {
-                const DirectoryListHtmlResult directoryListHtmlResult = directoryListHtml(indexedPath);
-                return directoryListHtmlResult.success
-                           ? HttpResponse(SUCCESS,
-                                          Headers(utils::contentType(".html"),
-                                                  utils::toString(directoryListHtmlResult.value.length())),
-                                          directoryListHtmlResult.value)
-                           : BAD_REQUEST_RESPONSE;
-            }
-            else
-            {
-                return BAD_REQUEST_RESPONSE;
-            }
-        }
-        else // when indexedPath is assumed to be a file.
-        {
-            const utils::FileContentResult fileContentResult = utils::content(indexedPath);
-            return fileContentResult.success ? HttpResponse(SUCCESS,
-                                                            Headers(utils::contentType(indexedPath),
-                                                                    utils::toString(fileContentResult.value.length())),
-                                                            fileContentResult.value)
-                                             : BAD_REQUEST_RESPONSE;
-        }
+        if (request.method == "GET")
+            return conductGet(request, location);
+        else if (request.method == "POST")
+            return conductPost(request, location);
+        else if (request.method == "DELETE")
+            return conductDelete(request, location);
+        else
+            return METHOD_NOT_ALLOWED_RESPONSE("GET, POST, DELETE");
     }
     else
     {
-        return isDirectoryResult.error;
+        return METHOD_NOT_ALLOWED_RESPONSE(utils::join(location.allowMethods, ", "));
     }
 }
 } // namespace
@@ -50,15 +35,23 @@ HttpResponse response(const ParseRequestResult &requestResult, const Sd &sd, con
 {
     if (requestResult.success)
     {
-        const MatchedServerResult serverResult = utils::matchedServer(requestResult.value.target, servers, sd);
-        if (serverResult.success)
+        const HttpRequest request = requestResult.value;
+        const std::map<std::string, std::string>::const_iterator hostIt = request.headers.find("host");
+        if (hostIt != request.headers.end())
         {
-            const Server server = serverResult.value;
-            return responseToValidRequest(requestResult.value, server);
+            const MatchedServerResult serverResult = utils::matchedServer(request.host, servers, sd);
+            if (serverResult.success)
+            {
+                const Server server = serverResult.value;
+                return responseToValidRequest(requestResult.value, server);
+            }
+            else
+            {
+                return serverResult.error;
+            }
         }
         else
         {
-            return serverResult.error;
         }
     }
     else
