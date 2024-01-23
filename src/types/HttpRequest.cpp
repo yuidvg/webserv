@@ -1,7 +1,13 @@
 #include "HttpRequest.hpp"
 
-HttpRequest::HttpRequest(){};
+HttpRequest::HttpRequest()
+    : statusCode(SUCCESS), host(""), method(""), target(""), version(""), headers(Headers()), body("")
+{
+}
 
-HttpRequest::HttpRequest(const std::string m, const std::string t, const std::string v, const Headers h,
-                         const std::string b, const std::string host)
-    : method(m), target(t), version(v), headers(h), body(b), host(host){};
+HttpRequest::HttpRequest(const unsigned int statusCode, const std::string host, const std::string method,
+                         const std::string target, const std::string version, const Headers headers,
+                         const std::string body)
+    : statusCode(statusCode), method(method), target(target), version(version), headers(headers), body(body), host(host)
+{
+}
