@@ -15,7 +15,7 @@ typedef Result<const std::string, const std::string> StringResult;
 struct RequestLine
 {
     const std::string method;
-    const std::string uri;
+    const std::string target;
     const std::string version;
 };
 typedef Result<const RequestLine, const HttpResponse> ParseRequestLineResult;

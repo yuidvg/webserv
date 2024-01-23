@@ -6,7 +6,7 @@ ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Servers &se
     if (!parseRequestLineResult.success)
         return ParseRequestResult::Error(HttpResponse(parseRequestLineResult.error));
 
-    const MatchedServerResult matchedServerResult = utils::matchedServer(parseRequestLineResult.value.uri, servers, sd);
+    const MatchedServerResult matchedServerResult = utils::matchedServer(parseRequestLineResult.value.target, servers, sd);
     if (!matchedServerResult.success)
         return ParseRequestResult::Error(HttpResponse(matchedServerResult.error));
     const Server server = matchedServerResult.value;
@@ -34,8 +34,8 @@ static bool isLineTooLong(const std::string &line)
 
 static int getRequestLineStatusCode(const RequestLine requestLine)
 {
-    if (requestLine.uri.find(':') != std::string::npos &&
-        requestLine.uri.find('*') != std::string::npos) // CONNECT, OPTIONSは非対応
+    if (requestLine.target.find(':') != std::string::npos &&
+        requestLine.target.find('*') != std::string::npos) // CONNECT, OPTIONSは非対応
         return BAD_REQUEST;
 
     if (requestLine.version != SERVER_PROTOCOL)
@@ -68,7 +68,7 @@ static std::string getMessageLine(std::istream &stream)
 
 static GetRequestLineResult getRequestLine(std::istream &httpRequest)
 {
-    std::string method, uri, version;
+    std::string method, target, version;
     std::string line;
 
     while ((line = getMessageLine(httpRequest)) == "\r")
@@ -81,11 +81,11 @@ static GetRequestLineResult getRequestLine(std::istream &httpRequest)
         return GetRequestLineResult::Error(BAD_REQUEST);
 
     std::istringstream requestLine(line);
-    if (!(requestLine >> method >> uri >> version) ||
+    if (!(requestLine >> method >> target >> version) ||
         !requestLine.eof()) // メソッドとターゲット、バージョンに分けて格納する
         return GetRequestLineResult::Error(BAD_REQUEST);
 
-    RequestLine requestLineData = {method, uri, version};
+    RequestLine requestLineData = {method, target, version};
     return GetRequestLineResult::Success(requestLineData);
 }
 
