@@ -74,7 +74,10 @@ ParseLocationResult parseLocationContext(std::vector<std::string> &tokens, std::
                 return ParseLocationResult::Error(redirectRes.error);
             }
             std::map<int, std::string> newRedirect = redirectRes.value;
-            redirect.insert(newRedirect.begin(), newRedirect.end());
+            for (std::map<int, std::string>::iterator it = newRedirect.begin(); it != newRedirect.end(); ++it)
+            {
+                redirect.insert(*it);
+            }
         }
 
         else if (directiveTokens[0] == CLOSE_BRACKET)
@@ -133,7 +136,11 @@ ParseServerResult parseServerContext(std::vector<std::string> &tokens)
             if (!errorPageRes.success)
                 return ParseServerResult::Error(errorPageRes.error);
             std::map<int, std::string> newErrorPages = errorPageRes.value;
-            errorPages.insert(newErrorPages.begin(), newErrorPages.end());
+            for (std::map<int, std::string>::iterator it = newErrorPages.begin(); it != newErrorPages.end(); ++it)
+            {
+                errorPages.insert(*it);
+            }
+
         }
         else if (directiveTokens[0] == CLIENT_MAX_BODY_SIZE)
         {
