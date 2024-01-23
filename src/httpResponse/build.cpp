@@ -13,7 +13,6 @@ bool isMethodAllowed(const HttpRequest &request, const Location &location)
 HttpResponse responseToValidRequest(const HttpRequest &request, const Server &server)
 {
     const Location location = utils::matchedLocation(request.target, server.locations);
-
     if (isMethodAllowed(request, location))
     {
         if (request.method == "GET")
