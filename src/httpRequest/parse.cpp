@@ -21,7 +21,7 @@ ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Servers &se
         return ParseRequestResult::Error(HttpResponse(body.error));
 
     const RequestLine requestLine = parseRequestLineResult.value;
-    const HttpRequest result(requestLine.method, requestLine.uri, requestLine.version, headers, body.value);
+    const HttpRequest result(requestLine.method, requestLine.target, requestLine.version, headers, body.value);
     return ParseRequestResult::Success(result);
 }
 
