@@ -35,7 +35,7 @@ Servers filter(const Servers &servers, const std::string &host)
 }
 } // namespace
 
-MatchedServerResult matchedServer(const std::string host, const Servers servers, const Sd sd)
+MatchedServerResult matchedServer(const std::string &host, const Servers &servers, const Sd &sd)
 {
     const PortNumberResult portNumberResult = portNumber(sd);
     if (portNumberResult.success)

@@ -3,7 +3,8 @@
 Headers::Headers()
 {
 }
-Headers::Headers(const std::string contentType, const std::string contentLength, const std::string location)
+Headers::Headers(const std::string &contentType, const std::string &contentLength, const std::string &location,
+                 const std::string &allow)
 {
     Headers headers;
     headers["Content-Type"] = contentType;
