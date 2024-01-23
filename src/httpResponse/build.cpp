@@ -5,8 +5,8 @@ namespace
 {
 HttpResponse responseToValidRequest(const HttpRequest &request, const Server &server)
 {
-    const Location location = utils::matchedLocation(request.uri, server.locations);
-    const std::string rootedPath = utils::root(request.uri, location);
+    const Location location = utils::matchedLocation(request.target, server.locations);
+    const std::string rootedPath = utils::root(request.target, location);
     const std::string indexedPath = utils::index(rootedPath, location);
     const IsDirectoryResult isDirectoryResult = utils::isDirectory(indexedPath);
     if (isDirectoryResult.success)
@@ -50,7 +50,7 @@ HttpResponse response(const ParseRequestResult &requestResult, const Sd &sd, con
 {
     if (requestResult.success)
     {
-        const MatchedServerResult serverResult = utils::matchedServer(requestResult.value.uri, servers, sd);
+        const MatchedServerResult serverResult = utils::matchedServer(requestResult.value.target, servers, sd);
         if (serverResult.success)
         {
             const Server server = serverResult.value;

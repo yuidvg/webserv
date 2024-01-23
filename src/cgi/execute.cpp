@@ -26,16 +26,16 @@ char *const *enviromentVariables(const HttpRequest request, const Server server)
     env["CONTENT_LENGTH"] = utils::value(request.headers, std::string("Content-Length"));
     env["CONTENT_TYPE"] = utils::value(request.headers, std::string("Content-Type"));
     env["GATEWAY_INTERFACE"] = GATEWAY_INTERFACE;
-    env["PATH_INFO"] = request.uri;
-    env["PATH_TRANSLATED"] = request.uri;
+    env["PATH_INFO"] = request.target;
+    env["PATH_TRANSLATED"] = request.target;
     // To be implemented
-    env["QUERY_STRING"] = request.uri.substr(request.uri.find("?") + 1);
+    env["QUERY_STRING"] = request.target.substr(request.target.find("?") + 1);
     // env["REMOTE_ADDR"] = ;
     // env["REMOTE_HOST"] = ;
     // env["REMOTE_IDENT"] = ;
     // env["REMOTE_USER"] = ;
     env["REQUEST_METHOD"] = request.method;
-    env["SCRIPT_NAME"] = utils::value(request.headers, request.uri);
+    env["SCRIPT_NAME"] = utils::value(request.headers, request.target);
     env["SERVER_NAME"] = server.name;
     env["SERVER_PORT"] = server.port;
     env["SERVER_PROTOCOL"] = SERVER_PROTOCOL;
@@ -57,7 +57,7 @@ ResponseResult execute(const HttpRequest request, const Server server)
     else if (pid == 0) // child process
     {
         close(pipefds[IN]);
-        execve(utils::toChar(request.uri), NULL, enviromentVariables(request, server));
+        execve(utils::toChar(request.target), NULL, enviromentVariables(request, server));
         std::cerr << "execve failed" << std::endl;
     }
     else // parent process
