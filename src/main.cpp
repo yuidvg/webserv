@@ -1,6 +1,7 @@
-#include "config/config.hpp"
-#include "server/connection.hpp"
-#include "utils/utils.hpp"
+#include "config/parseConfig.hpp"
+#include "connection/eventLoop.hpp"
+#include "socket/all.hpp"
+#include "webserv.hpp"
 
 int main(int argc, char **argv)
 {
@@ -11,7 +12,7 @@ int main(int argc, char **argv)
     }
     const std::string configPath = argc == 2 ? argv[1] : "config/default.conf";
 
-    ConfigResult configResult = parseConfig(configPath.c_str());
+    ConfigResult configResult = parseConfig::parseConfig(utils::toChar(configPath));
     if (!configResult.success)
     {
         utils::printError(configResult.error);
@@ -19,7 +20,13 @@ int main(int argc, char **argv)
     }
     const Servers servers = configResult.value;
 
-    startConnection(servers);
+    GetListenSdsResult createdSdsResult = getListenSds(servers);
+    if (!createdSdsResult.success)
+    {
+        utils::printError(createdSdsResult.error);
+        return 1;
+    }
+    eventLoop(createdSdsResult.value, servers);
 }
 
 __attribute__((destructor)) static void destructor(void)

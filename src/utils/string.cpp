@@ -1,4 +1,4 @@
-#include "utils.hpp"
+#include "all.hpp"
 
 namespace utils
 {
@@ -100,6 +100,31 @@ std::string contentType(const std::string path)
         return "image/svg+xml";
     else
         return "text/plain";
+}
+
+char *toChar(std::string str)
+{
+    char *cstr = new char[str.length() + 1];
+
+    std::strcpy(cstr, str.c_str());
+    return (cstr);
+}
+
+std::string host(const std::string &uri)
+{
+    const size_t slashSlashPos = uri.find("//");
+    if (slashSlashPos == std::string::npos)
+        return "";
+    const std::string authorityWithFollowers = uri.substr(slashSlashPos + 2);
+    const size_t pathRootSlashPos = authorityWithFollowers.find("/");
+    const size_t authorityLength =
+        pathRootSlashPos == std::string::npos ? authorityWithFollowers.length() : pathRootSlashPos;
+    const std::string authority = authorityWithFollowers.substr(0, authorityLength);
+    const size_t atPos = authority.find("@");
+    const size_t hostStartPos = atPos == std::string::npos ? 0 : atPos + 1;
+    const size_t colonPos = authority.find(":");
+    const size_t hostEndPos = colonPos == std::string::npos ? authority.length() : colonPos;
+    return authority.substr(hostStartPos, hostEndPos - hostStartPos);
 }
 
 } // namespace utils

@@ -2,7 +2,6 @@
 
 namespace cgi
 {
-
 bool shouldUse(const HttpRequest request, const Server server)
 {
     const Location location = utils::matchedLocation(request.uri, server.locations);

@@ -1,8 +1,7 @@
 #ifndef RESULT_HPP
 #define RESULT_HPP
 
-#include <cstring>
-#include <stdexcept>
+#include "external.hpp"
 
 template <typename T, typename E> struct Result
 {

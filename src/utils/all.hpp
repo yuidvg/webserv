@@ -1,25 +1,14 @@
-#ifndef UTILS_HPP
-#define UTILS_HPP
+#ifndef UTILS_ALL_HPP
+#define UTILS_ALL_HPP
 
-#include "../config/config.hpp"
-#include <cstring>
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <string>
-
-#include "../connection/socket.hpp"
-#include "../httpResponse/HttpResponse.hpp"
-#include "Headers.hpp"
-#include "Result.hpp"
-#include "consts.hpp"
-
-struct HttpResponse;
+#include "../consts.hpp"
+#include "../types/all.hpp"
 
 namespace utils
 {
-Location matchedLocation(const std::string uri, const std::vector<Location> locations);
+Location matchedLocation(const std::string &uri, const std::vector<const Location> &locations);
 unsigned int lengthOfPrefixMatch(const std::string string, const std::string pattern);
+MatchedServerResult matchedServer(const std::string &host, const Servers &servers, const Sd &sd);
 
 // string
 std::string &trim(std::string &str);
@@ -33,13 +22,14 @@ template <typename T> std::string toString(const T value)
 }
 
 // fd set
-fd_set fdSetFrom(const Sockets sockets);
-Sockets socketsIn(const fd_set fdSet, const Sockets sockets);
+fd_set fdSetFrom(const Sds sds);
+Sds sdsIn(const fd_set fdSet, const Sds sds);
 
 typedef Result<std::string, HttpResponse> FileContentResult;
 
 FileContentResult content(const std::string path);
 std::string contentType(const std::string path);
+char *toChar(std::string str);
 
 // map
 template <typename Key, typename Value> Value value(const std::map<Key, Value> myMap, const Key key)
@@ -100,6 +90,27 @@ template <typename T> std::vector<const T> excluded(const std::vector<const T> h
     return excluded;
 }
 
+std::string root(const std::string &uri, const Location &location);
+std::string index(const std::string &uri, const Location &location);
+std::string concatPath(const std::string &pathA, const std::string &pathB);
+
+// number
+template <typename T> unsigned int max(const std::vector<T> list)
+{
+    unsigned int maxSd = 0;
+    for (size_t i = 0; i < list.size(); ++i)
+    {
+        if (static_cast<int>(list[i]) > static_cast<int>(maxSd))
+        {
+            maxSd = list[i];
+        }
+    }
+    return maxSd;
+}
+
+// host name
+std::string host(const std::string &uri);
+IsDirectoryResult isDirectory(const std::string &path);
 } // namespace utils
 
 #endif

@@ -1,25 +1,73 @@
-#include "../httpRequest/parseRequest.hpp"
-#include "../utils/utils.hpp"
-#include "HttpResponse.hpp"
+#include "build.hpp"
+#include "../autoindex/all.hpp"
 
-static HttpResponse responseToValidRequest(const HttpRequest request, const Server server)
+namespace
 {
-    //TODO: server.rootの部分でエラーが出るため、locations[0].rootに変更
-    const std::string fullPath = server.locations[0].root + request.uri;
-    const utils::FileContentResult openedFile = utils::content(fullPath);
-    return openedFile.success
-               ? HttpResponse(SUCCESS,
-                              Headers(utils::contentType(fullPath), utils::toString(openedFile.value.length())),
-                              openedFile.value)
-               : HttpResponse(BAD_REQUEST, Headers(), "");
+HttpResponse responseToValidRequest(const HttpRequest &request, const Server &server)
+{
+    const Location location = utils::matchedLocation(request.uri, server.locations);
+    const std::string rootedPath = utils::root(request.uri, location);
+    const std::string indexedPath = utils::index(rootedPath, location);
+    const IsDirectoryResult isDirectoryResult = utils::isDirectory(indexedPath);
+    if (isDirectoryResult.success)
+    {
+        const bool isDirectory = isDirectoryResult.value;
+        if (isDirectory)
+        {
+            if (location.autoindex)
+            {
+                const DirectoryListHtmlResult directoryListHtmlResult = directoryListHtml(indexedPath);
+                return directoryListHtmlResult.success
+                           ? HttpResponse(SUCCESS,
+                                          Headers(utils::contentType(".html"),
+                                                  utils::toString(directoryListHtmlResult.value.length())),
+                                          directoryListHtmlResult.value)
+                           : BAD_REQUEST_RESPONSE;
+            }
+            else
+            {
+                return BAD_REQUEST_RESPONSE;
+            }
+        }
+        else // when indexedPath is assumed to be a file.
+        {
+            const utils::FileContentResult fileContentResult = utils::content(indexedPath);
+            return fileContentResult.success ? HttpResponse(SUCCESS,
+                                                            Headers(utils::contentType(indexedPath),
+                                                                    utils::toString(fileContentResult.value.length())),
+                                                            fileContentResult.value)
+                                             : BAD_REQUEST_RESPONSE;
+        }
+    }
+    else
+    {
+        return isDirectoryResult.error;
+    }
+}
+} // namespace
+
+HttpResponse response(const ParseRequestResult &requestResult, const Sd &sd, const Servers &servers)
+{
+    if (requestResult.success)
+    {
+        const MatchedServerResult serverResult = utils::matchedServer(requestResult.value.uri, servers, sd);
+        if (serverResult.success)
+        {
+            const Server server = serverResult.value;
+            return responseToValidRequest(requestResult.value, server);
+        }
+        else
+        {
+            return serverResult.error;
+        }
+    }
+    else
+    {
+        return requestResult.error;
+    }
 }
 
-HttpResponse response(const ParseRequestResult requestResult, const Server server)
-{
-    return requestResult.success ? responseToValidRequest(requestResult.value, server) : requestResult.error;
-}
-
-std::string makeResponseMessage(const HttpResponse response)
+std::string responseText(const HttpResponse &response)
 {
     std::string text = SERVER_PROTOCOL + " " + std::to_string(response.statusCode) + CRLF;
     for (std::map<std::string, std::string>::const_iterator it = response.headers.begin(); it != response.headers.end();

@@ -1,12 +1,12 @@
 #ifndef HTTPREQUEST_HPP
 #define HTTPREQUEST_HPP
 
-#include "../utils/Headers.hpp"
+#include "Headers.hpp"
 
 struct HttpRequest
 {
     const std::string method;
-    const std::string uri;
+    const std::string target;
     const std::string version;
     const Headers headers;
     const std::string body;
