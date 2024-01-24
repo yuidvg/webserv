@@ -1,8 +1,7 @@
 #include ".hpp"
 
-namespace cgi
+namespace
 {
-
 char *const *mapStringStringToCStringArray(const std::map<std::string, std::string> envMap)
 {
     char **envArray = new char *[envMap.size() + 1];
@@ -19,17 +18,24 @@ char *const *mapStringStringToCStringArray(const std::map<std::string, std::stri
     return envArray;
 }
 
-char *const *enviromentVariables(const HttpRequest request, const Server server)
+std::string authType(const HttpRequest &request)
+{
+    const std::string authorization = utils::value(request.headers, std::string("Authorization"));
+    const std::vector<const std::string> tokens = utils::tokenize(authorization, ' ');
+    return tokens.size() > 0 ? tokens[0] : "";
+}
+
+char *const *enviromentVariables(const HttpRequest &request, const Server &server)
 {
     std::map<std::string, std::string> env;
-    env["AUTH_TYPE"] = utils::value(request.headers, std::string("Authorization"));
+    env["AUTH_TYPE"] = authType(request);
     env["CONTENT_LENGTH"] = utils::value(request.headers, std::string("Content-Length"));
     env["CONTENT_TYPE"] = utils::value(request.headers, std::string("Content-Type"));
     env["GATEWAY_INTERFACE"] = GATEWAY_INTERFACE;
-    env["PATH_INFO"] = request.target;
+    env["PATH_INFO"] = request.target; // ask akiba
     env["PATH_TRANSLATED"] = request.target;
-    // To be implemented
     env["QUERY_STRING"] = request.target.substr(request.target.find("?") + 1);
+    // To be implemented
     // env["REMOTE_ADDR"] = ;
     // env["REMOTE_HOST"] = ;
     // env["REMOTE_IDENT"] = ;
@@ -42,6 +48,7 @@ char *const *enviromentVariables(const HttpRequest request, const Server server)
     env["SERVER_SOFTWARE"] = SERVER_SOFTWARE;
     return mapStringStringToCStringArray(env);
 }
+} // namespace
 
 ResponseResult execute(const HttpRequest request, const Server server)
 {
@@ -73,5 +80,3 @@ ResponseResult execute(const HttpRequest request, const Server server)
     }
     return ResponseResult::Success(SUCCESS_RESPONSE);
 }
-
-} // namespace cgi

@@ -36,4 +36,15 @@ unsigned int lengthOfPrefixMatch(const std::string string, const std::string pat
         return 0;
 }
 
+std::vector<const std::string> tokenize(const std::string &original, const char &delim)
+{
+    std::vector<const std::string> tokens;
+    std::stringstream ss(original);
+    std::string token;
+    while (std::getline(ss, token, delim))
+        if (!token.empty())
+            tokens.push_back(token);
+    return tokens;
+}
+
 } // namespace utils

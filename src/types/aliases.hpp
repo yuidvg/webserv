@@ -36,10 +36,7 @@ typedef Result<const Sds, const std::string> ReadableSdsResult;
 
 typedef Result<const unsigned int, const HttpResponse> PortNumberResult;
 
-namespace cgi
-{
 typedef Result<const HttpResponse, const HttpResponse> ResponseResult;
-} // namespace cgi
 
 namespace parseConfig
 {
