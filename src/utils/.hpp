@@ -13,10 +13,6 @@ std::string &trim(std::string &str);
 std::string lowerCase(const std::string str);
 bool isNumber(const std::string str);
 
-// fd_set
-fd_set fdSetFrom(const Sds sds);
-Sds sdsIn(const fd_set fdSet, const Sds sds);
-
 // file
 FileContentResult content(const std::string &path);
 HttpResponse writeToFile(const std::string &path, const std::string &content);
