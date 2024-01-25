@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../webserv.hpp"
 
 class HttpRequestText
@@ -9,21 +11,22 @@ class HttpRequestText
     std::string hostName;
 
   public:
-    HttpRequestText();
+    HttpRequestText(char buffer[]);
     ~HttpRequestText();
-};
 
-HttpRequestText::HttpRequestText(/* args */)
-{
-}
+    const std::string getHostName() const;
+    const std::string getText() const;
+};
 
 HttpRequestText::~HttpRequestText()
 {
 }
 
-HttpRequestText httpRequestText(socket);
 
-const std::string hostName = httpRequestText.getHostName();
-const Server server = matchedServer(hostName, servers, sd);
 
-const std::string requestText = httpRequestText.getText();
+// HttpRequestText httpRequestText(socket);
+
+// const std::string hostName = httpRequestText.getHostName();
+// const Server server = matchedServer(hostName, servers, sd);
+
+// const std::string requestText = httpRequestText.getText();
