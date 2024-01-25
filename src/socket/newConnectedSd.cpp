@@ -10,5 +10,6 @@ NewListenSocketResult newConnectedSocket(const Socket listenSocket)
         return NewListenSocketResult::Error("accept() failed: " + std::string(strerror(errno)));
     }
     std::cout << "New conected socket: " << newSd << std::endl;
-    return NewListenSocketResult::Success(Socket(newSd, listenSocket.port, ntohs(clientAddr.sin_addr), ntohs(clientAddr.sin_port)));
+    return NewListenSocketResult::Success(
+        Socket(newSd, listenSocket.port, std::string(inet_ntoa(clientAddr.sin_addr)), ntohs(clientAddr.sin_port)));
 }

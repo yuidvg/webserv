@@ -3,12 +3,23 @@
 #include "Location.hpp"
 #include "external.hpp"
 
+namespace
+{
+unsigned int lengthOfPrefixMatch(const std::string string, const std::string pattern)
+{
+    if (string.find(pattern) == 0)
+        return pattern.length();
+    else
+        return 0;
+}
+} // namespace
+
 struct Server
 {
     const std::string name;
     const size_t port;
-    const size_t clientMaxBodySize;
     const std::map<const int, const std::string> errorPages;
+    const size_t clientMaxBodySize;
     const std::vector<const Location> locations;
 
     Server()
@@ -22,8 +33,8 @@ struct Server
         unsigned int matchedIndex = 0;
         for (unsigned int i = 1; i < locations.size(); i++)
         {
-            if (utils::lengthOfPrefixMatch(target, locations[i].path) >
-                utils::lengthOfPrefixMatch(target, locations[matchedIndex].path))
+            if (lengthOfPrefixMatch(target, locations[i].path) >
+                lengthOfPrefixMatch(target, locations[matchedIndex].path))
                 matchedIndex = i;
         }
         return locations[matchedIndex];

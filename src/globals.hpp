@@ -56,11 +56,6 @@ const HttpResponse SERVER_ERROR_RESPONSE =
 
 const HttpResponse SUCCESS_RESPONSE = HttpResponse(SUCCESS, Headers("text/html", "0"), "");
 
-const HttpResponse METHOD_NOT_ALLOWED_RESPONSE(const std::string &allowedMethods)
-{
-    return HttpResponse(406, Headers("text/html", "0", "", allowedMethods),
-                        " <html> <head> <title>405 Method Not Allowed</title> </head> <body> <h1>405 Method Not "
-                        "Allowed</h1> <p>The method is not allowed for the requested URL.<br /></p> </body> </html>");
-}
+const HttpResponse METHOD_NOT_ALLOWED_RESPONSE(const std::string &allowedMethods);
 
-Config CONFIG;
+extern Config CONFIG;

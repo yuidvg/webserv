@@ -144,7 +144,7 @@ ParseBodyResult parsePlainBody(std::istream &httpRequest, const Headers &headers
 {
     std::string line;
 
-    Headers::const_iterator it = headers.find("content-length");
+    Headers::const_iterator it = headers.find("fileContent-length");
     if (it == headers.end() || !utils::isNumber(it->second))
         return ParseBodyResult::Error(BAD_REQUEST);
 
@@ -201,7 +201,7 @@ ParseBodyResult parseHttpBody(std::istream &httpRequest, const Headers &headers,
 
     if (headers.find("transfer-encoding") != headers.end())
         return parseChunkedBody(httpRequest, headers, server);
-    else if (headers.find("content-length") != headers.end())
+    else if (headers.find("fileContent-length") != headers.end())
         return parsePlainBody(httpRequest, headers);
     else
         return ParseBodyResult::Success("");

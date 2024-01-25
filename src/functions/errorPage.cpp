@@ -24,14 +24,15 @@
 //         std::ifstream file(it->second);
 //         if (file)
 //         {
-//             std::string content;
+//             std::string fileContent;
 //             std::string line;
 //             while (std::getline(file, line))
 //             {
-//                 content += line;
+//                 fileContent += line;
 //             }
 //             file.close();
-//             return HttpResponse(statusCode, Headers("text/html", utils::toString(content.length())), content);
+//             return HttpResponse(statusCode, Headers("text/html", utils::toString(fileContent.length())),
+//             fileContent);
 //         }
 //         else
 //         {

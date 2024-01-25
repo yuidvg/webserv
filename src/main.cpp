@@ -3,6 +3,8 @@
 #include "socket/.hpp"
 #include "webserv.hpp"
 
+Config CONFIG;
+
 int main(int argc, char **argv)
 {
     if (argc > 2)
@@ -18,7 +20,8 @@ int main(int argc, char **argv)
         utils::printError(configResult.error);
         return 1;
     }
-    CONFIG.injectServers(configResult.value);
+    const Servers servers = configResult.value;
+    CONFIG.injectServers(servers);
     GetListenSocketsResult createdSocketsResult = getListenSockets(servers);
     if (!createdSocketsResult.success)
     {

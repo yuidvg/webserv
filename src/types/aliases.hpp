@@ -28,7 +28,6 @@ typedef Result<const std::string, const std::string> GetIndexFilePathResult;
 typedef Result<const Server, const HttpResponse> MatchedServerResult;
 
 // socket
-typedef std::vector<const Socket> Sockets;
 typedef Result<const Socket, const std::string> NewListenSocketResult;
 typedef Result<const Sockets, const std::string> GetListenSocketsResult;
 typedef Result<const Sockets, const std::string> ReadableSocketsResult;

@@ -30,9 +30,9 @@ void eventLoop(const Sockets listenSockets)
             }
             else
             {
-                if (!processConnection(*readableSocketIt, servers))
+                if (!processConnection(*readableSocketIt))
                 {
-                    close(*readableSocketIt);
+                    close((*readableSocketIt).descriptor);
                     connectedSockets = utils::excluded(connectedSockets, *readableSocketIt);
                 }
             }

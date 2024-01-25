@@ -60,6 +60,9 @@ class Config
     }
     void injectServers(const Servers &servers)
     {
-        this->servers = servers;
+        for (Servers::const_iterator it = servers.begin(); it != servers.end(); ++it)
+        {
+            this->servers.push_back(*it);
+        }
     };
 };

@@ -28,7 +28,7 @@ HttpResponse conductGet(const HttpRequest &request, const Location &location)
         }
         else // when targetResourcePath is assumed to be a file.
         {
-            const FileContentResult fileContentResult = utils::content(targetResourcePath);
+            const FileContentResult fileContentResult = utils::fileContent(targetResourcePath);
             return fileContentResult.success ? HttpResponse(SUCCESS,
                                                             Headers(utils::contentType(targetResourcePath),
                                                                     utils::toString(fileContentResult.value.length())),
