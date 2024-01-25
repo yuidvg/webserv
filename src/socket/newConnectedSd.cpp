@@ -1,12 +1,14 @@
 #include ".hpp"
 
-NewListenSdResult newConnectedSd(const Sd listenSd)
+NewListenSocketResult newConnectedSocket(const Socket listenSocket)
 {
-    const int newSd = accept(static_cast<int>(listenSd), NULL, NULL);
-    if (newSd < 0)
+    struct sockaddr_in clientAddr;
+    socklen_t clientAddrLen = sizeof(clientAddr);
+    const int newSocket = accept(static_cast<int>(listenSocket), (struct sockaddr *)&clientAddr, &clientAddrLen);
+    if (newSocket < 0)
     {
         return NewListenSdResult::Error("accept() failed: " + std::string(strerror(errno)));
     }
-    std::cout << "New conected socket: " << newSd << std::endl;
-    return NewListenSdResult::Success(newSd);
+    std::cout << "New conected socket: " << newSocket << std::endl;
+    return NewListenSocketResult::Success(newSocket);
 }
