@@ -2,6 +2,6 @@
 #include "../webserv.hpp"
 
 GetListenSocketsResult getListenSockets(const Servers servers);
-NewListenSocketResult newConnectedSd(const Socket listenSd);
+NewListenSocketResult newConnectedSocket(const Socket listenSocket);
 ReadableSocketsResult readableSockets(const Sockets sds);
 PortNumberResult portNumber(const Socket sd);

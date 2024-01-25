@@ -14,25 +14,25 @@ void eventLoop(const Sockets listenSockets, const Servers servers)
             utils::printError(readableSocketsResult.error);
         }
         Sockets readableSockets = readableSocketsResult.value;
-        for (Sockets::iterator readableSdIt = readableSockets.begin(); readableSdIt != readableSockets.end(); ++readableSdIt)
+        for (Sockets::iterator readableSocketIt = readableSockets.begin(); readableSocketIt != readableSockets.end(); ++readableSocketIt)
         {
-            if (utils::contains(*readableSdIt, listenSockets))
+            if (utils::contains(*readableSocketIt, listenSockets))
             {
-                const Socket listenSd = *readableSdIt;
-                NewListenSocketResult newConnectedSdResult = newConnectedSd(listenSd);
-                if (!newConnectedSdResult.success)
+                const Socket listenSocket = *readableSocketIt;
+                NewListenSocketResult newConnectedSocketResult = newConnectedSocket(listenSocket);
+                if (!newConnectedSocketResult.success)
                 {
-                    utils::printError(newConnectedSdResult.error);
+                    utils::printError(newConnectedSocketResult.error);
                 }
                 std::cout << "新しい接続を受け入れた" << std::endl;
-                connectedSockets.push_back(newConnectedSdResult.value);
+                connectedSockets.push_back(newConnectedSocketResult.value);
             }
             else
             {
-                if (!processConnection(*readableSdIt, servers))
+                if (!processConnection(*readableSocketIt, servers))
                 {
-                    close(*readableSdIt);
-                    connectedSockets = utils::excluded(connectedSockets, *readableSdIt);
+                    close(*readableSocketIt);
+                    connectedSockets = utils::excluded(connectedSockets, *readableSocketIt);
                 }
             }
         }

@@ -1,7 +1,7 @@
 #include ".hpp"
 namespace
 {
-NewListenSocketResult getListenSd(const Server server)
+NewListenSocketResult getListenSocket(const Server server)
 {
     const int sd = socket(PF_INET, SOCK_STREAM, 0);
     if (sd < 0)
@@ -47,14 +47,14 @@ GetListenSocketsResult getListenSockets(Servers servers)
     Sockets sds;
     for (Servers::iterator serverIt = servers.begin(); serverIt != servers.end(); serverIt++)
     {
-        NewListenSocketResult newSdResult = getListenSd(*serverIt);
-        if (newSdResult.success)
+        NewListenSocketResult newSocketResult = getListenSocket(*serverIt);
+        if (newSocketResult.success)
         {
-            sds.push_back(newSdResult.value);
+            sds.push_back(newSocketResult.value);
         }
         else
         {
-            return GetListenSocketsResult::Error(newSdResult.error);
+            return GetListenSocketsResult::Error(newSocketResult.error);
         }
     }
     return GetListenSocketsResult::Success(sds);

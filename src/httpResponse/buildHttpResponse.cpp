@@ -45,12 +45,12 @@ HttpResponse response(const ParseRequestResult &requestResult, const Socket &sd,
         else
         {
 
-            return createHttpErrorPage(serverResult.error, servers, sd);
+            return BAD_REQUEST_RESPONSE;
         }
     }
     else
     {
-        return createHttpErrorPage(requestResult.error, servers, sd);
+        return BAD_REQUEST_RESPONSE;
     }
 }
 
