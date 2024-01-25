@@ -1,52 +1,48 @@
+#OMIT BEFORE SUBMITTING
+DEBUG_FLAGS = -g -O0
+
 CXX = c++
-CXXFLAGS = -Wall -Werror -Wextra -std=c++98
+CXXFLAGS = $(DEBUG_FLAGS) -Wall -Werror -Wextra -std=c++98 -MMD -I src
 RM = rm -rf
 AR = ar rcs
+
 NAME = webserv
-CLIENT_NAME = client
-
-INCLUDES = -I includes/
-SRCS_DIR = srcs/
-OBJS_DIR = obj/
-
-# srcsディレクトリのサブディレクトリ内のすべての.cppファイル
+SRCS_DIR = src/
 SRCS = $(wildcard $(SRCS_DIR)*/*.cpp $(SRCS_DIR)*.cpp)
-CLIENT_SRCS = client.cpp
-# オブジェクトファイルをobj/ディレクトリに格納
+OBJS_DIR = obj/
 OBJS = $(patsubst $(SRCS_DIR)%,$(OBJS_DIR)%,$(SRCS:.cpp=.o))
+DEPS = $(SRCS:.cpp=.d)
+
+#CLIENT
+CLIENT_NAME = client_app
+CLIENT_SRCS = client/client.cpp
 CLIENT_OBJS = $(CLIENT_SRCS:.cpp=.o)
 
-all: $(OBJS_DIR) $(NAME) $(CLIENT_NAME)
+all: $(NAME)
 
 $(NAME): $(OBJS)
-	$(CXX) -o $@ $^
+	$(CXX) $(CXXFLAGS) -o $@ $^
 
-$(CLIENT_NAME): $(CLIENT_OBJS)
-	$(CXX) -o $@ $^
-
-# オブジェクトファイルの生成ルール
 $(OBJS_DIR)%.o: $(SRCS_DIR)%.cpp
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# client.cppのオブジェクトファイル生成
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# オブジェクトファイルを格納するディレクトリを作成
-$(OBJS_DIR):
-	mkdir -p $(OBJS_DIR)
-
 clean:
-	$(RM) $(OBJS_DIR) $(CLIENT_OBJS)
+	$(RM) $(OBJS_DIR) $(DEBUG_OBJS_DIR) $(DEBUG_CLIENT_OBJS)
 
 fclean: clean
 	$(RM) $(NAME) $(CLIENT_NAME)
 
 re: fclean all
 
-debug: CXXFLAGS += -g
-debug: re
+client: $(CLIENT_NAME)
+
+$(CLIENT_NAME): $(CLIENT_OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $^
 
 .PHONY: all clean fclean re debug
 
+-include $(DEPS)
