@@ -31,7 +31,7 @@ HttpResponse responseToValidRequest(const HttpRequest &request, const Server &se
 }
 } // namespace
 
-HttpResponse response(const ParseRequestResult &requestResult, const Sd &sd, const Servers &servers)
+HttpResponse response(const ParseRequestResult &requestResult, const Socket &sd, const Servers &servers)
 {
     if (requestResult.success)
     {

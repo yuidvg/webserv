@@ -2,7 +2,7 @@
 
 namespace utils
 {
-fd_set fdSetFrom(const Sds sds)
+fd_set fdSetFrom(const Sockets sds)
 {
     fd_set fdSet;
     FD_ZERO(&fdSet);
@@ -13,9 +13,9 @@ fd_set fdSetFrom(const Sds sds)
     return fdSet;
 }
 
-Sds sdsIn(const fd_set fdSet, const Sds sds)
+Sockets sdsIn(const fd_set fdSet, const Sockets sds)
 {
-    Sds sdsInFdSet;
+    Sockets sdsInFdSet;
     for (size_t i = 0; i < sds.size(); ++i)
     {
         if (FD_ISSET(sds[i], &fdSet))

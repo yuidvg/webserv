@@ -19,7 +19,7 @@ struct RequestLine
 typedef Result<const RequestLine, const HttpRequest> ParseRequestLineResult;
 typedef Result<const Headers, const HttpRequest> ParseHeaderResult;
 typedef Result<const std::string, const HttpRequest> ParseBodyResult;
-typedef Result<const HttpRequest, const HttpRequest> ParseRequestResult;
+typedef Result<const HttpRequest, const HttpResponse> ParseRequestResult;
 typedef Result<const RequestLine, const unsigned int> GetRequestLineResult;
 
 // autoindex
@@ -28,11 +28,11 @@ typedef Result<const std::string, const std::string> GetIndexFilePathResult;
 typedef Result<const Server, const HttpResponse> MatchedServerResult;
 
 // socket
-typedef unsigned int Sd;
-typedef std::vector<const Sd> Sds;
-typedef Result<const Sd, const std::string> NewListenSdResult;
-typedef Result<const Sds, const std::string> GetListenSdsResult;
-typedef Result<const Sds, const std::string> ReadableSdsResult;
+typedef unsigned int Socket;
+typedef std::vector<const Socket> Sockets;
+typedef Result<const Socket, const std::string> NewListenSocketResult;
+typedef Result<const Sockets, const std::string> GetListenSocketsResult;
+typedef Result<const Sockets, const std::string> ReadableSocketsResult;
 
 typedef Result<const unsigned int, const HttpResponse> PortNumberResult;
 

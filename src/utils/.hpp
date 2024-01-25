@@ -15,8 +15,8 @@ bool isNumber(const std::string str);
 std::vector<const std::string> tokenize(const std::string &original, const char &delim);
 
 // fd_set
-fd_set fdSetFrom(const Sds sds);
-Sds sdsIn(const fd_set fdSet, const Sds sds);
+fd_set fdSetFrom(const Sockets sds);
+Sockets sdsIn(const fd_set fdSet, const Sockets sds);
 
 // file
 FileContentResult content(const std::string &path);

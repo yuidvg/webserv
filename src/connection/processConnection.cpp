@@ -3,7 +3,7 @@
 #include "../httpResponse/.hpp"
 #include ".hpp"
 
-bool processConnection(const Sd &sd, const Servers &servers)
+bool processConnection(const Socket &sd, const Servers &servers)
 {
     char buffer[500000];
     const int receivedLength = recv(sd, buffer, sizeof(buffer) - 1, 0);

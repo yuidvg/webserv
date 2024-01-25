@@ -1,7 +1,7 @@
 #include ".hpp"
 #include "../httpRequestAndConfig/.hpp"
 
-ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Servers &servers, const Sd &sd)
+ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Servers &servers, const Socket &sd)
 {
     const ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(httpRequest);
     if (!parseRequestLineResult.success)

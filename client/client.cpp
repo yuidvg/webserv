@@ -49,7 +49,7 @@ int main(int argc, char **argv)
     // ソケットの作成
     if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0)
     {
-        utils::printError("Sd creation error");
+        utils::printError("Socket creation error");
         return -1;
     }
 

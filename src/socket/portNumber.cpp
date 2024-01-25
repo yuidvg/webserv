@@ -1,6 +1,6 @@
 #include ".hpp"
 
-PortNumberResult portNumber(const Sd sd)
+PortNumberResult portNumber(const Socket sd)
 {
     struct sockaddr_in addr;
     socklen_t len = sizeof(addr);
