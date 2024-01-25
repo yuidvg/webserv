@@ -82,6 +82,7 @@ std::string contentType(const std::string &path)
     else
         return "text/plain";
 }
+
 IsDirectoryResult isDirectory(const std::string &path)
 {
     struct stat statbuf;

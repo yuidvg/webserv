@@ -1,38 +1,38 @@
 #include "../socket/.hpp"
 #include ".hpp"
 
-void eventLoop(const Sds listenSds, const Servers servers)
+void eventLoop(const Sockets listenSockets, const Servers servers)
 {
-    Sds connectedSds;
+    Sockets connectedSockets;
 
     while (true)
     {
-        const Sds allSds = utils::combined(listenSds, connectedSds);
-        const ReadableSdsResult readableSdsResult = readableSds(allSds);
-        if (!readableSdsResult.success)
+        const Sockets allSockets = utils::combined(listenSockets, connectedSockets);
+        const ReadableSocketsResult readableSocketsResult = readableSockets(allSockets);
+        if (!readableSocketsResult.success)
         {
-            utils::printError(readableSdsResult.error);
+            utils::printError(readableSocketsResult.error);
         }
-        Sds readableSds = readableSdsResult.value;
-        for (Sds::iterator readableSdIt = readableSds.begin(); readableSdIt != readableSds.end(); ++readableSdIt)
+        Sockets readableSockets = readableSocketsResult.value;
+        for (Sockets::iterator readableSdIt = readableSockets.begin(); readableSdIt != readableSockets.end(); ++readableSdIt)
         {
-            if (utils::contains(*readableSdIt, listenSds))
+            if (utils::contains(*readableSdIt, listenSockets))
             {
-                const Sd listenSd = *readableSdIt;
-                NewListenSdResult newConnectedSdResult = newConnectedSd(listenSd);
+                const Socket listenSd = *readableSdIt;
+                NewListenSocketResult newConnectedSdResult = newConnectedSd(listenSd);
                 if (!newConnectedSdResult.success)
                 {
                     utils::printError(newConnectedSdResult.error);
                 }
                 std::cout << "新しい接続を受け入れた" << std::endl;
-                connectedSds.push_back(newConnectedSdResult.value);
+                connectedSockets.push_back(newConnectedSdResult.value);
             }
             else
             {
                 if (!processConnection(*readableSdIt, servers))
                 {
                     close(*readableSdIt);
-                    connectedSds = utils::excluded(connectedSds, *readableSdIt);
+                    connectedSockets = utils::excluded(connectedSockets, *readableSdIt);
                 }
             }
         }

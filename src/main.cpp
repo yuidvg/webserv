@@ -1,5 +1,5 @@
-#include "config/parseConfig.hpp"
 #include "connection/.hpp"
+#include "config/parseConfig.hpp"
 #include "socket/.hpp"
 #include "webserv.hpp"
 
@@ -19,14 +19,15 @@ int main(int argc, char **argv)
         return 1;
     }
     const Servers servers = configResult.value;
+    const Servers SERVERS = configResult.value;
 
-    GetListenSdsResult createdSdsResult = getListenSds(servers);
-    if (!createdSdsResult.success)
+    GetListenSocketsResult createdSocketsResult = getListenSockets(servers);
+    if (!createdSocketsResult.success)
     {
-        utils::printError(createdSdsResult.error);
+        utils::printError(createdSocketsResult.error);
         return 1;
     }
-    eventLoop(createdSdsResult.value, servers);
+    eventLoop(createdSocketsResult.value, servers);
 }
 
 __attribute__((destructor)) static void destructor(void)
