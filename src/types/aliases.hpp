@@ -16,11 +16,11 @@ struct RequestLine
     const std::string target;
     const std::string version;
 };
-typedef Result<const RequestLine, const HttpRequest> ParseRequestLineResult;
-typedef Result<const Headers, const HttpRequest> ParseHeaderResult;
-typedef Result<const std::string, const HttpRequest> ParseBodyResult;
-typedef Result<const HttpRequest, const HttpRequest> ParseRequestResult;
-typedef Result<const RequestLine, const unsigned int> GetRequestLineResult;
+typedef Result<const RequestLine, const HttpResponse> ParseRequestLineResult;
+typedef Result<const Headers, const HttpResponse> ParseHeaderResult;
+typedef Result<const std::string, const HttpResponse> ParseBodyResult;
+typedef Result<const HttpRequest, const HttpResponse> ParseRequestResult;
+typedef Result<const RequestLine, const int> GetRequestLineResult;
 
 // autoindex
 typedef Result<const std::string, const HttpResponse> DirectoryListHtmlResult;
