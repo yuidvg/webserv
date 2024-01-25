@@ -10,9 +10,9 @@ bool isMethodAllowed(const HttpRequest &request, const Location &location)
             return true;
     return false;
 }
-HttpResponse responseToValidRequest(const HttpRequest &request, const Server &server)
+
+HttpResponse responseToValidRequest(const HttpRequest &request, const Location &location)
 {
-    const Location location = matchedLocation(request.target, server.locations);
     if (isMethodAllowed(request, location))
     {
         if (request.method == "GET")
@@ -31,26 +31,16 @@ HttpResponse responseToValidRequest(const HttpRequest &request, const Server &se
 }
 } // namespace
 
-HttpResponse response(const ParseRequestResult &requestResult, const Socket &sd, const Servers &servers)
+HttpResponse response(const ParseRequestResult &requestResult, const Socket &socket)
 {
-    const Servers serversTest = SERVERS;
     if (requestResult.success)
     {
         const HttpRequest request = requestResult.value;
-        const MatchedServerResult serverResult = matchedServer(request.host, servers, sd);
-        if (serverResult.success)
-        {
-            const Server server = serverResult.value;
-            return responseToValidRequest(requestResult.value, server);
-        }
-        else
-        {
-            return serverResult.error;
-        }
+        const Server server = CONFIG.getServer(request.host, socket.port);
+        return responseToValidRequest(requestResult.value, server.getLocation(request.target));
     }
     else
     {
-        // TODO: エラーページのレスポンスを返すを関数を作成。
         return requestResult.error;
     }
 }

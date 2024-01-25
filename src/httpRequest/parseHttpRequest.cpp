@@ -1,7 +1,7 @@
 #include ".hpp"
 #include "../httpRequestAndConfig/.hpp"
 
-ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Servers &servers, const Socket &sd)
+ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Socket &socket)
 {
     const ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(httpRequest);
     if (!parseRequestLineResult.success)
@@ -19,11 +19,7 @@ ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Servers &se
         return ParseRequestResult::Error(HttpResponse(BAD_REQUEST));
     const std::string host = it->second;
 
-    /* サーバの選択 */
-    const MatchedServerResult matchedServerResult = matchedServer(host, servers, sd);
-    if (!matchedServerResult.success)
-        return ParseRequestResult::Error(HttpResponse(matchedServerResult.error));
-    const Server server = matchedServerResult.value;
+    const Server server = CONFIG.getServer(host, socket.port);
 
     const ParseBodyResult body = parseHttpBody(httpRequest, headers, server);
     if (!body.success)

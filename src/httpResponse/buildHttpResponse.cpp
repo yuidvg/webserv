@@ -10,9 +10,8 @@ bool isMethodAllowed(const HttpRequest &request, const Location &location)
             return true;
     return false;
 }
-HttpResponse responseToValidRequest(const HttpRequest &request, const Server &server)
+HttpResponse responseToValidRequest(const HttpRequest &request, const Location &location)
 {
-    const Location location = matchedLocation(request.target, server.locations);
     if (isMethodAllowed(request, location))
     {
         if (request.method == "GET")
@@ -39,8 +38,8 @@ HttpResponse response(const ParseRequestResult &requestResult, const Socket &sd,
         const MatchedServerResult serverResult = matchedServer(request.host, servers, sd);
         if (serverResult.success)
         {
-            const Server server = serverResult.value;
-            return responseToValidRequest(requestResult.value, server);
+            const Server location = serverResult.value;
+            return responseToValidRequest(requestResult.value, location);
         }
         else
         {

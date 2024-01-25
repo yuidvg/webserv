@@ -1,7 +1,7 @@
 #include "../socket/.hpp"
 #include ".hpp"
 
-void eventLoop(const Sockets listenSockets, const Servers servers)
+void eventLoop(const Sockets listenSockets)
 {
     Sockets connectedSockets;
 
@@ -14,7 +14,8 @@ void eventLoop(const Sockets listenSockets, const Servers servers)
             utils::printError(readableSocketsResult.error);
         }
         Sockets readableSockets = readableSocketsResult.value;
-        for (Sockets::iterator readableSocketIt = readableSockets.begin(); readableSocketIt != readableSockets.end(); ++readableSocketIt)
+        for (Sockets::iterator readableSocketIt = readableSockets.begin(); readableSocketIt != readableSockets.end();
+             ++readableSocketIt)
         {
             if (utils::contains(*readableSocketIt, listenSockets))
             {

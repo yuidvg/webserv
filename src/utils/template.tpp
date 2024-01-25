@@ -71,4 +71,5 @@ template <typename T> std::string toString(const T value)
     oss << value;
     return oss.str();
 }
+
 } // namespace utils

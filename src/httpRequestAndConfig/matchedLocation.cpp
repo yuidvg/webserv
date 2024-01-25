@@ -1,6 +1,6 @@
 #include ".hpp"
 
-Location matchedLocation(const std::string &target, const std::vector<const Location> &locations)
+Location getLocation(const std::string &target, const std::vector<const Location> &locations)
 {
     unsigned int matchedIndex = 0;
     for (unsigned int i = 1; i < locations.size(); i++)
