@@ -2,6 +2,8 @@
 
 #include "../webserv.hpp"
 
+typedef Result<const std::string, const std::string> FindStrResult;
+
 class HttpRequestText
 {
   private:
@@ -30,8 +32,7 @@ class HttpRequestText
     {
         iss.str(buffer);
 
-        std::istream is(iss.rdbuf());
-        std::string str((std::istreambuf_iterator<char>(is)), std::istreambuf_iterator<char>());
+        std::string str((std::istreambuf_iterator<char>(iss)), std::istreambuf_iterator<char>());
 
         // chunkedかどうかを判定する
         if (str.find("Transfer-Encoding: chunked") != std::string::npos)
@@ -125,8 +126,6 @@ class HttpRequestText
         return text;
     };
 };
-
-typedef Result<const std::string, const std::string> FindStrResult;
 
 // HttpRequestText httpRequestText(socket);
 
