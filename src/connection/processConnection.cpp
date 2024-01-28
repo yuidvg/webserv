@@ -1,4 +1,5 @@
 #include "../socket/.hpp"
+#include "../types/HttpRequestText.hpp"
 #include "../httpRequest/.hpp"
 #include "../httpResponse/.hpp"
 #include ".hpp"
@@ -17,10 +18,12 @@ bool processConnection(const Socket &socket)
         std::cout << "Connection closed" << std::endl;
         return false;
     }
-    std::cout << "Received \n" << receivedLength << " bytes: " << buffer << std::endl;
+    std::cout << "Received \n" << receivedLength << " bytes: \n" << buffer << std::endl;
 
-    std::istringstream buf(buffer);
-    const ParseRequestResult parseHttpRequestResult = parseHttpRequest(buf, socket);
+    HttpRequestText httpRequestText(buffer, socket);
+    const Server server = CONFIG.getServer(httpRequestText.getHostName(), socket.port);
+
+    const ParseRequestResult parseHttpRequestResult = parseHttpRequest(httpRequestText);
     const HttpResponse httpResponse = response(parseHttpRequestResult, socket);
     const std::string httpResponseText = responseText(httpResponse);
     const int sentLength = send(socket.descriptor, httpResponseText.c_str(), httpResponseText.length(), 0);
