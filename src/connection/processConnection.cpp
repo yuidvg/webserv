@@ -22,7 +22,6 @@ bool processConnection(const Socket &socket)
     std::cout << "Received \n" << receivedLength << " bytes: \n" << buffer << std::endl;
 
     HttpRequestText httpRequestText(buffer);
-    std::cout << "====server====" << std::endl;
     GetHostNameResult getHostNameResult = httpRequestText.getHostName();
     if (!getHostNameResult.success)
     {
