@@ -2,8 +2,6 @@
 
 ParseRequestResult parseHttpRequest(HttpRequestText &httpRequestText)
 {
-    std::cout << "======requestLine=======\n";
-
     std::string httpRequest = httpRequestText.getText();
     std::istringstream requestTextStream(httpRequest);
 
@@ -11,7 +9,6 @@ ParseRequestResult parseHttpRequest(HttpRequestText &httpRequestText)
     if (!parseRequestLineResult.success)
         return ParseRequestResult::Error(HttpResponse(parseRequestLineResult.error));
 
-    std::cout << "======Header=======\n";
     const ParseHeaderResult headersResult = parseHttpHeaders(requestTextStream);
     if (!headersResult.success)
     {
@@ -19,11 +16,8 @@ ParseRequestResult parseHttpRequest(HttpRequestText &httpRequestText)
         return ParseRequestResult::Error(HttpResponse(headersResult.error));
     }
 
-    std::cout << "headersResult.value: \n";
-
     const Headers headers = headersResult.value;
 
-    std::cout << "======Body=======\n";
     const ParseBodyResult body = parseHttpBody(requestTextStream, headers);
     if (!body.success)
         return ParseRequestResult::Error(HttpResponse(body.error));
@@ -53,12 +47,22 @@ static int getRequestLineStatusCode(const RequestLine requestLine)
     return SUCCESS;
 }
 
+static std::string getlineCustom(std::istringstream &requestTextStream)
+{
+    std::string line;
+    std::getline(requestTextStream, line);
+    // lineの後ろの\rを削除
+    if (line[line.length() - 1] == '\r')
+        line.erase(line.length() - 1);
+    return line;
+}
+
 static GetRequestLineResult getRequestLine(std::istringstream &requestTextStream)
 {
     std::string method, target, version;
     std::string line;
 
-    while (std::getline(requestTextStream, line))
+    while ((line = getlineCustom(requestTextStream)).empty())
         ;
 
     // 有効なリクエストラインがない場合
@@ -94,7 +98,7 @@ ParseHeaderResult parseHttpHeaders(std::istringstream &requestTextStream)
     std::string line;
     Headers headers;
 
-    while (std::getline(requestTextStream, line))
+    while (!(line = getlineCustom(requestTextStream)).empty())
     {
         if (isLineTooLong(line))
             return ParseHeaderResult::Error(BAD_REQUEST);
