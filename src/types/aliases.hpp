@@ -51,7 +51,7 @@ typedef Result<const std::string, const std::string> IndexResult;
 typedef Result<const std::vector<std::string>, const std::string> AllowMethodsResult;
 typedef Result<const std::string, const std::string> CgiExtensionResult;
 typedef Result<const std::string, const std::string> UploadPathResult;
-typedef Result<const std::map<int, std::string>, const std::string> RedirectResult;
+typedef Result<const std::string,const std::string>RedirectResult;
 
 typedef Result<const int, const std::string> StringToIntResult;
 

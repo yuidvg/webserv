@@ -15,7 +15,7 @@ ParseLocationResult parseLocationContext(std::vector<std::string> &tokens, std::
     std::vector<std::string> allowMethods = location.allowMethods;
     std::string cgiExtension = location.cgiExtension;
     std::string uploadPath = location.uploadPath;
-    std::map<int, std::string> redirect = location.redirect;
+    std::string redirect = location.redirect;
 
     while (!tokens.empty())
     {
@@ -70,14 +70,8 @@ ParseLocationResult parseLocationContext(std::vector<std::string> &tokens, std::
         {
             RedirectResult redirectRes = parseReturnDirective(directiveTokens);
             if (!redirectRes.success)
-            {
                 return ParseLocationResult::Error(redirectRes.error);
-            }
-            std::map<int, std::string> newRedirect = redirectRes.value;
-            for (std::map<int, std::string>::iterator it = newRedirect.begin(); it != newRedirect.end(); ++it)
-            {
-                redirect.insert(*it);
-            }
+            std::string redirectResult = redirectRes.value;
         }
 
         else if (directiveTokens[0] == CLOSE_BRACKET)

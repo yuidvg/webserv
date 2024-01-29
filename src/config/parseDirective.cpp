@@ -186,17 +186,12 @@ UploadPathResult parseUploadPathDirective(const std::vector<std::string> directi
 
 RedirectResult parseReturnDirective(const std::vector<std::string> directiveTokens)
 {
-    if (directiveTokens.size() != 3)
+    if (directiveTokens.size() != 2)
     {
         return RedirectResult::Error("Config: returnの引数が不正です");
     }
-
-    StringToIntResult statusCodeResult = stringToInt(directiveTokens[1], 300, 399);
-    if (!statusCodeResult.success)
-        return RedirectResult::Error("Config: returnのステータスコードが不正です");
-    std::map<int, std::string> redirect;
-    redirect[statusCodeResult.value] = directiveTokens[2];
-    return RedirectResult::Success(redirect);
+    const std::string uri = directiveTokens[1];
+    return RedirectResult::Success(uri);
 }
 
 }
