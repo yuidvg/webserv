@@ -10,4 +10,8 @@ bool shouldUse(const HttpRequest request, const Server server)
     return uriExtension == location.cgiExtension;
 }
 
+// std::string cgiPath(const HttpRequest &request, const Location &location)
+// {
+//     return ;
+// }
 } // namespace cgi

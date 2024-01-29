@@ -88,7 +88,7 @@ IsDirectoryResult isDirectory(const std::string &path)
     struct stat statbuf;
     if (stat(path.c_str(), &statbuf) != 0)
     {
-        return IsDirectoryResult::Error(SERVER_ERROR_RESPONSE);
+        return IsDirectoryResult::Error(BAD_REQUEST_RESPONSE);
     }
     return IsDirectoryResult::Success(S_ISDIR(statbuf.st_mode));
 }

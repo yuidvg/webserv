@@ -71,4 +71,18 @@ template <typename T> std::string toString(const T value)
     oss << value;
     return oss.str();
 }
+
+template <typename T, typename Predicate> std::vector<T> filter(const std::vector<T> &vec, Predicate pred)
+{
+    std::vector<T> result;
+    for (typename std::vector<T>::const_iterator it = vec.begin(); it != vec.end(); ++it)
+    {
+        if (pred(*it))
+        {
+            result.push_back(*it);
+        }
+    }
+    return result;
+}
+
 } // namespace utils

@@ -1,4 +1,5 @@
 #include ".hpp"
+#include "../httpRequestAndConfig/.hpp"
 
 namespace
 {
@@ -25,25 +26,32 @@ std::string authType(const HttpRequest &request)
     return tokens.size() > 0 ? tokens[0] : "";
 }
 
-char *const *enviromentVariables(const HttpRequest &request, const Server &server)
+std::string::size_type findPathInfoPos(const std::string &target)
+{
+    const std::string::size_type firstDotPos = target.find(".");
+    return target.find("/", firstDotPos);
+}
+
+char *const *enviromentVariables(const HttpRequest &request, const Socket &socket)
 {
     std::map<std::string, std::string> env;
+    const std::string::size_type pathInfoPos = findPathInfoPos(request.target);
+    const std::string pathInfo = request.target.substr(pathInfoPos);
+    const std::string scriptName = request.target.substr(0, pathInfoPos);
+
     env["AUTH_TYPE"] = authType(request);
     env["CONTENT_LENGTH"] = utils::value(request.headers, std::string("Content-Length"));
     env["CONTENT_TYPE"] = utils::value(request.headers, std::string("Content-Type"));
     env["GATEWAY_INTERFACE"] = GATEWAY_INTERFACE;
-    env["PATH_INFO"] = request.target; // ask akiba
-    env["PATH_TRANSLATED"] = request.target;
+    env["PATH_INFO"] = pathInfo;
+    env["PATH_TRANSLATED"] = comply(pathInfo, CONFIG.getServer(request.host, socket.port).getLocation(request.target));
     env["QUERY_STRING"] = request.target.substr(request.target.find("?") + 1);
-    // To be implemented
-    // env["REMOTE_ADDR"] = ;
-    // env["REMOTE_HOST"] = ;
-    // env["REMOTE_IDENT"] = ;
-    // env["REMOTE_USER"] = ;
+    env["REMOTE_ADDR"] = socket.opponentIp;
+    env["REMOTE_USER"] = ;
     env["REQUEST_METHOD"] = request.method;
-    env["SCRIPT_NAME"] = utils::value(request.headers, request.target);
-    env["SERVER_NAME"] = server.name;
-    env["SERVER_PORT"] = server.port;
+    env["SCRIPT_NAME"] = scriptName;
+    env["SERVER_NAME"] = request.host;
+    env["SERVER_PORT"] = socket.port;
     env["SERVER_PROTOCOL"] = SERVER_PROTOCOL;
     env["SERVER_SOFTWARE"] = SERVER_SOFTWARE;
     return mapStringStringToCStringArray(env);

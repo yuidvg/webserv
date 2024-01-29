@@ -2,7 +2,6 @@
 
 namespace utils
 {
-
 std::string &trim(std::string &str)
 {
     while (std::isspace(str[0]))
@@ -38,7 +37,7 @@ unsigned int lengthOfPrefixMatch(const std::string string, const std::string pat
 
 std::vector<const std::string> tokenize(const std::string &original, const char &delim)
 {
-    std::vector<const std::string> tokens;
+    Strings tokens;
     std::stringstream ss(original);
     std::string token;
     while (std::getline(ss, token, delim))
@@ -46,5 +45,4 @@ std::vector<const std::string> tokenize(const std::string &original, const char 
             tokens.push_back(token);
     return tokens;
 }
-
 } // namespace utils

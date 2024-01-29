@@ -61,3 +61,5 @@ typedef Result<const int, const std::string> StringToIntResult;
 
 typedef Result<const bool, const HttpResponse> IsDirectoryResult;
 typedef Result<std::string, HttpResponse> FileContentResult;
+
+typedef std::vector<const std::string> Strings;
