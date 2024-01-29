@@ -2,7 +2,11 @@
 
 ParseRequestResult parseHttpRequest(HttpRequestText &httpRequestText, const Server &server)
 {
-    std::string httpRequest = httpRequestText.getText();
+    GetTextResult getTextResult = httpRequestText.getText();
+    if (!getTextResult.success)
+        return ParseRequestResult::Error(HttpResponse(getTextResult.error));
+
+    std::string httpRequest = getTextResult.value;
     std::istringstream requestTextStream(httpRequest);
 
     const ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(requestTextStream);
@@ -118,7 +122,6 @@ ParseHeaderResult parseHttpHeaders(std::istringstream &requestTextStream)
             return ParseHeaderResult::Error(BAD_REQUEST);
 
         headers[utils::lowerCase(key)] = value;
-        // std::cout << "text:\n" << httpRequestText.getText() << std::endl;
     }
 
     if (!line.empty() || headers.empty())
@@ -134,10 +137,8 @@ ParseBodyResult parseHttpBody(std::istringstream &requestTextStream, const Heade
 
     if (headers.find("transfer-encoding") != headers.end())
     {
-        if (headers.at("transfer-encoding") != "chunked")
+        if (headers.at("transfer-encoding") != "chunked" || body.length() > server.clientMaxBodySize)
             return ParseBodyResult::Error(BAD_REQUEST);
-        // if (body.length() > clientMaxBodySize)
-        //     return ParseBodyResult::Error(BAD_REQUEST);
     }
     else if (headers.find("content-length") != headers.end())
     {
@@ -151,8 +152,7 @@ ParseBodyResult parseHttpBody(std::istringstream &requestTextStream, const Heade
     }
     else
     {
-        // bodyがない場合
-        return ParseBodyResult::Success(body);
+        return ParseBodyResult::Success(body); // bodyがない場合
     }
     return ParseBodyResult::Success(body);
 }

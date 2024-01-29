@@ -3,6 +3,7 @@
 #include "../webserv.hpp"
 
 typedef Result<const std::string, const int> GetHostNameResult;
+typedef Result<const std::string, const int> GetTextResult;
 
 class HttpRequestText
 {
@@ -31,61 +32,71 @@ class HttpRequestText
         {
             text = str.substr(0, pos + 4);
             textStream.seekg(pos + 4);
-            std::cout << "pos: " << textStream.tellg() << std::endl;
         }
     }
 
-    void readOptionalText()
+    void readPostRequestText()
+    {
+        std::string::size_type pos = text.find("\r\n\r\n");
+        if (pos != std::string::npos)
+        {
+            text = text.substr(pos + 4);
+            textStream.seekg(pos + 4);
+        }
+    };
+
+    bool readChunkedText()
+    {
+        std::string line;
+        std::string chunkedText = "";
+
+        while (std::getline(textStream, line))
+        {
+            std::istringstream chunkSizeLine(line);
+            int chunkSize;
+            if (!(chunkSizeLine >> std::hex >> chunkSize) || !chunkSizeLine.eof())
+                break;
+            if (chunkSize == 0)
+                break;
+
+            if (chunkedText.length() + chunkSize > clientMaxBodySize)
+                return false;
+
+            std::vector<char> buffer(chunkSize);
+            textStream.read(buffer.data(), chunkSize);
+            chunkedText.append(buffer.data(), chunkSize);
+
+            // チャンクの末尾のCRLFを読み飛ばす
+            std::getline(textStream, line);
+        }
+        text += chunkedText;
+        chunked = false;
+        return true;
+    };
+
+    void readNonChunkedText()
+    {
+        std::string line;
+        std::string chunkedText = "";
+
+        while (std::getline(textStream, line))
+            chunkedText += line;
+        text += chunkedText;
+    };
+
+    bool readOptionalText()
     {
         if (text.find("POST") != std::string::npos)
         {
-            std::string::size_type pos = text.find("\r\n\r\n");
-            if (pos != std::string::npos)
-            {
-                text = text.substr(pos + 4);
-                textStream.seekg(pos + 4);
-            }
-            // posから後ろをtextに格納する
+            readPostRequestText();
             if (chunked)
             {
-                std::string line;
-                std::string chunkedText = "";
-
-                while (std::getline(textStream, line))
-                {
-                    std::istringstream chunkSizeLine(line);
-                    int chunkSize;
-                    if (!(chunkSizeLine >> std::hex >> chunkSize) || !chunkSizeLine.eof())
-                    {
-                        break;
-                    }
-                    if (chunkSize == 0)
-                    {
-                        break;
-                    }
-
-                    std::vector<char> buffer(chunkSize);
-                    textStream.read(buffer.data(), chunkSize);
-                    chunkedText.append(buffer.data(), chunkSize);
-
-                    // チャンクの末尾のCRLFを読み飛ばす
-                    std::getline(textStream, line);
-                }
-                text += chunkedText;
-                chunked = false;
+                return readChunkedText();
             }
             else
-            {
-                std::string line;
-                std::string chunkedText = "";
-
-                while (std::getline(textStream, line))
-                {
-                    chunkedText += line;
-                }
-                text += chunkedText;
-            }
+                readNonChunkedText();
         }
+        return true;
     };
 
   public:
@@ -126,8 +137,8 @@ class HttpRequestText
                 if (pos != std::string::npos)
                 {
                     hostName = line.substr(pos + 2);
-                    // 後ろのCRを削除
-                    hostName.erase(hostName.length() - 1);
+                    if (hostName[hostName.length() - 1] == '\r')
+                        hostName.erase(hostName.length() - 1);
                     return GetHostNameResult::Success(hostName);
                 }
             }
@@ -140,16 +151,11 @@ class HttpRequestText
         return clientMaxBodySize;
     };
 
-    const std::string getText()
+    const GetTextResult getText()
     {
-        readOptionalText();
-        return text;
+        if (readOptionalText())
+            return GetTextResult::Success(text);
+        else
+            return GetTextResult::Error(BAD_REQUEST);
     };
 };
-
-// HttpRequestText httpRequestText(socket);
-
-// const std::string hostName = httpRequestText.getHostName();
-// const Server server = matchedServer(hostName, servers, sd);
-
-// const std::string requestText = httpRequestText.getText();
