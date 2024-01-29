@@ -5,20 +5,20 @@ NewListenSocketResult getListenSocket(const Server server)
 {
     const int sd = socket(PF_INET, SOCK_STREAM, 0);
     if (sd < 0)
-        return (NewListenSdResult::Error("socket() failed"));
+        return (NewListenSocketResult::Error("socket() failed"));
 
     const int on = 1;
     if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on)) < 0)
     {
         close(sd);
-        return (NewListenSdResult::Error("setsockopt() failed"));
+        return (NewListenSocketResult::Error("setsockopt() failed"));
     }
 
     const int nonblockSocketFlags = O_NONBLOCK;
     if (fcntl(sd, F_SETFL, nonblockSocketFlags) < 0)
     {
         close(sd);
-        return (NewListenSdResult::Error("fcntl() failed to set non-blocking"));
+        return (NewListenSocketResult::Error("fcntl() failed to set non-blocking"));
     }
 
     struct sockaddr_in addr;
@@ -29,33 +29,33 @@ NewListenSocketResult getListenSocket(const Server server)
     if (bind(sd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
         close(sd);
-        return (NewListenSdResult::Error("bind() failed: "));
-        // return (NewListenSdResult::Error(std::string("bind() failed: " + std::string(strerror(errno)) +
+        return (NewListenSocketResult::Error("bind() failed: "));
+        // return (NewListenSocketResult::Error(std::string("bind() failed: " + std::string(strerror(errno)) +
         //                                               "\nポート番号" + utils::to_string(server.port))));
     }
 
     if (listen(sd, 5) < 0)
     {
         close(sd);
-        return (NewListenSdResult::Error("listen() failed"));
+        return (NewListenSocketResult::Error("listen() failed"));
     }
-    return NewListenSdResult::Success(sd);
+    return NewListenSocketResult::Success(Socket(sd, ntohs(addr.sin_port)));
 }
 } // namespace
-GetListenSdsResult getListenSds(Servers servers)
+GetListenSocketsResult getListenSockets(Servers servers)
 {
-    Sds sds;
+    Sockets sockets;
     for (Servers::iterator serverIt = servers.begin(); serverIt != servers.end(); serverIt++)
     {
         NewListenSocketResult newSocketResult = getListenSocket(*serverIt);
         if (newSocketResult.success)
         {
-            sds.push_back(newSocketResult.value);
+            sockets.push_back(newSocketResult.value);
         }
         else
         {
             return GetListenSocketsResult::Error(newSocketResult.error);
         }
     }
-    return GetListenSdsResult::Success(sds);
+    return GetListenSocketsResult::Success(sockets);
 }

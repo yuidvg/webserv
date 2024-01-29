@@ -7,7 +7,7 @@ NewListenSocketResult newConnectedSocket(const Socket listenSocket)
     const int newSocket = accept(static_cast<int>(listenSocket), (struct sockaddr *)&clientAddr, &clientAddrLen);
     if (newSocket < 0)
     {
-        return NewListenSdResult::Error("accept() failed: " + std::string(strerror(errno)));
+        return NewListenSocketResult::Error("accept() failed: " + std::string(strerror(errno)));
     }
     std::cout << "New conected socket: " << newSocket << std::endl;
     return NewListenSocketResult::Success(newSocket);

@@ -4,7 +4,7 @@
 #include "../httpResponse/.hpp"
 #include ".hpp"
 
-bool processConnection(const Sd &sd, const Servers &servers)
+bool processConnection(const Socket &socket)
 {
     char buffer[500000];
     memset(buffer, 0, sizeof(buffer));
@@ -19,7 +19,7 @@ bool processConnection(const Sd &sd, const Servers &servers)
         std::cout << "Connection closed" << std::endl;
         return false;
     }
-    std::cout << "Received \n" << receivedLength << " bytes: " << buffer << std::endl;
+    std::cout << "Received \n" << receivedLength << " bytes: \n" << buffer << std::endl;
 
     HttpRequestText httpRequestText(buffer);
     std::cout << "====server====" << std::endl;
@@ -34,7 +34,7 @@ bool processConnection(const Sd &sd, const Servers &servers)
     const ParseRequestResult parseHttpRequestResult = parseHttpRequest(httpRequestText);
     const HttpResponse httpResponse = response(parseHttpRequestResult, socket);
     const std::string httpResponseText = responseText(httpResponse);
-    const int sentLength = send(sd, httpResponseText.c_str(), httpResponseText.length(), 0);
+    const int sentLength = send(socket.descriptor, httpResponseText.c_str(), httpResponseText.length(), 0);
     if (sentLength > 0)
     {
         return true;

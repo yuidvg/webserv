@@ -2,7 +2,7 @@
 #include "external.hpp"
 #include "structs.hpp"
 
-// config
+// CONFIG
 typedef Result<const std::vector<std::string>, const std::string> TokensResult;
 typedef Result<const Servers, const std::string> ConfigResult;
 typedef Result<const Server, const std::string> ParseServerResult;
@@ -28,18 +28,13 @@ typedef Result<const std::string, const std::string> GetIndexFilePathResult;
 typedef Result<const Server, const HttpResponse> MatchedServerResult;
 
 // socket
-typedef unsigned int Sd;
-typedef std::vector<const Sd> Sds;
-typedef Result<const Sd, const std::string> NewListenSdResult;
-typedef Result<const Sds, const std::string> GetListenSdsResult;
-typedef Result<const Sds, const std::string> ReadableSdsResult;
+typedef Result<const Socket, const std::string> NewListenSocketResult;
+typedef Result<const Sockets, const std::string> GetListenSocketsResult;
+typedef Result<const Sockets, const std::string> ReadableSocketsResult;
 
 typedef Result<const unsigned int, const HttpResponse> PortNumberResult;
 
-namespace cgi
-{
 typedef Result<const HttpResponse, const HttpResponse> ResponseResult;
-} // namespace cgi
 
 namespace parseConfig
 {

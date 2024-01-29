@@ -1,5 +1,5 @@
-#include ".hpp"
-#include "../socket/.hpp"
+#pragma once
+#include "Server.hpp"
 
 namespace
 {
@@ -31,32 +31,38 @@ Servers filter(const Servers &servers, const std::string &host)
 }
 } // namespace
 
-MatchedServerResult matchedServer(const std::string &host, const Servers &servers, const Sd &sd)
+class Config
 {
-    const PortNumberResult portNumberResult = portNumber(sd);
-    if (portNumberResult.success)
+  private:
+    Servers servers;
+
+  public:
+    Config() : servers(){};
+    Server getServer(const std::string &host, const unsigned int &port) const
     {
-        const unsigned int port = portNumberResult.value;
         const Servers serversWithPort = filter(servers, port);
         if (serversWithPort.size() > 0)
         {
             const Servers serversWithPortAndName = filter(serversWithPort, host);
             if (serversWithPortAndName.size() > 0)
             {
-                return MatchedServerResult::Success(serversWithPortAndName[0]);
+                return serversWithPortAndName[0];
             }
             else
             {
-                return MatchedServerResult::Success(serversWithPort[0]);
+                return serversWithPort[0];
             }
         }
         else
         {
-            return MatchedServerResult::Error(BAD_REQUEST_RESPONSE);
+            return servers[0];
         }
     }
-    else
+    void injectServers(const Servers &servers)
     {
-        return MatchedServerResult::Error(portNumberResult.error);
-    }
-}
+        for (Servers::const_iterator it = servers.begin(); it != servers.end(); ++it)
+        {
+            this->servers.push_back(*it);
+        }
+    };
+};

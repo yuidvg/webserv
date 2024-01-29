@@ -3,29 +3,29 @@
 namespace utils
 {
 
-FileContentResult content(const std::string &path)
+FileContentResult fileContent(const std::string &path)
 {
     std::ifstream ifs(path);
     if (!ifs.is_open())
         return (FileContentResult::Error(HttpResponse(BAD_REQUEST, Headers(), "File not found")));
 
-    std::string content;
+    std::string fileContent;
     std::string line;
 
     while (std::getline(ifs, line))
     {
-        content += line;
-        content.push_back('\n');
+        fileContent += line;
+        fileContent.push_back('\n');
     }
-    return (FileContentResult::Success(content));
+    return (FileContentResult::Success(fileContent));
 }
 
-HttpResponse writeToFile(const std::string &path, const std::string &content)
+HttpResponse writeToFile(const std::string &path, const std::string &fileContent)
 {
     std::ofstream ofs(path);
     if (ofs.is_open())
     {
-        ofs << content;
+        ofs << fileContent;
         return (HttpResponse(SUCCESS, Headers(), ""));
     }
     else
@@ -82,6 +82,7 @@ std::string contentType(const std::string &path)
     else
         return "text/plain";
 }
+
 IsDirectoryResult isDirectory(const std::string &path)
 {
     struct stat statbuf;

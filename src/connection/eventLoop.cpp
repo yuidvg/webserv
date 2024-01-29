@@ -1,20 +1,21 @@
 #include "../socket/.hpp"
 #include ".hpp"
 
-void eventLoop(const Sds listenSds, const Servers servers)
+void eventLoop(const Sockets listenSockets)
 {
-    Sds connectedSds;
+    Sockets connectedSockets;
 
     while (true)
     {
-        const Sds allSds = utils::combined(listenSds, connectedSds);
-        const ReadableSdsResult readableSdsResult = readableSds(allSds);
-        if (!readableSdsResult.success)
+        const Sockets allSockets = utils::combined(listenSockets, connectedSockets);
+        const ReadableSocketsResult readableSocketsResult = readableSockets(allSockets);
+        if (!readableSocketsResult.success)
         {
-            utils::printError(readableSdsResult.error);
+            utils::printError(readableSocketsResult.error);
         }
         Sockets readableSockets = readableSocketsResult.value;
-        for (Sockets::iterator readableSocketIt = readableSockets.begin(); readableSocketIt != readableSockets.end(); ++readableSocketIt)
+        for (Sockets::iterator readableSocketIt = readableSockets.begin(); readableSocketIt != readableSockets.end();
+             ++readableSocketIt)
         {
             if (utils::contains(*readableSocketIt, listenSockets))
             {
@@ -29,9 +30,9 @@ void eventLoop(const Sds listenSds, const Servers servers)
             }
             else
             {
-                if (!processConnection(*readableSocketIt, servers))
+                if (!processConnection(*readableSocketIt))
                 {
-                    close(*readableSocketIt);
+                    close((*readableSocketIt).descriptor);
                     connectedSockets = utils::excluded(connectedSockets, *readableSocketIt);
                 }
             }

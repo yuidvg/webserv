@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../webserv.hpp"
 
 typedef Result<const std::string, const int> GetHostNameResult;
