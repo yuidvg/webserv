@@ -14,7 +14,8 @@
 			"environment": [],
 			"externalConsole": false,
 			"MIMode": "lldb",
-			"preLaunchTask": "buildWithDebug"
+			"preLaunchTask": "buildWithDebug",
+			"postDebugTask": "kill",
 		}
 	],
 	"compounds": []

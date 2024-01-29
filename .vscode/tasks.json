@@ -15,6 +15,12 @@
 				"reveal": "always"
 			},
 			"group": "build"
+		},
+		{
+			"label": "kill",
+			"type": "shell",
+			"command": "pkill lldb-mi; pkill webserv",
+			"problemMatcher": []
 		}
 	]
 }
