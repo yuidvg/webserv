@@ -1,6 +1,6 @@
 #include ".hpp"
 
-ParseRequestResult parseHttpRequest(HttpRequestText &httpRequestText)
+ParseRequestResult parseHttpRequest(HttpRequestText &httpRequestText, const Server &server)
 {
     std::string httpRequest = httpRequestText.getText();
     std::istringstream requestTextStream(httpRequest);
@@ -18,7 +18,7 @@ ParseRequestResult parseHttpRequest(HttpRequestText &httpRequestText)
 
     const Headers headers = headersResult.value;
 
-    const ParseBodyResult body = parseHttpBody(requestTextStream, headers);
+    const ParseBodyResult body = parseHttpBody(requestTextStream, headers, server);
     if (!body.success)
         return ParseRequestResult::Error(HttpResponse(body.error));
 
@@ -124,52 +124,35 @@ ParseHeaderResult parseHttpHeaders(std::istringstream &requestTextStream)
     if (!line.empty() || headers.empty())
         return ParseHeaderResult::Error(BAD_REQUEST);
 
-    // headersの中身を表示
-    std::cout << "headers: " << std::endl;
-    for (Headers::iterator it = headers.begin(); it != headers.end(); it++)
-    {
-        std::cout << it->first << "=>" << it->second << "." << std::endl;
-    }
-
     return ParseHeaderResult::Success(headers);
 }
 
-ParseBodyResult parseHttpBody(std::istringstream &requestTextStream, const Headers &headers)
+ParseBodyResult parseHttpBody(std::istringstream &requestTextStream, const Headers &headers, const Server &server)
 {
     std::string line;
-    std::string body;
+    std::string body((std::istreambuf_iterator<char>(requestTextStream)), std::istreambuf_iterator<char>());
 
     if (headers.find("transfer-encoding") != headers.end())
     {
         if (headers.at("transfer-encoding") != "chunked")
             return ParseBodyResult::Error(BAD_REQUEST);
-        while (std::getline(requestTextStream, line))
-        {
-            if (isLineTooLong(line))
-                return ParseBodyResult::Error(BAD_REQUEST);
-            if (line == "0")
-                break;
-            body += line;
-        }
+        // if (body.length() > clientMaxBodySize)
+        //     return ParseBodyResult::Error(BAD_REQUEST);
     }
     else if (headers.find("content-length") != headers.end())
     {
-        const int contentLength = std::stoi(headers.at("content-length"));
-        if (contentLength < 0)
+        if (!utils::isNumber(headers.at("content-length")))
             return ParseBodyResult::Error(BAD_REQUEST);
-        for (int i = 0; i < contentLength; i++)
-        {
-            if (!std::getline(requestTextStream, line))
-                return ParseBodyResult::Error(BAD_REQUEST);
-            if (isLineTooLong(line))
-                return ParseBodyResult::Error(BAD_REQUEST);
-            body += line;
-        }
+        const size_t bodySize = static_cast<size_t>(std::stoi(headers.at("content-length")));
+        if (bodySize < 0 || bodySize > server.clientMaxBodySize)
+            return ParseBodyResult::Error(BAD_REQUEST);
+        if (body.length() != server.clientMaxBodySize)
+            return ParseBodyResult::Error(BAD_REQUEST);
     }
     else
     {
+        // bodyがない場合
         return ParseBodyResult::Success(body);
     }
-    std::cout << "body: \n" << body << std::endl;
     return ParseBodyResult::Success(body);
 }

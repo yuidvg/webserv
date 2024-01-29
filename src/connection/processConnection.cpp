@@ -30,7 +30,7 @@ bool processConnection(const Socket &socket)
     }
     Server server = CONFIG.getServer(getHostNameResult.value, socket.port);
 
-    const ParseRequestResult parseHttpRequestResult = parseHttpRequest(httpRequestText);
+    const ParseRequestResult parseHttpRequestResult = parseHttpRequest(httpRequestText, server);
     const HttpResponse httpResponse = response(parseHttpRequestResult, socket);
     const std::string httpResponseText = responseText(httpResponse);
     const int sentLength = send(socket.descriptor, httpResponseText.c_str(), httpResponseText.length(), 0);
