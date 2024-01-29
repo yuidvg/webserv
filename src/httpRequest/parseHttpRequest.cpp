@@ -137,9 +137,17 @@ ParseHeaderResult parseHttpHeaders(std::istream &httpRequest)
             return ParseHeaderResult::Error(BAD_REQUEST);
 
         headers[utils::lowerCase(key)] = value;
+        // std::cout << "text:\n" << httpRequestText.getText() << std::endl;
     }
     if (!line.empty() || headers.empty())
         return ParseHeaderResult::Error(BAD_REQUEST);
+
+    // headersの中身を表示
+    std::cout << "headers: " << std::endl;
+    for (Headers::iterator it = headers.begin(); it != headers.end(); it++)
+    {
+        std::cout << it->first << "=>" << it->second << "." << std::endl;
+    }
 
     return ParseHeaderResult::Success(headers);
 }
