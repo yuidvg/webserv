@@ -2,7 +2,7 @@
 
 #include "../webserv.hpp"
 
-typedef Result<const std::string, const std::string> FindStrResult;
+typedef Result<const std::string, const int> GetHostNameResult;
 
 class HttpRequestText
 {
@@ -13,147 +13,135 @@ class HttpRequestText
     std::string hostName;
     unsigned int clientMaxBodySize;
 
-  public:
-    static FindStrResult findStr(const std::string &str, const std::string &findStr)
+    void resetTextStream()
     {
-        std::string::size_type pos = str.find(findStr);
+        textStream.clear();
+        textStream.seekg(0, std::ios::beg);
+    };
+
+    bool isChunkedTransfer(const std::string &str)
+    {
+        return str.find("Transfer-Encoding: chunked") != std::string::npos;
+    };
+
+    void readMandatoryText(const std::string &str)
+    {
+        std::string::size_type pos = str.find("\r\n\r\n");
         if (pos != std::string::npos)
         {
-            std::string::size_type pos2 = str.find("\r\n", pos);
-            return FindStrResult::Success(str.substr(pos, pos2 - pos));
+            text = str.substr(0, pos + 4);
+            textStream.seekg(pos + 4);
+            std::cout << "pos: " << textStream.tellg() << std::endl;
         }
-        else
+    }
+
+    void readOptionalText()
+    {
+        if (text.find("POST") != std::string::npos)
         {
-            return FindStrResult::Error("");
+            std::string::size_type pos = text.find("\r\n\r\n");
+            if (pos != std::string::npos)
+            {
+                text = text.substr(pos + 4);
+                textStream.seekg(pos + 4);
+            }
+            // posから後ろをtextに格納する
+            if (chunked)
+            {
+                std::string line;
+                std::string chunkedText = "";
+
+                while (std::getline(textStream, line))
+                {
+                    std::istringstream chunkSizeLine(line);
+                    int chunkSize;
+                    if (!(chunkSizeLine >> std::hex >> chunkSize) || !chunkSizeLine.eof())
+                    {
+                        break;
+                    }
+                    if (chunkSize == 0)
+                    {
+                        break;
+                    }
+
+                    std::vector<char> buffer(chunkSize);
+                    textStream.read(buffer.data(), chunkSize);
+                    chunkedText.append(buffer.data(), chunkSize);
+
+                    // チャンクの末尾のCRLFを読み飛ばす
+                    std::getline(textStream, line);
+                }
+                text += chunkedText;
+                chunked = false;
+            }
+            else
+            {
+                std::string line;
+                std::string chunkedText = "";
+
+                while (std::getline(textStream, line))
+                {
+                    chunkedText += line;
+                }
+                text += chunkedText;
+            }
         }
     };
 
-    HttpRequestText(char buffer[], const Socket &socket)
+  public:
+    HttpRequestText(char buffer[]) : hostName(""), clientMaxBodySize(0)
     {
         textStream = std::istringstream(buffer);
 
+        // 入力ストリームから文字列への読み込み
         std::string str((std::istreambuf_iterator<char>(textStream)), std::istreambuf_iterator<char>());
-        textStream.clear();
-        textStream.seekg(0, std::ios::beg);
+        resetTextStream();
 
-        // chunkedかどうかを判定する
-        if (str.find("Transfer-Encoding: chunked") != std::string::npos)
-        {
-            chunked = true;
-        }
-        else
-        {
-            chunked = false;
-        }
+        // chunked トランスファーの判定
+        chunked = isChunkedTransfer(str);
 
-        if (!chunked)
-        {
-            // issのeofまでをtextに格納する
-            std::string line;
-
-            while (std::getline(textStream, line)) //  && text.length() < clientMaxBodySize
-            {
-                line += "\n";
-                text += line;
-            }
-
-            std::cout << "end\ntext:\n" << text << std::endl;
-        }
-        else
-        {
-            // Header後の\r\n\r\nまでをtextに格納する
-            std::string::size_type pos = str.rfind("\r\n\r\n");
-            if (pos != std::string::npos)
-            {
-                text = str.substr(0, pos + 4);
-                // pos分だけissを進める
-                textStream.seekg(pos + 4);
-            }
-        }
-
-        clientMaxBodySize = CONFIG.getServer(hostName, socket.port).clientMaxBodySize;
+        // ヘッダーまでの読み込み
+        readMandatoryText(str);
     };
 
     ~HttpRequestText(){};
 
-    const std::string getHostName()
+    void setClientMaxBodySize(const unsigned int clientMaxBodySize)
     {
-        // メンバー変数issからホスト名を取得する
-        std::istream is(textStream.rdbuf());
-        std::string str((std::istreambuf_iterator<char>(is)), std::istreambuf_iterator<char>());
+        this->clientMaxBodySize = clientMaxBodySize;
+    };
 
-        const FindStrResult findHostResult = findStr(str, "Host: ");
-        if (!findHostResult.success)
+    const GetHostNameResult getHostName()
+    {
+        std::istringstream copyTextStream(text);
+        std::string line;
+
+        if (hostName != "")
+            return GetHostNameResult::Success(hostName);
+        while (std::getline(copyTextStream, line))
         {
-            hostName = findHostResult.error;
+            if (line.find("Host: ") != std::string::npos)
+            {
+                std::string::size_type pos = line.find(": ");
+                if (pos != std::string::npos)
+                {
+                    hostName = line.substr(pos + 2);
+                    return GetHostNameResult::Success(hostName);
+                }
+            }
         }
-        else
-        {
-            hostName = findHostResult.value;
-        }
-        return hostName;
+        return GetHostNameResult::Error(BAD_REQUEST);
+    };
+
+    unsigned int getClientMaxBodySize()
+    {
+        return clientMaxBodySize;
     };
 
     const std::string getText()
     {
-        if (!chunked)
-        {
-            std::cout << "HERE" << std::endl;
-            return text;
-        }
-        // chunkedの場合
-        std::string line;
-        std::string chunkedText = "";
-        while (std::getline(textStream, line))
-        {
-            std::istringstream chunkSizeLine(line);
-            int chunkSize;
-            if (!(chunkSizeLine >> std::hex >> chunkSize) || !chunkSizeLine.eof())
-            {
-                break;
-            }
-            if (chunkSize == 0)
-            {
-                break;
-            }
-
-            char *buffer = new char[chunkSize];
-            textStream.read(buffer, chunkSize);
-            chunkedText.append(buffer, chunkSize);
-            delete[] buffer;
-
-            // チャンクの末尾のCRLFを読み飛ばす
-            std::getline(textStream, line);
-        }
-        text += chunkedText;
-        chunked = false;
+        readOptionalText();
         return text;
-    };
-    std::string readLine()
-    {
-        std::string line;
-        std::istringstream iss(text);
-
-        std::getline(iss, line);
-
-        text.erase(0, line.length() + 1); // 一行分を削除する
-        if (line[line.length() - 1] == '\r')
-            line.erase(line.end() - 1);                    // 後ろの\rを削除する
-        std::replace(line.begin(), line.end(), '\r', ' '); // line中の\rをspaceに置換する
-        return line;
-    };
-    bool eof()
-    {
-        return text.empty();
-    };
-    void clear()
-    {
-        textStream.clear();
-        textStream.seekg(0, std::ios::beg);
-    };
-    unsigned int getClientMaxBodySize()
-    {
-        return clientMaxBodySize;
     };
 };
 
