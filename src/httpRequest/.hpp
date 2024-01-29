@@ -4,6 +4,6 @@
 #include "../httpRequestAndConfig/.hpp"
 
 ParseRequestResult parseHttpRequest(HttpRequestText &httpRequestText);
-ParseRequestLineResult parseHttpRequestLine(HttpRequestText &httpRequestText);
-ParseHeaderResult parseHttpHeaders(HttpRequestText &httpRequestText);
-ParseBodyResult parseHttpBody(HttpRequestText &httpRequestText, const Headers &headers);
+ParseRequestLineResult parseHttpRequestLine(std::istringstream &requestTextStream);
+ParseHeaderResult parseHttpHeaders(std::istringstream &requestTextStream);
+ParseBodyResult parseHttpBody(std::istringstream &requestTextStream, const Headers &headers);
