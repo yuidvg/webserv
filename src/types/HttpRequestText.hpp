@@ -126,6 +126,8 @@ class HttpRequestText
                 if (pos != std::string::npos)
                 {
                     hostName = line.substr(pos + 2);
+                    // 後ろのCRを削除
+                    hostName.erase(hostName.length() - 1);
                     return GetHostNameResult::Success(hostName);
                 }
             }
