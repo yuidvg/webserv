@@ -23,11 +23,13 @@ HttpResponse provideErrorResponse(const HttpResponse &httpResponse, const Server
     {
         if (server.errorPages.find(BAD_REQUEST) != server.errorPages.end())
             return generateErrorResponse(httpResponse, server);
+        return BAD_REQUEST_RESPONSE;
     }
     else if (httpResponse.statusCode == SERVER_ERROR)
     {
         if (server.errorPages.find(SERVER_ERROR) != server.errorPages.end())
             return generateErrorResponse(httpResponse, server);
+        return SERVER_ERROR_RESPONSE;
     }
     return httpResponse;
 }
