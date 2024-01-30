@@ -6,5 +6,6 @@
 #include "HttpResponse.hpp"
 #include "Location.hpp"
 #include "Result.hpp"
+#include "ScriptUri.hpp"
 #include "Server.hpp"
 #include "Socket.hpp"

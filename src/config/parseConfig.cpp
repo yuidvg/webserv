@@ -99,9 +99,9 @@ ParseServerResult parseServerContext(std::vector<std::string> &tokens)
     Server server;
     std::string name = server.name;
     size_t port = server.port;
-    std::map<const int, const std::string> errorPages;
+    std::map<int, std::string> errorPages;
     size_t clientMaxBodySize = server.clientMaxBodySize;
-    std::vector<const Location> locations;
+    Locations locations;
 
     while (!tokens.empty())
     {
@@ -170,7 +170,7 @@ ConfigResult parseConfig(const char *configPath)
         return ConfigResult::Error(tokensResult.error);
     std::vector<std::string> tokens = tokensResult.value;
 
-    std::vector<const Server> servers;
+    std::vector<Server> servers;
 
     while (!tokens.empty())
     {

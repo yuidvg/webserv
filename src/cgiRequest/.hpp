@@ -1,6 +1,7 @@
 #pragma once
 #include "../webserv.hpp"
 
-ResponseResult execute(const HttpRequest request, const Server server, const int clientSocket);
-bool shouldUse(const HttpRequest &request, const Server &server);
-std::string getUserNameFromBasicAuth(const std::string &authHeader);
+HttpResponse executeCgi(const HttpRequest &request, const Socket &socket, const ScriptUri &scriptUri);
+bool findCgiExtension(const std::string &target, const std::string &extension);
+
+ScriptUri retrieveScriptUri(const std::string &target, const std::string &cgiExtension);

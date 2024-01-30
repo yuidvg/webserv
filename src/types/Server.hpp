@@ -18,15 +18,15 @@ struct Server
 {
     const std::string name;
     const size_t port;
-    const std::map<const int, const std::string> errorPages;
+    const std::map<int, std::string> errorPages;
     const size_t clientMaxBodySize;
-    const std::vector<const Location> locations;
+    const Locations locations;
 
     Server()
-        : name(""), port(80), errorPages(std::map<const int, const std::string>()), clientMaxBodySize(1048576),
-          locations(std::vector<const Location>()){};
-    Server(const std::string &name, const size_t &port, const std::map<const int, const std::string> &errorPages,
-           const size_t &clientMaxBodySize, const std::vector<const Location> &locations)
+        : name(""), port(80), errorPages(std::map<int, std::string>()), clientMaxBodySize(1048576),
+          locations(Locations()){};
+    Server(const std::string &name, const size_t &port, const std::map<int, std::string> &errorPages,
+           const size_t &clientMaxBodySize, const Locations &locations)
         : name(name), port(port), errorPages(errorPages), clientMaxBodySize(clientMaxBodySize), locations(locations){};
     Location getLocation(const std::string &target) const
     {
@@ -41,4 +41,4 @@ struct Server
     };
 };
 
-typedef std::vector<const Server> Servers;
+typedef std::vector<Server> Servers;

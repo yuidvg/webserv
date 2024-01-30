@@ -35,3 +35,6 @@ struct Location
           allowMethods(std::vector<std::string>(initializeAllowedMethods())), cgiExtension(""), uploadPath(""),
           redirect(std::map<int, std::string>()){};
 };
+
+typedef std::vector<Location> Locations;
+

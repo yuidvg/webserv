@@ -3,7 +3,7 @@
 
 namespace
 {
-char *const *mapStringStringToCStringArray(const std::map<std::string, std::string> envMap)
+char *const *mapStringStringToCStringArray(const std::map<std::string, std::string> &envMap)
 {
     char **envArray = new char *[envMap.size() + 1];
     int i = 0;
@@ -22,33 +22,25 @@ char *const *mapStringStringToCStringArray(const std::map<std::string, std::stri
 std::string authType(const HttpRequest &request)
 {
     const std::string authorization = utils::value(request.headers, std::string("Authorization"));
-    const std::vector<const std::string> tokens = utils::tokenize(authorization, ' ');
+    const std::vector<std::string> tokens = utils::tokenize(authorization, ' ');
     return tokens.size() > 0 ? tokens[0] : "";
 }
 
-std::string::size_type findPathInfoPos(const std::string &target)
-{
-    const std::string::size_type firstDotPos = target.find(".");
-    return target.find("/", firstDotPos);
-}
-
-char *const *enviromentVariables(const HttpRequest &request, const Socket &socket)
+char *const *enviromentVariables(const HttpRequest &request, const Socket &socket, const ScriptUri &scriptUri)
 {
     std::map<std::string, std::string> env;
-    const std::string::size_type pathInfoPos = findPathInfoPos(request.target);
-    const std::string pathInfo = request.target.substr(pathInfoPos);
-    const std::string scriptName = request.target.substr(0, pathInfoPos);
 
     env["AUTH_TYPE"] = authType(request);
     env["CONTENT_LENGTH"] = request.body.size();
     env["CONTENT_TYPE"] = utils::value(request.headers, std::string("Content-Type"));
     env["GATEWAY_INTERFACE"] = GATEWAY_INTERFACE;
-    env["PATH_INFO"] = pathInfo;
-    env["PATH_TRANSLATED"] = comply(pathInfo, CONFIG.getServer(request.host, socket.port).getLocation(request.target));
-    env["QUERY_STRING"] = request.target.substr(request.target.find("?") + 1);
+    env["PATH_INFO"] = scriptUri.extraPath;
+    env["PATH_TRANSLATED"] =
+        comply(scriptUri.extraPath, CONFIG.getServer(request.host, socket.port).getLocation(request.target));
+    env["QUERY_STRING"] = scriptUri.queryString;
     env["REMOTE_ADDR"] = socket.opponentIp;
     env["REQUEST_METHOD"] = request.method;
-    env["SCRIPT_NAME"] = scriptName;
+    env["SCRIPT_NAME"] = scriptUri.scriptPath;
     env["SERVER_NAME"] = request.host;
     env["SERVER_PORT"] = socket.port;
     env["SERVER_PROTOCOL"] = SERVER_PROTOCOL;
@@ -57,21 +49,24 @@ char *const *enviromentVariables(const HttpRequest &request, const Socket &socke
 }
 } // namespace
 
-ResponseResult execute(const HttpRequest &request, const Socket &socket)
+HttpResponse executeCgi(const HttpRequest &request, const Socket &socket, const ScriptUri &scriptUri)
 {
     int pipefds[2];
     if (pipe(pipefds) == -1)
     {
         std::cerr << "pipe failed" << std::endl;
-        return ResponseResult::Error(SERVER_ERROR_RESPONSE);
+        return (SERVER_ERROR_RESPONSE);
     }
     const pid_t pid = fork();
     if (pid == -1)
-        return ResponseResult::Error(SERVER_ERROR_RESPONSE);
+        return (SERVER_ERROR_RESPONSE);
     else if (pid == 0) // child process
     {
         close(pipefds[IN]);
-        execve(request.target.c_str(), NULL, enviromentVariables(request, socket));
+        char *args[2];
+        args[0] = const_cast<char *>(request.target.c_str());
+        args[1] = NULL;
+        execve(request.target.c_str(), args, enviromentVariables(request, socket, scriptUri));
         std::cerr << "execve failed" << std::endl;
     }
     else // parent process
@@ -81,9 +76,9 @@ ResponseResult execute(const HttpRequest &request, const Socket &socket)
         int status;
         waitpid(pid, &status, 0);
         if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
-            return ResponseResult::Error(SERVER_ERROR_RESPONSE);
+            return (SUCCESS_RESPONSE);
         else
-            return ResponseResult::Error(SERVER_ERROR_RESPONSE);
+            return (SERVER_ERROR_RESPONSE);
     }
-    return ResponseResult::Success(SUCCESS_RESPONSE);
+    return (SUCCESS_RESPONSE);
 }

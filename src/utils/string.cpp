@@ -27,7 +27,7 @@ bool isNumber(const std::string str)
     return (true);
 }
 
-std::vector<const std::string> tokenize(const std::string &original, const char &delim)
+std::vector< std::string> tokenize(const std::string &original, const char &delim)
 {
     Strings tokens;
     std::stringstream ss(original);

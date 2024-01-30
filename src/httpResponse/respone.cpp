@@ -1,5 +1,7 @@
 #include ".hpp"
+#include "../cgiRequest/.hpp"
 #include "../httpRequestAndConfig/.hpp"
+
 namespace
 {
 bool isMethodAllowed(const HttpRequest &request, const Location &location)
@@ -11,18 +13,29 @@ bool isMethodAllowed(const HttpRequest &request, const Location &location)
     return false;
 }
 
-HttpResponse responseToValidRequest(const HttpRequest &request, const Location &location)
+HttpResponse responseToValidRequest(const HttpRequest &request, const Socket &socket)
 {
+    const Server server = CONFIG.getServer(request.host, socket.port);
+    const Location location = server.getLocation(request.target);
+
     if (isMethodAllowed(request, location))
     {
-        if (request.method == "GET")
-            return conductGet(request, location);
-        else if (request.method == "POST")
-            return conductPost(request, location);
-        else if (request.method == "DELETE")
-            return conductDelete(request, location);
+        const ScriptUri scriptUri = retrieveScriptUri(request.target, location.cgiExtension);
+        if (scriptUri.scriptPath.size() > 0)
+        {
+            return executeCgi(request, socket, scriptUri);
+        }
         else
-            return METHOD_NOT_ALLOWED_RESPONSE("GET, POST, DELETE");
+        {
+            if (request.method == "GET")
+                return conductGet(request, location);
+            else if (request.method == "POST")
+                return conductPost(request, location);
+            else if (request.method == "DELETE")
+                return conductDelete(request, location);
+            else
+                return METHOD_NOT_ALLOWED_RESPONSE("GET, POST, DELETE");
+        }
     }
     else
     {
@@ -36,8 +49,7 @@ HttpResponse response(const ParseRequestResult &requestResult, const Socket &soc
     if (requestResult.success)
     {
         const HttpRequest request = requestResult.value;
-        const Server server = CONFIG.getServer(request.host, socket.port);
-        return responseToValidRequest(requestResult.value, server.getLocation(request.target));
+        return responseToValidRequest(requestResult.value, socket);
     }
     else
     {

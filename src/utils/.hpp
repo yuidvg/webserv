@@ -12,7 +12,7 @@ unsigned int lengthOfPrefixMatch(const std::string string, const std::string pat
 std::string &trim(std::string &str);
 std::string lowerCase(const std::string str);
 bool isNumber(const std::string str);
-std::vector<const std::string> tokenize(const std::string &original, const char &delim);
+std::vector<std::string> tokenize(const std::string &original, const char &delim);
 
 // fd_set
 fd_set fdSetFrom(const Sockets sds);
