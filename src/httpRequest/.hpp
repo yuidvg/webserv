@@ -4,6 +4,11 @@
 #include "../webserv.hpp"
 
 ParseRequestResult parseHttpRequest(HttpRequestText &httpRequestText, const Server &server);
-ParseRequestLineResult parseHttpRequestLine(std::istringstream &requestTextStream);
-ParseHeaderResult parseHttpHeaders(std::istringstream &requestTextStream);
-ParseBodyResult parseHttpBody(std::istringstream &requestTextStream, const Headers &headers, const Server &server);
+
+
+bool isLineTooLong(const std::string &line);
+bool decodeTarget(std::string &target);
+int getRequestLineStatusCode(const RequestLine requestLine);
+std::string getlineCustom(std::istringstream &requestTextStream);
+bool decodeTarget(std::string &target);
+GetRequestLineResult getRequestLine(std::istringstream &requestTextStream);
