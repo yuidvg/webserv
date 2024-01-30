@@ -7,7 +7,7 @@
 			"request": "launch",
 			"program": "${workspaceFolder}/webserv",
 			"args": [
-				"config/default_home.conf"
+				"config/default.conf"
 			],
 			"stopAtEntry": false,
 			"cwd": "${workspaceFolder}",
@@ -16,7 +16,20 @@
 			"MIMode": "lldb",
 			"preLaunchTask": "buildWithDebug",
 			"postDebugTask": "kill",
-		}
+		},
+		{
+			"name": "(lldb) Launch on current file",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "${fileDirname}/${fileBasenameNoExtension}.out",
+			"args": [],
+			"stopAtEntry": false,
+			"cwd": "${fileDirname}",
+			"environment": [],
+			"externalConsole": false,
+			"MIMode": "lldb",
+			"preLaunchTask": "compileCurrentFile",
+		},
 	],
 	"compounds": []
 }

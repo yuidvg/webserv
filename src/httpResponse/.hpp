@@ -10,3 +10,4 @@ HttpResponse conductPost(const HttpRequest &request, const Location &location);
 HttpResponse conductDelete(const HttpRequest &request, const Location &location);
 
 // HttpResponse createHttpErrorPage(const int statusCode, const HttpRequest &request, const Server &server);
+HttpResponse redirectResponse(const std::string& redirectUrl);

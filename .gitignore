@@ -1,7 +1,7 @@
 *.o
 *.a
 *.d
-*.out
+*.out*
 *.DS_Store
 .sample
 webserv
@@ -13,3 +13,5 @@ src/*/main.cpp
 *.txt
 client_app
 *.rb
+
+*.plist*
