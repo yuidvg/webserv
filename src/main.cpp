@@ -3,6 +3,8 @@
 #include "socket/.hpp"
 #include "webserv.hpp"
 
+Config CONFIG;
+
 int main(int argc, char **argv)
 {
     if (argc > 2)
@@ -10,7 +12,7 @@ int main(int argc, char **argv)
         utils::printError("引数が多すぎます");
         return 1;
     }
-    const std::string configPath = argc == 2 ? argv[1] : "config/default.conf";
+    const std::string configPath = argc == 2 ? argv[1] : "CONFIG/default.conf";
 
     ConfigResult configResult = parseConfig::parseConfig(configPath.c_str());
     if (!configResult.success)
@@ -19,15 +21,14 @@ int main(int argc, char **argv)
         return 1;
     }
     const Servers servers = configResult.value;
-    const Servers SERVERS = configResult.value;
-
+    CONFIG.injectServers(servers);
     GetListenSocketsResult createdSocketsResult = getListenSockets(servers);
     if (!createdSocketsResult.success)
     {
         utils::printError(createdSocketsResult.error);
         return 1;
     }
-    eventLoop(createdSocketsResult.value, servers);
+    eventLoop(createdSocketsResult.value);
 }
 
 __attribute__((destructor)) static void destructor(void)

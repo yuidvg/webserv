@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../consts.hpp"
+#include "../globals.hpp"
 #include "../types/.hpp"
 #include "template.tpp"
 
@@ -19,8 +19,8 @@ fd_set fdSetFrom(const Sockets sds);
 Sockets sdsIn(const fd_set fdSet, const Sockets sds);
 
 // file
-FileContentResult content(const std::string &path);
-HttpResponse writeToFile(const std::string &path, const std::string &content);
+FileContentResult fileContent(const std::string &path);
+HttpResponse writeToFile(const std::string &path, const std::string &fileContent);
 std::string contentType(const std::string &path);
 IsDirectoryResult isDirectory(const std::string &path);
 

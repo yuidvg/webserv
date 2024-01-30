@@ -99,7 +99,7 @@ ParseServerResult parseServerContext(std::vector<std::string> &tokens)
     Server server;
     std::string name = server.name;
     size_t port = server.port;
-    std::map<int, std::string> errorPages;
+    std::map<const int, const std::string> errorPages;
     size_t clientMaxBodySize = server.clientMaxBodySize;
     std::vector<const Location> locations;
 

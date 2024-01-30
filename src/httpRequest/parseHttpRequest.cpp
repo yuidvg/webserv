@@ -1,36 +1,33 @@
 #include ".hpp"
-#include "../httpRequestAndConfig/.hpp"
 
-ParseRequestResult parseHttpRequest(std::istream &httpRequest, const Servers &servers, const Socket &sd)
+ParseRequestResult parseHttpRequest(HttpRequestText &httpRequestText)
 {
-    const ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(httpRequest);
+    std::cout << "======requestLine=======\n";
+
+    const ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(httpRequestText);
     if (!parseRequestLineResult.success)
         return ParseRequestResult::Error(HttpResponse(parseRequestLineResult.error));
 
-    const ParseHeaderResult headersResult = parseHttpHeaders(httpRequest);
+    std::cout << "======Header=======\n";
+    const ParseHeaderResult headersResult = parseHttpHeaders(httpRequestText);
     if (!headersResult.success)
+    {
+        std::cout << "Failed" << std::endl;
         return ParseRequestResult::Error(HttpResponse(headersResult.error));
+    }
+
+    std::cout << "headersResult.value: \n";
 
     const Headers headers = headersResult.value;
 
-    /* hostの取得 */
-    Headers::const_iterator it;
-    if ((it = headers.find("host")) == headers.end())
-        return ParseRequestResult::Error(HttpResponse(BAD_REQUEST));
-    const std::string host = it->second;
-
-    /* サーバの選択 */
-    const MatchedServerResult matchedServerResult = matchedServer(host, servers, sd);
-    if (!matchedServerResult.success)
-        return ParseRequestResult::Error(HttpResponse(matchedServerResult.error));
-    const Server server = matchedServerResult.value;
-
-    const ParseBodyResult body = parseHttpBody(httpRequest, headers, server);
+    std::cout << "======Body=======\n";
+    const ParseBodyResult body = parseHttpBody(httpRequestText, headers);
     if (!body.success)
         return ParseRequestResult::Error(HttpResponse(body.error));
 
     const RequestLine requestLine = parseRequestLineResult.value;
-    const HttpRequest result(requestLine.method, requestLine.target, requestLine.version, headers, body.value, host);
+    const HttpRequest result(requestLine.method, requestLine.target, requestLine.version, headers, body.value,
+                             httpRequestText.getHostName());
     return ParseRequestResult::Success(result);
 }
 
@@ -53,38 +50,17 @@ static int getRequestLineStatusCode(const RequestLine requestLine)
     return SUCCESS;
 }
 
-static std::string getMessageLine(std::istream &stream)
-{
-    std::string line;
-    char c;
-
-    while (stream.get(c))
-    {
-        if (c == '\r')
-        {
-            if (stream.peek() == '\n')
-            {
-                stream.get();
-                break;
-            }
-            else
-                c = '\n';
-        }
-        line += c;
-    }
-    return line;
-}
-
-static GetRequestLineResult getRequestLine(std::istream &httpRequest)
+static GetRequestLineResult getRequestLine(HttpRequestText &httpRequestText)
 {
     std::string method, target, version;
     std::string line;
 
-    while ((line = getMessageLine(httpRequest)) == "\r")
-        ;
+    line = httpRequestText.readLine();
+    while (line.empty())
+        line = httpRequestText.readLine();
 
     // 有効なリクエストラインがない場合
-    if (httpRequest.eof())
+    if (httpRequestText.eof())
         return (GetRequestLineResult::Error(BAD_REQUEST));
     if (isLineTooLong(line))
         return GetRequestLineResult::Error(BAD_REQUEST);
@@ -94,11 +70,15 @@ static GetRequestLineResult getRequestLine(std::istream &httpRequest)
         !requestLine.eof()) // メソッドとターゲット、バージョンに分けて格納する
         return GetRequestLineResult::Error(BAD_REQUEST);
 
-    RequestLine requestLineData = {method, target, version};
-    return GetRequestLineResult::Success(requestLineData);
+    std::cout << "line: " << line << std::endl;
+
+    std::cout << "text=> \n" << httpRequestText.getText() << std::endl;
+
+    RequestLine requestLineElements = {method, target, version};
+    return GetRequestLineResult::Success(requestLineElements);
 }
 
-ParseRequestLineResult parseHttpRequestLine(std::istream &httpRequest)
+ParseRequestLineResult parseHttpRequestLine(HttpRequestText &httpRequest)
 {
     const GetRequestLineResult getRequestLineResult = getRequestLine(httpRequest);
     if (!getRequestLineResult.success)
@@ -111,15 +91,14 @@ ParseRequestLineResult parseHttpRequestLine(std::istream &httpRequest)
                                    : ParseRequestLineResult::Success(getRequestLineResult.value);
 }
 
-ParseHeaderResult parseHttpHeaders(std::istream &httpRequest)
+ParseHeaderResult parseHttpHeaders(HttpRequestText &httpRequestText)
 {
     std::string line;
     Headers headers;
 
-    while ((line = getMessageLine(httpRequest)) != "\r")
+    while (!(line = httpRequestText.readLine()).empty())
     {
-        if (line.empty())
-            break;
+        std::cout << "line: " << line << std::endl;
         if (isLineTooLong(line))
             return ParseHeaderResult::Error(BAD_REQUEST);
         if (std::isspace(line[0]))
@@ -129,8 +108,9 @@ ParseHeaderResult parseHttpHeaders(std::istream &httpRequest)
         std::string key, value;
         std::istringstream headerLine(line);
 
-        std::getline(headerLine, key, ':');
-        std::getline(headerLine, value);
+        if (!std::getline(headerLine, key, ':') || !std::getline(headerLine, value))
+            return ParseHeaderResult::Error(BAD_REQUEST);
+
         utils::trim(value);
 
         if (key.empty() || std::isspace(*(key.end() - 1)) || value.empty())
@@ -138,75 +118,30 @@ ParseHeaderResult parseHttpHeaders(std::istream &httpRequest)
 
         headers[utils::lowerCase(key)] = value;
     }
+
     if (!line.empty() || headers.empty())
         return ParseHeaderResult::Error(BAD_REQUEST);
 
     return ParseHeaderResult::Success(headers);
 }
 
-ParseBodyResult parsePlainBody(std::istream &httpRequest, const Headers &headers)
+ParseBodyResult parseHttpBody(HttpRequestText &httpRequestText, const Headers &headers)
 {
     std::string line;
-
-    Headers::const_iterator it = headers.find("content-length");
-    if (it == headers.end() || !utils::isNumber(it->second))
-        return ParseBodyResult::Error(BAD_REQUEST);
-
-    const size_t contentLength = std::stoul(it->second);
-    if (contentLength > MAX_LEN)
-        return ParseBodyResult::Error(BAD_REQUEST);
-
-    std::string body(contentLength, '\0');
-    if (httpRequest.read(&body[0], contentLength))
-        return ParseBodyResult::Error(BAD_REQUEST);
-
-    return ParseBodyResult::Success(body);
-}
-
-ParseBodyResult parseChunkedBody(std::istream &httpRequest, const Headers &headers, const Server &server)
-{
-    std::string line;
-
-    Headers::const_iterator it = headers.find("transfer-encoding");
-    if (it->second != "chunked")
-        return ParseBodyResult::Error(HttpResponse(BAD_REQUEST));
-
-    std::string body = "";
-    while ((line = getMessageLine(httpRequest)) != "\r" && body.length() < server.clientMaxBodySize)
-    {
-        if (isLineTooLong(line))
-            return ParseBodyResult::Error(HttpResponse(BAD_REQUEST));
-
-        std::istringstream chunkSizeLine(line);
-        int chunkSize;
-        if (!(chunkSizeLine >> std::hex >> chunkSize) || !chunkSizeLine.eof())
-            return ParseBodyResult::Error(HttpResponse(BAD_REQUEST));
-
-        // チャンクのサイズを読み取り、0でない限り続ける
-        if (chunkSize == 0)
-            break;
-
-        char *buffer = new char[chunkSize];
-        httpRequest.read(buffer, chunkSize);
-        body.append(buffer, chunkSize);
-        delete[] buffer;
-
-        // チャンクの末尾のCRLFを読み飛ばす
-        std::getline(httpRequest, line);
-    }
-    line += EOF;
-
-    return ParseBodyResult::Success(body);
-}
-
-ParseBodyResult parseHttpBody(std::istream &httpRequest, const Headers &headers, const Server &server)
-{
-    std::string line;
+    std::string body;
 
     if (headers.find("transfer-encoding") != headers.end())
-        return parseChunkedBody(httpRequest, headers, server);
+    {
+        if (headers.at("transfer-encoding") != "chunked")
+            return ParseBodyResult::Error(BAD_REQUEST);
+        body = httpRequestText.getText();
+    }
     else if (headers.find("content-length") != headers.end())
-        return parsePlainBody(httpRequest, headers);
-    else
-        return ParseBodyResult::Success("");
+    {
+        const unsigned int contentLength = std::stoi(headers.at("content-length"));
+        if (contentLength > MAX_LEN || httpRequestText.getText().length() != contentLength)
+            return ParseBodyResult::Error(BAD_REQUEST);
+    }
+    std::cout << "body: \n" << body << std::endl;
+    return ParseBodyResult::Success(body);
 }

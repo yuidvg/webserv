@@ -54,15 +54,15 @@ template <typename T> std::vector<const T> excluded(const std::vector<const T> h
 
 template <typename T> unsigned int max(const std::vector<T> list)
 {
-    unsigned int maxSd = 0;
+    unsigned int maxSocket = 0;
     for (size_t i = 0; i < list.size(); ++i)
     {
-        if (static_cast<int>(list[i]) > static_cast<int>(maxSd))
+        if (static_cast<int>(list[i]) > static_cast<int>(maxSocket))
         {
-            maxSd = list[i];
+            maxSocket = list[i];
         }
     }
-    return maxSd;
+    return maxSocket;
 }
 
 template <typename T> std::string toString(const T value)

@@ -1,12 +1,13 @@
 #include "../socket/.hpp"
+#include "../types/HttpRequestText.hpp"
 #include "../httpRequest/.hpp"
 #include "../httpResponse/.hpp"
 #include ".hpp"
 
-bool processConnection(const Socket &sd, const Servers &servers)
+bool processConnection(const Socket &socket)
 {
     char buffer[500000];
-    const int receivedLength = recv(sd, buffer, sizeof(buffer) - 1, 0);
+    const int receivedLength = recv(socket.descriptor, buffer, sizeof(buffer) - 1, 0);
     if (receivedLength < 0)
     {
         utils::printError(std::string("recv() failed: " + std::string(strerror(errno))));
@@ -17,13 +18,15 @@ bool processConnection(const Socket &sd, const Servers &servers)
         std::cout << "Connection closed" << std::endl;
         return false;
     }
-    std::cout << "Received \n" << receivedLength << " bytes: " << buffer << std::endl;
+    std::cout << "Received \n" << receivedLength << " bytes: \n" << buffer << std::endl;
 
-    std::istringstream buf(buffer);
-    const ParseRequestResult parseHttpRequestResult = parseHttpRequest(buf, servers, sd);
-    const HttpResponse httpResponse = response(parseHttpRequestResult, sd, servers);
+    HttpRequestText httpRequestText(buffer, socket);
+    const Server server = CONFIG.getServer(httpRequestText.getHostName(), socket.port);
+
+    const ParseRequestResult parseHttpRequestResult = parseHttpRequest(httpRequestText);
+    const HttpResponse httpResponse = response(parseHttpRequestResult, socket);
     const std::string httpResponseText = responseText(httpResponse);
-    const int sentLength = send(sd, httpResponseText.c_str(), httpResponseText.length(), 0);
+    const int sentLength = send(socket.descriptor, httpResponseText.c_str(), httpResponseText.length(), 0);
     if (sentLength > 0)
     {
         return true;

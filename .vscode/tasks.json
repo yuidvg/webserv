@@ -15,6 +15,18 @@
 				"reveal": "always"
 			},
 			"group": "build"
+		},
+		{
+			"label": "kill",
+			"type": "shell",
+			"command": "pkill lldb-mi; pkill webserv",
+			"problemMatcher": []
+		},
+		{
+			"label": "compileCurrentFile",
+			"type": "shell",
+			"command": "c++ -g ${file} -o ${fileDirname}/${fileBasenameNoExtension}.out",
+			"problemMatcher": []
 		}
 	]
 }

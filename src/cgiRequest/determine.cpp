@@ -3,9 +3,8 @@
 
 namespace cgi
 {
-bool shouldUse(const HttpRequest request, const Server server)
+bool shouldUse(const HttpRequest &request, const Location &location)
 {
-    const Location location = matchedLocation(request.target, server.locations);
     const std::string uriExtension = request.target.substr(request.target.find_last_of(".") + 1);
     return uriExtension == location.cgiExtension;
 }
