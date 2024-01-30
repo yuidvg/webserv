@@ -21,7 +21,7 @@ struct Socket
         return !(*this == other);
     };
     Socket(const Socket &other)
-    : descriptor(other.descriptor), port(other.port), opponentIp(other.opponentIp), opponentPort(other.opponentPort)
+        : descriptor(other.descriptor), port(other.port), opponentIp(other.opponentIp), opponentPort(other.opponentPort)
     {
     }
     Socket &operator=(const Socket &other)
@@ -31,4 +31,4 @@ struct Socket
     }
 };
 
-typedef std::vector< Socket> Sockets;
+typedef std::vector<Socket> Sockets;

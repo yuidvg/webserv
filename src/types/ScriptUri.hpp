@@ -1,5 +1,5 @@
 #pragma once
-#include "../webserv.hpp"
+#include "external.hpp"
 
 // script-URI = <scheme> "://" <server-name> ":" <server-port>
 //     <script-path> <extra-path> "?" <query-string>
