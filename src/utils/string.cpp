@@ -39,4 +39,15 @@ std::vector<const std::string> tokenize(const std::string &original, const char 
     return tokens;
 }
 
+std::string hexToUtf8Char(const std::string &hex)
+{
+    std::stringstream ss;
+    ss << std::hex << hex;
+    int dec;
+    ss >> dec;
+    // 10進数をcharに変換
+    std::string decStr;
+    decStr += static_cast<char>(dec);
+    return decStr;
+}
 } // namespace utils

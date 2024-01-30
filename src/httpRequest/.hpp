@@ -1,7 +1,7 @@
 #pragma once
-#include "../webserv.hpp"
-#include "../types/HttpRequestText.hpp"
 #include "../httpRequestAndConfig/.hpp"
+#include "../types/HttpRequestText.hpp"
+#include "../webserv.hpp"
 
 ParseRequestResult parseHttpRequest(HttpRequestText &httpRequestText, const Server &server);
 ParseRequestLineResult parseHttpRequestLine(std::istringstream &requestTextStream);
