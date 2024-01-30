@@ -51,11 +51,11 @@ typedef Result<const std::string, const std::string> IndexResult;
 typedef Result<const std::vector<std::string>, const std::string> AllowMethodsResult;
 typedef Result<const std::string, const std::string> CgiExtensionResult;
 typedef Result<const std::string, const std::string> UploadPathResult;
-typedef Result<const std::string,const std::string>RedirectResult;
+typedef Result<const std::string, const std::string> RedirectResult;
 
 typedef Result<const int, const std::string> StringToIntResult;
 
 } // namespace parseConfig
 
 typedef Result<const bool, const HttpResponse> IsDirectoryResult;
-typedef Result<std::string, HttpResponse> FileContentResult;
+typedef Result<const std::string, const HttpResponse> FileContentResult;

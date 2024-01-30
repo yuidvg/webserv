@@ -36,7 +36,7 @@ bool processConnection(const Socket &socket)
         std::cout << "parseHttpRequestResult.error: " << parseHttpRequestResult.error.statusCode << std::endl;
         return false;
     }
-    const HttpResponse httpResponse = response(parseHttpRequestResult, socket);
+    HttpResponse httpResponse = response(parseHttpRequestResult, server);
     const std::string httpResponseText = responseText(httpResponse);
 
     const int sentLength = send(socket.descriptor, httpResponseText.c_str(), httpResponseText.length(), 0);

@@ -31,17 +31,22 @@ HttpResponse responseToValidRequest(const HttpRequest &request, const Location &
 }
 } // namespace
 
-HttpResponse response(const ParseRequestResult &requestResult, const Socket &socket)
+HttpResponse response(const ParseRequestResult &requestResult, const Server &server)
 {
     if (requestResult.success)
     {
         const HttpRequest request = requestResult.value;
-        const Server server = CONFIG.getServer(request.host, socket.port);
-        return responseToValidRequest(requestResult.value, server.getLocation(request.target));
+        const HttpResponse httpResponse =
+            responseToValidRequest(requestResult.value, server.getLocation(request.target));
+        if (httpResponse.statusCode == BAD_REQUEST || httpResponse.statusCode == SERVER_ERROR)
+        {
+            return provideErrorResponse(httpResponse, server);
+        }
+        return (httpResponse);
     }
     else
     {
-        return requestResult.error;
+        return provideErrorResponse(requestResult.error, server);
     }
 }
 

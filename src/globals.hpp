@@ -17,6 +17,7 @@ const std::string CRLF = "\r\n";
 enum STATUS_CODE_CLASSES
 {
     SUCCESS = 200,
+    // 300番は複数のリダイレクト先が存在し、クライアントが選択する必要がある
     REDIRECTION = 301,
     BAD_REQUEST = 400,
     SERVER_ERROR = 500
