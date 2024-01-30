@@ -9,6 +9,5 @@ ParseRequestResult parseHttpRequest(HttpRequestText &httpRequestText, const Serv
 bool isLineTooLong(const std::string &line);
 bool decodeTarget(std::string &target);
 int getRequestLineStatusCode(const RequestLine requestLine);
-std::string getlineCustom(std::istringstream &requestTextStream);
 bool decodeTarget(std::string &target);
 GetRequestLineResult getRequestLine(std::istringstream &requestTextStream);

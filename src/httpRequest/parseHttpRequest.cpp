@@ -18,7 +18,7 @@ ParseHeaderResult parseHttpHeaders(std::istringstream &requestTextStream)
     std::string line;
     Headers headers;
 
-    while (!(line = getlineCustom(requestTextStream)).empty())
+    while (!(line = utils::getlineCustom(requestTextStream)).empty())
     {
         if (isLineTooLong(line))
             return ParseHeaderResult::Error(BAD_REQUEST);
