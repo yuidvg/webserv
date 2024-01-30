@@ -7,6 +7,7 @@
 bool processConnection(const Socket &socket)
 {
     char buffer[500000];
+    memset(buffer, 0, sizeof(buffer));
     const int receivedLength = recv(socket.descriptor, buffer, sizeof(buffer) - 1, 0);
     if (receivedLength < 0)
     {
@@ -20,10 +21,16 @@ bool processConnection(const Socket &socket)
     }
     std::cout << "Received \n" << receivedLength << " bytes: \n" << buffer << std::endl;
 
-    HttpRequestText httpRequestText(buffer, socket);
-    const Server server = CONFIG.getServer(httpRequestText.getHostName(), socket.port);
+    HttpRequestText httpRequestText(buffer);
+    GetHostNameResult getHostNameResult = httpRequestText.getHostName();
+    if (!getHostNameResult.success)
+    {
+        utils::printError(getHostNameResult.error); // TODO: ここでエラーレスポンス？
+        return false;
+    }
+    Server server = CONFIG.getServer(getHostNameResult.value, socket.port);
 
-    const ParseRequestResult parseHttpRequestResult = parseHttpRequest(httpRequestText);
+    const ParseRequestResult parseHttpRequestResult = parseHttpRequest(httpRequestText, server);
     const HttpResponse httpResponse = response(parseHttpRequestResult, socket);
     const std::string httpResponseText = responseText(httpResponse);
     const int sentLength = send(socket.descriptor, httpResponseText.c_str(), httpResponseText.length(), 0);

@@ -1,33 +1,34 @@
 #include ".hpp"
 
-ParseRequestResult parseHttpRequest(HttpRequestText &httpRequestText)
+ParseRequestResult parseHttpRequest(HttpRequestText &httpRequestText, const Server &server)
 {
-    std::cout << "======requestLine=======\n";
+    GetTextResult getTextResult = httpRequestText.getText();
+    if (!getTextResult.success)
+        return ParseRequestResult::Error(HttpResponse(getTextResult.error));
 
-    const ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(httpRequestText);
+    std::string httpRequest = getTextResult.value;
+    std::istringstream requestTextStream(httpRequest);
+
+    const ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(requestTextStream);
     if (!parseRequestLineResult.success)
         return ParseRequestResult::Error(HttpResponse(parseRequestLineResult.error));
 
-    std::cout << "======Header=======\n";
-    const ParseHeaderResult headersResult = parseHttpHeaders(httpRequestText);
+    const ParseHeaderResult headersResult = parseHttpHeaders(requestTextStream);
     if (!headersResult.success)
     {
         std::cout << "Failed" << std::endl;
         return ParseRequestResult::Error(HttpResponse(headersResult.error));
     }
 
-    std::cout << "headersResult.value: \n";
-
     const Headers headers = headersResult.value;
 
-    std::cout << "======Body=======\n";
-    const ParseBodyResult body = parseHttpBody(httpRequestText, headers);
+    const ParseBodyResult body = parseHttpBody(requestTextStream, headers, server);
     if (!body.success)
         return ParseRequestResult::Error(HttpResponse(body.error));
 
     const RequestLine requestLine = parseRequestLineResult.value;
     const HttpRequest result(requestLine.method, requestLine.target, requestLine.version, headers, body.value,
-                             httpRequestText.getHostName());
+                             httpRequestText.getHostName().value);
     return ParseRequestResult::Success(result);
 }
 
@@ -50,17 +51,26 @@ static int getRequestLineStatusCode(const RequestLine requestLine)
     return SUCCESS;
 }
 
-static GetRequestLineResult getRequestLine(HttpRequestText &httpRequestText)
+static std::string getlineCustom(std::istringstream &requestTextStream)
+{
+    std::string line;
+    std::getline(requestTextStream, line);
+    // lineの後ろの\rを削除
+    if (line[line.length() - 1] == '\r')
+        line.erase(line.length() - 1);
+    return line;
+}
+
+static GetRequestLineResult getRequestLine(std::istringstream &requestTextStream)
 {
     std::string method, target, version;
     std::string line;
 
-    line = httpRequestText.readLine();
-    while (line.empty())
-        line = httpRequestText.readLine();
+    while ((line = getlineCustom(requestTextStream)).empty())
+        ;
 
     // 有効なリクエストラインがない場合
-    if (httpRequestText.eof())
+    if (requestTextStream.eof())
         return (GetRequestLineResult::Error(BAD_REQUEST));
     if (isLineTooLong(line))
         return GetRequestLineResult::Error(BAD_REQUEST);
@@ -70,17 +80,13 @@ static GetRequestLineResult getRequestLine(HttpRequestText &httpRequestText)
         !requestLine.eof()) // メソッドとターゲット、バージョンに分けて格納する
         return GetRequestLineResult::Error(BAD_REQUEST);
 
-    std::cout << "line: " << line << std::endl;
-
-    std::cout << "text=> \n" << httpRequestText.getText() << std::endl;
-
     RequestLine requestLineElements = {method, target, version};
     return GetRequestLineResult::Success(requestLineElements);
 }
 
-ParseRequestLineResult parseHttpRequestLine(HttpRequestText &httpRequest)
+ParseRequestLineResult parseHttpRequestLine(std::istringstream &requestTextStream)
 {
-    const GetRequestLineResult getRequestLineResult = getRequestLine(httpRequest);
+    const GetRequestLineResult getRequestLineResult = getRequestLine(requestTextStream);
     if (!getRequestLineResult.success)
         return ParseRequestLineResult::Error(getRequestLineResult.error);
 
@@ -91,14 +97,13 @@ ParseRequestLineResult parseHttpRequestLine(HttpRequestText &httpRequest)
                                    : ParseRequestLineResult::Success(getRequestLineResult.value);
 }
 
-ParseHeaderResult parseHttpHeaders(HttpRequestText &httpRequestText)
+ParseHeaderResult parseHttpHeaders(std::istringstream &requestTextStream)
 {
     std::string line;
     Headers headers;
 
-    while (!(line = httpRequestText.readLine()).empty())
+    while (!(line = getlineCustom(requestTextStream)).empty())
     {
-        std::cout << "line: " << line << std::endl;
         if (isLineTooLong(line))
             return ParseHeaderResult::Error(BAD_REQUEST);
         if (std::isspace(line[0]))
@@ -125,23 +130,29 @@ ParseHeaderResult parseHttpHeaders(HttpRequestText &httpRequestText)
     return ParseHeaderResult::Success(headers);
 }
 
-ParseBodyResult parseHttpBody(HttpRequestText &httpRequestText, const Headers &headers)
+ParseBodyResult parseHttpBody(std::istringstream &requestTextStream, const Headers &headers, const Server &server)
 {
     std::string line;
-    std::string body;
+    std::string body((std::istreambuf_iterator<char>(requestTextStream)), std::istreambuf_iterator<char>());
 
     if (headers.find("transfer-encoding") != headers.end())
     {
-        if (headers.at("transfer-encoding") != "chunked")
+        if (headers.at("transfer-encoding") != "chunked" || body.length() > server.clientMaxBodySize)
             return ParseBodyResult::Error(BAD_REQUEST);
-        body = httpRequestText.getText();
     }
     else if (headers.find("content-length") != headers.end())
     {
-        const unsigned int contentLength = std::stoi(headers.at("content-length"));
-        if (contentLength > MAX_LEN || httpRequestText.getText().length() != contentLength)
+        if (!utils::isNumber(headers.at("content-length")))
+            return ParseBodyResult::Error(BAD_REQUEST);
+        const size_t bodySize = static_cast<size_t>(std::stoi(headers.at("content-length")));
+        if (bodySize < 0 || bodySize > server.clientMaxBodySize)
+            return ParseBodyResult::Error(BAD_REQUEST);
+        if (body.length() != server.clientMaxBodySize)
             return ParseBodyResult::Error(BAD_REQUEST);
     }
-    std::cout << "body: \n" << body << std::endl;
+    else
+    {
+        return ParseBodyResult::Success(body); // bodyがない場合
+    }
     return ParseBodyResult::Success(body);
 }

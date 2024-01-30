@@ -29,9 +29,9 @@ NewListenSocketResult getListenSocket(const Server server)
     if (bind(sd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
         close(sd);
-        return (NewListenSocketResult::Error("bind() failed: "));
-        // return (NewListenSocketResult::Error(std::string("bind() failed: " + std::string(strerror(errno)) +
-        //                                               "\nポート番号" + utils::to_string(server.port))));
+        // return (NewListenSocketResult::Error("bind() failed: "));
+        return (NewListenSocketResult::Error(std::string("bind() failed: " + std::string(strerror(errno)) +
+                                                      "\nポート番号" + std::to_string(server.port))));
     }
 
     if (listen(sd, 5) < 0)
