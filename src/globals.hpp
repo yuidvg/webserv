@@ -17,7 +17,7 @@ const std::string CRLF = "\r\n";
 enum STATUS_CODE_CLASSES
 {
     SUCCESS = 200,
-    REDIRECTION = 300,
+    REDIRECTION = 301,
     BAD_REQUEST = 400,
     SERVER_ERROR = 500
 };
