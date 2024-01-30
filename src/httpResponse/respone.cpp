@@ -44,23 +44,17 @@ HttpResponse responseToValidRequest(const HttpRequest &request, const Socket &so
 }
 } // namespace
 
-HttpResponse response(const ParseRequestResult &requestResult, const Server &server)
+HttpResponse response(const ParseRequestResult &requestResult, const Socket &socket)
 {
-    if (requestResult.success)
+    const HttpRequest request = requestResult.value;
+    const Server server = CONFIG.getServer(request.host, socket.port);
+    const HttpResponse httpResponse =
+        responseToValidRequest(requestResult.value, Socket(socket.descriptor, socket.port));
+    if (httpResponse.statusCode == BAD_REQUEST || httpResponse.statusCode == SERVER_ERROR)
     {
-        const HttpRequest request = requestResult.value;
-        const HttpResponse httpResponse =
-            responseToValidRequest(requestResult.value, server.getLocation(request.target));
-        if (httpResponse.statusCode == BAD_REQUEST || httpResponse.statusCode == SERVER_ERROR)
-        {
-            return provideErrorResponse(httpResponse, server);
-        }
-        return (httpResponse);
+        return provideErrorResponse(httpResponse, server);
     }
-    else
-    {
-        return provideErrorResponse(requestResult.error, server);
-    }
+    return (httpResponse);
 }
 
 std::string responseText(const HttpResponse &response)
