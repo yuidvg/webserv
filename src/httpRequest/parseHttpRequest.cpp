@@ -61,7 +61,7 @@ static std::string getlineCustom(std::istringstream &requestTextStream)
     return line;
 }
 
-bool decodeTarget(std::string &target)
+static bool decodeTarget(std::string &target)
 {
     std::string decodedTarget;
     std::string::iterator it = target.begin();
