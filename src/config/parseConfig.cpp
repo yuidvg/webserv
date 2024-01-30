@@ -71,7 +71,7 @@ ParseLocationResult parseLocationContext(std::vector<std::string> &tokens, std::
             RedirectResult redirectRes = parseReturnDirective(directiveTokens);
             if (!redirectRes.success)
                 return ParseLocationResult::Error(redirectRes.error);
-            std::string redirectResult = redirectRes.value;
+            redirect = redirectRes.value;
         }
 
         else if (directiveTokens[0] == CLOSE_BRACKET)
