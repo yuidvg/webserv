@@ -5,8 +5,8 @@
 HttpResponse conductGet(const HttpRequest &request, const Location &location)
 {
     const std::string targetResourcePath = comply(request.target, location);
-    // リダイレクトが必要な場合
-    if (!location.redirect.empty()) {
+    if (!location.redirect.empty())
+    {
         return redirectResponse(location.redirect);
     }
     const IsDirectoryResult isDirectoryResult = utils::isDirectory(targetResourcePath);
