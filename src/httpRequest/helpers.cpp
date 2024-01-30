@@ -73,7 +73,7 @@ GetRequestLineResult getRequestLine(std::istringstream &requestTextStream)
         return GetRequestLineResult::Error(BAD_REQUEST);
 
     // ターゲットのデコード
-    if (decodeTarget(target))
+    if (!decodeTarget(target))
         return GetRequestLineResult::Error(BAD_REQUEST);
 
     RequestLine requestLineElements = {method, target, version};
