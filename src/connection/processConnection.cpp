@@ -34,16 +34,6 @@ bool processConnection(const Socket &socket)
     const HttpResponse httpResponse = response(parseHttpRequestResult, socket);
     const std::string httpResponseText = responseText(httpResponse);
 
-    // DEBUG用
-    std::istringstream iss(httpResponseText);
-    std::string line;
-    std::cout << "\x1b[32m";
-    while (std::getline(iss, line))
-    {
-        std::cout << line << std::endl;
-    }
-    std::cout << "\x1b[0m" << std::endl;
-
     const int sentLength = send(socket.descriptor, httpResponseText.c_str(), httpResponseText.length(), 0);
     if (sentLength > 0)
     {
