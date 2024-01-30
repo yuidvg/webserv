@@ -60,3 +60,5 @@ const HttpResponse SUCCESS_RESPONSE = HttpResponse(SUCCESS, Headers("text/html",
 const HttpResponse METHOD_NOT_ALLOWED_RESPONSE(const std::string &allowedMethods);
 
 extern Config CONFIG;
+
+const std::string BASE_64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
