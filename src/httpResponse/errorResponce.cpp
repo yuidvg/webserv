@@ -19,17 +19,13 @@ static HttpResponse generateErrorResponse(const HttpResponse &httpResponse, cons
 
 HttpResponse provideErrorResponse(const HttpResponse &httpResponse, const Server &server)
 {
-    if (httpResponse.statusCode == BAD_REQUEST)
+    if (httpResponse.statusCode == BAD_REQUEST && server.errorPages.find(BAD_REQUEST) != server.errorPages.end())
     {
-        if (server.errorPages.find(BAD_REQUEST) != server.errorPages.end())
-            return generateErrorResponse(httpResponse, server);
-        return BAD_REQUEST_RESPONSE;
+        return generateErrorResponse(httpResponse, server);
     }
-    else if (httpResponse.statusCode == SERVER_ERROR)
+    else if (httpResponse.statusCode == SERVER_ERROR && server.errorPages.find(SERVER_ERROR) != server.errorPages.end())
     {
-        if (server.errorPages.find(SERVER_ERROR) != server.errorPages.end())
-            return generateErrorResponse(httpResponse, server);
-        return SERVER_ERROR_RESPONSE;
+        return generateErrorResponse(httpResponse, server);
     }
     return httpResponse;
 }
