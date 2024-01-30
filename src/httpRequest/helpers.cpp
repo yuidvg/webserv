@@ -19,16 +19,6 @@ int getRequestLineStatusCode(const RequestLine requestLine)
     return SUCCESS;
 }
 
-std::string getlineCustom(std::istringstream &requestTextStream)
-{
-    std::string line;
-
-    std::getline(requestTextStream, line);
-    if (line[line.length() - 1] == '\r')
-        line.erase(line.length() - 1);
-    return line;
-}
-
 bool decodeTarget(std::string &target)
 {
     std::string decodedTarget;
@@ -58,7 +48,7 @@ GetRequestLineResult getRequestLine(std::istringstream &requestTextStream)
     std::string method, target, version;
     std::string line;
 
-    while ((line = getlineCustom(requestTextStream)).empty())
+    while ((line = utils::getlineCustom(requestTextStream)).empty())
         ;
 
     // 有効なリクエストラインがない場合

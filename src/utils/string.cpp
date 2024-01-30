@@ -50,4 +50,14 @@ std::string hexToUtf8Char(const std::string &hex)
     decStr += static_cast<char>(dec);
     return decStr;
 }
+
+std::string getlineCustom(std::istringstream &requestTextStream)
+{
+    std::string line;
+
+    std::getline(requestTextStream, line);
+    if (line[line.length() - 1] == '\r')
+        line.erase(line.length() - 1);
+    return line;
+}
 } // namespace utils

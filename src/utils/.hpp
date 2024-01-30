@@ -14,6 +14,7 @@ std::string lowerCase(const std::string str);
 bool isNumber(const std::string str);
 std::vector<const std::string> tokenize(const std::string &original, const char &delim);
 std::string hexToUtf8Char(const std::string &hex);
+std::string getlineCustom(std::istringstream &requestTextStream);
 
 // fd_set
 fd_set fdSetFrom(const Sockets sds);

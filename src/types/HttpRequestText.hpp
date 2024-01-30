@@ -40,7 +40,7 @@ class HttpRequestText
         std::string::size_type pos = text.find("\r\n\r\n");
         if (pos != std::string::npos)
         {
-            text = text.substr(pos + 4);
+            text = text.substr(0, pos + 4);
             textStream.seekg(pos + 4);
         }
     };
@@ -50,7 +50,7 @@ class HttpRequestText
         std::string line;
         std::string chunkedText = "";
 
-        while (std::getline(textStream, line))
+        while (!(line = utils::getlineCustom(textStream)).empty())
         {
             std::istringstream chunkSizeLine(line);
             int chunkSize;
@@ -69,7 +69,7 @@ class HttpRequestText
             // チャンクの末尾のCRLFを読み飛ばす
             std::getline(textStream, line);
         }
-        text += chunkedText;
+        text.append(chunkedText);
         chunked = false;
         return true;
     };
@@ -100,7 +100,7 @@ class HttpRequestText
     };
 
   public:
-    HttpRequestText(char buffer[]) : hostName(""), clientMaxBodySize(0)
+    HttpRequestText(char buffer[]) : hostName(""), clientMaxBodySize(MAX_LEN)
     {
         textStream = std::istringstream(buffer);
 
