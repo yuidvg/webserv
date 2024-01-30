@@ -54,11 +54,35 @@ static int getRequestLineStatusCode(const RequestLine requestLine)
 static std::string getlineCustom(std::istringstream &requestTextStream)
 {
     std::string line;
+
     std::getline(requestTextStream, line);
-    // lineの後ろの\rを削除
     if (line[line.length() - 1] == '\r')
         line.erase(line.length() - 1);
     return line;
+}
+
+bool decodeTarget(std::string &target)
+{
+    std::string decodedTarget;
+    std::string::iterator it = target.begin();
+
+    while (it != target.end())
+    {
+        if (*it == '%')
+        {
+            if (it + 2 >= target.end() || !std::isxdigit(*(it + 1)) || !std::isxdigit(*(it + 2)))
+                return false;
+            decodedTarget += utils::hexToUtf8Char(target.substr(it - target.begin() + 1, 2));
+            it += 3;
+        }
+        else
+        {
+            decodedTarget += *it;
+            it++;
+        }
+    }
+    target = decodedTarget;
+    return true;
 }
 
 static GetRequestLineResult getRequestLine(std::istringstream &requestTextStream)
@@ -78,6 +102,10 @@ static GetRequestLineResult getRequestLine(std::istringstream &requestTextStream
     std::istringstream requestLine(line);
     if (!(requestLine >> method >> target >> version) ||
         !requestLine.eof()) // メソッドとターゲット、バージョンに分けて格納する
+        return GetRequestLineResult::Error(BAD_REQUEST);
+
+    // ターゲットのデコード
+    if (decodeTarget(target))
         return GetRequestLineResult::Error(BAD_REQUEST);
 
     RequestLine requestLineElements = {method, target, version};
@@ -151,8 +179,7 @@ ParseBodyResult parseHttpBody(std::istringstream &requestTextStream, const Heade
             return ParseBodyResult::Error(BAD_REQUEST);
     }
     else
-    {
         return ParseBodyResult::Success(body); // bodyがない場合
-    }
+
     return ParseBodyResult::Success(body);
 }
