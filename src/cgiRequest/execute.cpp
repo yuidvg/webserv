@@ -40,14 +40,13 @@ char *const *enviromentVariables(const HttpRequest &request, const Socket &socke
     const std::string scriptName = request.target.substr(0, pathInfoPos);
 
     env["AUTH_TYPE"] = authType(request);
-    env["CONTENT_LENGTH"] = utils::value(request.headers, std::string("Content-Length"));
+    env["CONTENT_LENGTH"] = request.body.size();
     env["CONTENT_TYPE"] = utils::value(request.headers, std::string("Content-Type"));
     env["GATEWAY_INTERFACE"] = GATEWAY_INTERFACE;
     env["PATH_INFO"] = pathInfo;
     env["PATH_TRANSLATED"] = comply(pathInfo, CONFIG.getServer(request.host, socket.port).getLocation(request.target));
     env["QUERY_STRING"] = request.target.substr(request.target.find("?") + 1);
     env["REMOTE_ADDR"] = socket.opponentIp;
-    env["REMOTE_USER"] = ;
     env["REQUEST_METHOD"] = request.method;
     env["SCRIPT_NAME"] = scriptName;
     env["SERVER_NAME"] = request.host;
@@ -58,7 +57,7 @@ char *const *enviromentVariables(const HttpRequest &request, const Socket &socke
 }
 } // namespace
 
-ResponseResult execute(const HttpRequest request, const Server server)
+ResponseResult execute(const HttpRequest &request, const Socket &socket)
 {
     int pipefds[2];
     if (pipe(pipefds) == -1)
@@ -72,7 +71,7 @@ ResponseResult execute(const HttpRequest request, const Server server)
     else if (pid == 0) // child process
     {
         close(pipefds[IN]);
-        execve(request.target.c_str(), NULL, enviromentVariables(request, server));
+        execve(request.target.c_str(), NULL, enviromentVariables(request, socket));
         std::cerr << "execve failed" << std::endl;
     }
     else // parent process
