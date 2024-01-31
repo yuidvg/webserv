@@ -27,7 +27,9 @@ HttpResponse responseToValidRequest(const HttpRequest &request, const Socket &so
         }
         else
         {
-            if (request.method == "GET")
+            if (!location.redirect.empty())
+                return redirectResponse(location.redirect);
+            else if (request.method == "GET")
                 return conductGet(request, location);
             else if (request.method == "POST")
                 return conductPost(request, location);
