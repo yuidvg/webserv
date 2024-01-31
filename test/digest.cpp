@@ -5,12 +5,12 @@
 
 std::string getUserNameFromDigestAuth(const std::string &authHeader)
 {
-    std::string prefix = "Digest username=\"";
-    size_t startPos = authHeader.find(prefix);
-    if (startPos != std::string::npos)
+    const std::string prefix = "Digest username=\"";
+    const size_t prefixStartPos = authHeader.find(prefix);
+    if (prefixStartPos != std::string::npos)
     {
-        startPos += prefix.size();
-        size_t endPos = authHeader.find('\"', startPos);
+        const size_t startPos = prefixStartPos + prefix.size();
+        const size_t endPos = authHeader.find('\"', startPos);
         if (endPos != std::string::npos)
         {
             return authHeader.substr(startPos, endPos - startPos);

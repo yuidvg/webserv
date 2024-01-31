@@ -1,7 +1,7 @@
 #pragma once
 #include "../webserv.hpp"
 
-HttpResponse response(const ParseRequestResult &requestResult, const Server &server);
+HttpResponse response(const ParseRequestResult &requestResult, const Socket &socket);
 std::string responseText(const HttpResponse &response);
 
 // methods

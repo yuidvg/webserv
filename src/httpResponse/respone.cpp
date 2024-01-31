@@ -1,5 +1,7 @@
 #include ".hpp"
+#include "../cgiRequest/.hpp"
 #include "../httpRequestAndConfig/.hpp"
+
 namespace
 {
 bool isMethodAllowed(const HttpRequest &request, const Location &location)
@@ -11,18 +13,31 @@ bool isMethodAllowed(const HttpRequest &request, const Location &location)
     return false;
 }
 
-HttpResponse responseToValidRequest(const HttpRequest &request, const Location &location)
+HttpResponse responseToValidRequest(const HttpRequest &request, const Socket &socket)
 {
+    const Server server = CONFIG.getServer(request.host, socket.port);
+    const Location location = server.getLocation(request.target);
+
     if (isMethodAllowed(request, location))
     {
-        if (request.method == "GET")
-            return conductGet(request, location);
-        else if (request.method == "POST")
-            return conductPost(request, location);
-        else if (request.method == "DELETE")
-            return conductDelete(request, location);
+        const ScriptUri scriptUri = retrieveScriptUri(request.target, location.cgiExtension);
+        if (scriptUri.scriptPath.size() > 0)
+        {
+            return executeCgi(request, socket, scriptUri);
+        }
         else
-            return METHOD_NOT_ALLOWED_RESPONSE("GET, POST, DELETE");
+        {
+            if (!location.redirect.empty())
+                return redirectResponse(location.redirect);
+            else if (request.method == "GET")
+                return conductGet(request, location);
+            else if (request.method == "POST")
+                return conductPost(request, location);
+            else if (request.method == "DELETE")
+                return conductDelete(request, location);
+            else
+                return METHOD_NOT_ALLOWED_RESPONSE("GET, POST, DELETE");
+        }
     }
     else
     {
@@ -31,23 +46,17 @@ HttpResponse responseToValidRequest(const HttpRequest &request, const Location &
 }
 } // namespace
 
-HttpResponse response(const ParseRequestResult &requestResult, const Server &server)
+HttpResponse response(const ParseRequestResult &requestResult, const Socket &socket)
 {
-    if (requestResult.success)
+    const HttpRequest request = requestResult.value;
+    const Server server = CONFIG.getServer(request.host, socket.port);
+    const HttpResponse httpResponse =
+        responseToValidRequest(requestResult.value, Socket(socket.descriptor, socket.port));
+    if (httpResponse.statusCode == BAD_REQUEST || httpResponse.statusCode == SERVER_ERROR)
     {
-        const HttpRequest request = requestResult.value;
-        const HttpResponse httpResponse =
-            responseToValidRequest(requestResult.value, server.getLocation(request.target));
-        if (httpResponse.statusCode == BAD_REQUEST || httpResponse.statusCode == SERVER_ERROR)
-        {
-            return provideErrorResponse(httpResponse, server);
-        }
-        return (httpResponse);
+        return provideErrorResponse(httpResponse, server);
     }
-    else
-    {
-        return provideErrorResponse(requestResult.error, server);
-    }
+    return (httpResponse);
 }
 
 std::string responseText(const HttpResponse &response)

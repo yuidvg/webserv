@@ -17,9 +17,9 @@ std::vector<std::string> segment(const std::string &path)
     }
     return segments;
 }
-std::vector<const std::string> tokenize(const std::string &original, const char &delim)
+std::vector< std::string> tokenize(const std::string &original, const char &delim)
 {
-    std::vector<const std::string> tokens;
+    std::vector< std::string> tokens;
     std::stringstream ss(original);
     std::string token;
     while (std::getline(ss, token, delim))
@@ -38,6 +38,6 @@ int main()
         std::cout << *it << std::endl;
     }
 
-    std::vector<const std::string> tokens = tokenize("test/to/segment.cpp?test=1", '/');
+    std::vector< std::string> tokens = tokenize("test/to/segment.cpp?test=1", '/');
     return 0;
 }
