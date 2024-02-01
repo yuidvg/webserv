@@ -1,6 +1,7 @@
 {
 	"version": "0.2.0",
 	"configurations": [
+
 		{
 			"name": "(lldb) Launch",
 			"type": "cppdbg",
@@ -16,6 +17,7 @@
 			"MIMode": "lldb",
 			"preLaunchTask": "buildWithDebug",
 			"postDebugTask": "kill",
+			
 		},
 		{
 			"name": "(lldb) Launch on current file",
