@@ -6,14 +6,17 @@
 struct HttpResponse
 {
     const unsigned int statusCode;
-    const Headers headers;
     const std::string body;
+    const std::string contentType;
+    const std::string location;
+    const std::string allow;
 
-    HttpResponse() : statusCode(0), headers(Headers()), body("")
+    HttpResponse() : statusCode(0), body(""), contentType(""), location(""), allow("")
     {
     }
-    HttpResponse(const unsigned int statusCode, const Headers headers = Headers(), const std::string body = "")
-        : statusCode(statusCode), headers(headers), body(body)
+    HttpResponse(const unsigned int &statusCode, const std::string &body = "", const std::string &contentType = "",
+                 const std::string &location = "", const std::string &allow = "")
+        : statusCode(statusCode), body(body), contentType(contentType), location(location), allow(allow)
     {
     }
 };

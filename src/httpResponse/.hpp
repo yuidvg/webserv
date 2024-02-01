@@ -5,9 +5,9 @@ HttpResponse response(const ParseRequestResult &requestResult, const Socket &soc
 std::string responseText(const HttpResponse &response);
 
 // methods
-HttpResponse conductGet(const HttpRequest &request, const Location &location);
-HttpResponse conductPost(const HttpRequest &request, const Location &location);
-HttpResponse conductDelete(const HttpRequest &request, const Location &location);
+HttpResponse conductGet(const Uri &uri, const Location &location);
+HttpResponse conductPost(const HttpRequest &request, const Uri &uri, const Location &location);
+HttpResponse conductDelete(const Uri &uri, const Location &location);
 
 HttpResponse provideErrorResponse(const HttpResponse &httpResponse, const Server &server);
 HttpResponse redirectResponse(const std::string &redirectUrl);

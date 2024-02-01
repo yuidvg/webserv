@@ -2,13 +2,13 @@
 #include "../autoindex/.hpp"
 #include "../httpRequestAndConfig/.hpp"
 
-HttpResponse conductGet(const HttpRequest &request, const Location &location)
+HttpResponse conductGet(const Uri &uri, const Location &location)
 {
     if (!location.redirect.empty())
     {
         return redirectResponse(location.redirect);
     }
-    const std::string targetResourcePath = comply(request.target, location);
+    const std::string targetResourcePath = resolvePath(uri.extraPath, location);
     const IsDirectoryResult isDirectoryResult = utils::isDirectory(targetResourcePath);
     if (isDirectoryResult.success)
     {
@@ -19,10 +19,7 @@ HttpResponse conductGet(const HttpRequest &request, const Location &location)
             {
                 const DirectoryListHtmlResult directoryListHtmlResult = directoryListHtml(targetResourcePath);
                 return directoryListHtmlResult.success
-                           ? HttpResponse(SUCCESS,
-                                          Headers(utils::contentType(".html"),
-                                                  utils::toString(directoryListHtmlResult.value.length())),
-                                          directoryListHtmlResult.value)
+                           ? HttpResponse(SUCCESS, directoryListHtmlResult.value, "text/html")
                            : BAD_REQUEST_RESPONSE;
             }
             else
@@ -33,11 +30,9 @@ HttpResponse conductGet(const HttpRequest &request, const Location &location)
         else // when targetResourcePath is assumed to be a file.
         {
             const FileContentResult fileContentResult = utils::fileContent(targetResourcePath);
-            return fileContentResult.success ? HttpResponse(SUCCESS,
-                                                            Headers(utils::contentType(targetResourcePath),
-                                                                    utils::toString(fileContentResult.value.length())),
-                                                            fileContentResult.value)
-                                             : BAD_REQUEST_RESPONSE;
+            return fileContentResult.success
+                       ? HttpResponse(SUCCESS, fileContentResult.value, utils::contentType(targetResourcePath))
+                       : BAD_REQUEST_RESPONSE;
         }
     }
     else

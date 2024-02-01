@@ -13,11 +13,15 @@ std::string root(const std::string &path, const Location &location)
 
 std::string index(const std::string &path, const Location &location)
 {
-    return concatPath(path, location.index);
+    const IsDirectoryResult isDirectoryResult = utils::isDirectory(path);
+    if (isDirectoryResult.success && isDirectoryResult.value)
+        return concatPath(path, location.index);
+    else
+        return path;
 }
 
 } // namespace
-std::string comply(const std::string &path, const Location &location)
+std::string resolvePath(const std::string &path, const Location &location)
 {
     return root(index(path, location), location);
 }
