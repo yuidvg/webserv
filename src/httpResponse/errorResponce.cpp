@@ -5,10 +5,8 @@ static HttpResponse generateErrorResponse(const HttpResponse &httpResponse, cons
     const FileContentResult fileContentResult = utils::fileContent(server.errorPages.at(httpResponse.statusCode));
     if (fileContentResult.success)
     {
-        return HttpResponse(httpResponse.statusCode,
-                            Headers(utils::contentType(server.errorPages.at(httpResponse.statusCode)),
-                                    utils::toString(fileContentResult.value.length())),
-                            fileContentResult.value);
+        return HttpResponse(httpResponse.statusCode, fileContentResult.value,
+                            utils::contentType(server.errorPages.at(httpResponse.statusCode)));
     }
 
     if (httpResponse.statusCode == BAD_REQUEST)
