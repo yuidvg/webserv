@@ -45,7 +45,7 @@ bool processConnection(const Socket &socket)
     }
     else
     {
-        utils::printError(getHostNameResult.error); 
+        utils::printError(getHostNameResult.error);
         return false;
     }
 }
