@@ -5,9 +5,7 @@
 
 ParseRequestResult parseHttpRequest(HttpRequestText &httpRequestText, const Server &server);
 
-
 bool isLineTooLong(const std::string &line);
-bool decodeTarget(std::string &target);
 int getRequestLineStatusCode(const RequestLine requestLine);
-bool decodeTarget(std::string &target);
+bool validateAndDecodeTarget(std::string &target);
 GetRequestLineResult getRequestLine(std::istringstream &requestTextStream);
