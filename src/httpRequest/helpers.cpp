@@ -4,7 +4,8 @@ bool isLineTooLong(const std::string &line)
 {
     if (line.length() > MAX_LEN)
         return true;
-    return false;
+    else
+        return false;
 }
 
 int getRequestLineStatusCode(const RequestLine requestLine)
@@ -19,7 +20,7 @@ int getRequestLineStatusCode(const RequestLine requestLine)
     return SUCCESS;
 }
 
-bool decodeTarget(std::string &target)
+bool validateAndDecodeTarget(std::string &target)
 {
     std::string decodedTarget;
     std::string::iterator it = target.begin();
@@ -51,21 +52,17 @@ GetRequestLineResult getRequestLine(std::istringstream &requestTextStream)
     while ((line = utils::getlineCustom(requestTextStream)).empty())
         ;
 
-    // 有効なリクエストラインがない場合
-    if (requestTextStream.eof())
-        return (GetRequestLineResult::Error(BAD_REQUEST));
-    if (isLineTooLong(line))
+    if (!requestTextStream.eof() && !isLineTooLong(line))
+    {
+        std::istringstream requestLine(line);
+        if ((requestLine >> method >> target >> version) && requestLine.eof() && validateAndDecodeTarget(target))
+        {
+            const RequestLine requestLineElements = {method, target, version};
+            return GetRequestLineResult::Success(requestLineElements);
+        }
+        else
+            return GetRequestLineResult::Error(BAD_REQUEST);
+    }
+    else
         return GetRequestLineResult::Error(BAD_REQUEST);
-
-    std::istringstream requestLine(line);
-    if (!(requestLine >> method >> target >> version) ||
-        !requestLine.eof()) // メソッドとターゲット、バージョンに分けて格納する
-        return GetRequestLineResult::Error(BAD_REQUEST);
-
-    // ターゲットのデコード
-    if (!decodeTarget(target))
-        return GetRequestLineResult::Error(BAD_REQUEST);
-
-    RequestLine requestLineElements = {method, target, version};
-    return GetRequestLineResult::Success(requestLineElements);
 }
