@@ -31,11 +31,6 @@ bool processConnection(const Socket &socket)
     Server server = CONFIG.getServer(getHostNameResult.value, socket.port);
 
     const ParseRequestResult parseHttpRequestResult = parseHttpRequest(httpRequestText, server);
-    if (!parseHttpRequestResult.success)
-    {
-        std::cout << "parseHttpRequestResult.error: " << parseHttpRequestResult.error.statusCode << std::endl;
-        return false;
-    }
     const HttpResponse httpResponse = response(parseHttpRequestResult, socket);
     const std::string httpResponseText = responseText(httpResponse);
 
