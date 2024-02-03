@@ -22,11 +22,11 @@ HttpResponse responseToValidRequest(const HttpRequest &request, const Socket &so
     {
         const std::string resolvedPath = resolvePath(request.target, location);
         const Uri uri = segmentUri(resolvedPath, location.cgiExtension);
-        if (uri.scriptPath.size() > 0)
-        {
-            return executeCgi(request, socket, uri);
-        }
-        else
+        // if (uri.scriptPath.size() > 0)
+        // {
+        //     return executeCgi(request, socket, uri);
+        // }
+        // else
         {
             if (!location.redirect.empty())
             {
