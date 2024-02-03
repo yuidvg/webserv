@@ -1,4 +1,5 @@
 #include ".hpp"
+#include "../CgiResponse/.hpp"
 #include "../httpRequestAndConfig/.hpp"
 
 namespace
@@ -78,12 +79,13 @@ HttpResponse executeCgi(const HttpRequest &request, const Socket &socket, const 
     else // parent process
     {
         close(pipefds[OUT]);
-        write(pipefds[IN], request.body.c_str(), request.body.size());
+        CgiResponse cgiResponse(pipefds[IN], request.body);
+
         int status;
         waitpid(pid, &status, 0);
         const int exitStatus = WEXITSTATUS(status);
         if (WIFEXITED(status) && exitStatus == 0)
-            return (SUCCESS_RESPONSE);
+            return (HttpResponse(SUCCESS, cgiResponse.body, cgiResponse.contentType, cgiResponse.location));
         else
             return (SERVER_ERROR_RESPONSE);
     }
