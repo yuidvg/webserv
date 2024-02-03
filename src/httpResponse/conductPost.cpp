@@ -2,10 +2,9 @@
 #include "../httpRequestAndConfig/.hpp"
 #include ".hpp"
 
-HttpResponse conductPost(const HttpRequest &request, const Uri &uri, const Location &location)
+HttpResponse conductPost(const HttpRequest &request, const Uri &uri)
 {
-    const std::string targetResourcePath = resolvePath(uri.extraPath, location);
-    const IsDirectoryResult isDirectoryResult = utils::isDirectory(targetResourcePath);
+    const IsDirectoryResult isDirectoryResult = utils::isDirectory(uri.extraPath);
     if (isDirectoryResult.success)
     {
         const bool isDirectory = isDirectoryResult.value;
@@ -13,9 +12,9 @@ HttpResponse conductPost(const HttpRequest &request, const Uri &uri, const Locat
         {
             return BAD_REQUEST_RESPONSE;
         }
-        else // when targetResourcePath is assumed to be a file.
+        else // when uri.extraPath is assumed to be a file.
         {
-            return utils::writeToFile(targetResourcePath, request.body);
+            return utils::writeToFile(uri.extraPath, request.body);
         }
     }
     else

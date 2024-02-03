@@ -4,8 +4,7 @@
 
 HttpResponse conductGet(const Uri &uri, const Location &location)
 {
-    const std::string targetResourcePath = resolvePath(uri.extraPath, location);
-    const IsDirectoryResult isDirectoryResult = utils::isDirectory(targetResourcePath);
+    const IsDirectoryResult isDirectoryResult = utils::isDirectory(uri.extraPath);
     if (isDirectoryResult.success)
     {
         const bool isDirectory = isDirectoryResult.value;
@@ -13,7 +12,7 @@ HttpResponse conductGet(const Uri &uri, const Location &location)
         {
             if (location.autoindex)
             {
-                const DirectoryListHtmlResult directoryListHtmlResult = directoryListHtml(targetResourcePath);
+                const DirectoryListHtmlResult directoryListHtmlResult = directoryListHtml(uri.extraPath);
                 return directoryListHtmlResult.success
                            ? HttpResponse(SUCCESS, directoryListHtmlResult.value, "text/html")
                            : BAD_REQUEST_RESPONSE;
@@ -23,11 +22,11 @@ HttpResponse conductGet(const Uri &uri, const Location &location)
                 return BAD_REQUEST_RESPONSE;
             }
         }
-        else // when targetResourcePath is assumed to be a file.
+        else // when uri.extraPath is assumed to be a file.
         {
-            const FileContentResult fileContentResult = utils::fileContent(targetResourcePath);
+            const FileContentResult fileContentResult = utils::fileContent(uri.extraPath);
             return fileContentResult.success
-                       ? HttpResponse(SUCCESS, fileContentResult.value, utils::contentType(targetResourcePath))
+                       ? HttpResponse(SUCCESS, fileContentResult.value, utils::contentType(uri.extraPath))
                        : BAD_REQUEST_RESPONSE;
         }
     }
