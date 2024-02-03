@@ -3,26 +3,81 @@
 
 namespace
 {
-struct CgiResponse
+class CgiResponse
 {
-    const std::string body;
-    const std::string contentType;
-    const std::string location;
-    const unsigned int statusCode;
-    const Headers headers;
+  private:
+    std::string body;
+    std::string contentType;
+    std::string location;
+    unsigned int statusCode;
+    Headers headers;
 
-    CgiResponse(int fd, std::string ) : body(""), contentType(""), location(""), statusCode(0), headers()
+    void parseStatusLine(const std::string &line)
     {
-        ssize_t n;
-        char buffer[1024];
-        std::string response;
-        while ((n = read(fd, buffer, 1024)) > 0)
+        const size_t expectedParts = 2;
+        std::vector<std::string> statusLine = utils::split(line, " ");
+        if (statusLine.size() >= expectedParts)
         {
-            response += buffer;
+            statusCode = std::stoi(statusLine[1]);
         }
-    };
-    CgiResponse(const std::string &body, const std::string &contentType, const std::string &location,
-                const unsigned int &statusCode, const Headers &headers)
-        : body(body), contentType(contentType), location(location), statusCode(statusCode), headers(headers){};
+    }
+
+    void parseHeadersAndBody(const std::vector<std::string> &lines)
+    {
+        for (size_t i = 1; i < lines.size(); ++i)
+        {
+            if (lines[i].empty())
+            {
+                break;
+            }
+            processHeaderLine(lines[i]);
+        }
+        for (size_t i = 0; i < lines.size(); ++i)
+        {
+            if (i > 0)
+            {
+                body += lines[i] + CRLF;
+            }
+        }
+    }
+
+    void processHeaderLine(const std::string &line)
+    {
+        std::vector<std::string> header = utils::split(line, ": ");
+        if (header.size() > 1)
+        {
+            if (header[0] == "Content-Type")
+                contentType = header[1];
+            else if (header[0] == "Location")
+                location = header[1];
+            else
+                headers[header[0]] = header[1];
+        }
+    }
+
+  public:
+    CgiResponse(const std::string &text) : body(""), contentType(""), location(""), statusCode(SUCCESS), headers(Headers())
+    {
+        std::vector<std::string> lines = utils::split(text, CRLF);
+        if (!lines.empty())
+            parseStatusLine(lines[0]);
+        parseHeadersAndBody(lines);
+    }
+    const std::string getBody() const
+    {
+        return body;
+    }
+    const std::string getContentType() const
+    {
+        return contentType;
+    }
+    const std::string getLocation() const
+    {
+        return location;
+    }
+    unsigned int getStatusCode() const
+    {
+        return statusCode;
+    }
 };
 } // namespace

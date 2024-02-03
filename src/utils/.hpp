@@ -15,6 +15,7 @@ bool isNumber(const std::string str);
 std::string hexToUtf8Char(const std::string &hex);
 std::string getlineCustom(std::istringstream &requestTextStream);
 std::vector<std::string> tokenize(const std::string &original, const char &delim);
+Strings split(const std::string &original, const std::string &delim);
 
 // fd_set
 fd_set fdSetFrom(const Sockets sds);

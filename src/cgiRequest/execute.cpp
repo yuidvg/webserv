@@ -1,5 +1,5 @@
 #include ".hpp"
-#include "../CgiResponse/.hpp"
+#include "../cgiResponse/.hpp"
 #include "../httpRequestAndConfig/.hpp"
 
 namespace
@@ -70,22 +70,39 @@ HttpResponse executeCgi(const HttpRequest &request, const Socket &socket, const 
     else if (pid == 0) // child process
     {
         std::cout << "child process" << std::endl;
+        close(pipefds[OUT]);
+        dup2(pipefds[IN], STDOUT_FILENO);
         close(pipefds[IN]);
-        dup2(pipefds[OUT], STDIN_FILENO);
         errno = 0;
         execve(uri.scriptPath.c_str(), args, envp);
         exit(errno);
     }
     else // parent process
     {
+        close(pipefds[IN]);
+        std::string response = "";
+        char buffer[1024];
+
+        ssize_t n;
+        while ((n = read(pipefds[OUT], buffer, sizeof(buffer))) > 0)
+        {
+            response.append(buffer, n);
+        }
+        if (n == -1)
+        {
+            std::cerr << "read failed" << std::endl;
+            return (SERVER_ERROR_RESPONSE);
+        }
         close(pipefds[OUT]);
-        CgiResponse cgiResponse(pipefds[IN], request.body);
+
+        CgiResponse cgiResponse(response);
 
         int status;
         waitpid(pid, &status, 0);
         const int exitStatus = WEXITSTATUS(status);
         if (WIFEXITED(status) && exitStatus == 0)
-            return (HttpResponse(SUCCESS, cgiResponse.body, cgiResponse.contentType, cgiResponse.location));
+            return (
+                HttpResponse(SUCCESS, cgiResponse.getBody(), cgiResponse.getContentType(), cgiResponse.getLocation()));
         else
             return (SERVER_ERROR_RESPONSE);
     }
