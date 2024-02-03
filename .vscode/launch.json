@@ -1,7 +1,14 @@
 {
 	"version": "0.2.0",
 	"configurations": [
-
+		{
+			"name": "(lldb) Attach",
+			"type": "cppdbg",
+			"request": "attach",
+			"program": "${workspaceFolder}/webserv",
+			"processId": "${command:pickProcess}",
+			"MIMode": "lldb"
+		},
 		{
 			"name": "(lldb) Launch",
 			"type": "cppdbg",
@@ -17,7 +24,7 @@
 			"MIMode": "lldb",
 			"preLaunchTask": "buildWithDebug",
 			"postDebugTask": "kill",
-			
+
 		},
 		{
 			"name": "(lldb) Launch on current file",
