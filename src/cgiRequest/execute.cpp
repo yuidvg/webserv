@@ -36,7 +36,9 @@ char *const *enviromentVariables(const HttpRequest &request, const Socket &socke
     env["GATEWAY_INTERFACE"] = GATEWAY_INTERFACE;
     env["PATH_INFO"] = uri.extraPath;
     env["PATH_TRANSLATED"] =
-        resolvePath(uri.extraPath, CONFIG.getServer(request.host, socket.port).getLocation(request.target));
+        uri.extraPath.size() > 0
+            ? resolvePath(uri.extraPath, CONFIG.getServer(request.host, socket.port).getLocation(request.target))
+            : "";
     env["QUERY_STRING"] = uri.queryString;
     env["REMOTE_ADDR"] = socket.opponentIp;
     env["REQUEST_METHOD"] = request.method;
@@ -57,6 +59,10 @@ HttpResponse executeCgi(const HttpRequest &request, const Socket &socket, const 
         std::cerr << "pipe failed" << std::endl;
         return (SERVER_ERROR_RESPONSE);
     }
+    char *const *envp = enviromentVariables(request, socket, uri);
+    char *args[2];
+    args[0] = const_cast<char *>(request.target.c_str());
+    args[1] = NULL;
     const pid_t pid = fork();
     if (pid == -1)
         return (SERVER_ERROR_RESPONSE);
@@ -65,13 +71,9 @@ HttpResponse executeCgi(const HttpRequest &request, const Socket &socket, const 
         std::cout << "child process" << std::endl;
         close(pipefds[IN]);
         dup2(pipefds[OUT], STDIN_FILENO);
-        char *args[2];
-        args[0] = const_cast<char *>(request.target.c_str());
-        args[1] = NULL;
-        std::cout << "execveing (" << uri.scriptPath << ")" << std::endl;
         errno = 0;
-        execve(uri.scriptPath.c_str(), args, enviromentVariables(request, socket, uri));
-        std::cerr << "execve failed: " << strerror(errno) << std::endl;
+        execve(uri.scriptPath.c_str(), args, envp);
+        exit(errno);
     }
     else // parent process
     {
@@ -79,7 +81,8 @@ HttpResponse executeCgi(const HttpRequest &request, const Socket &socket, const 
         write(pipefds[IN], request.body.c_str(), request.body.size());
         int status;
         waitpid(pid, &status, 0);
-        if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
+        const int exitStatus = WEXITSTATUS(status);
+        if (WIFEXITED(status) && exitStatus == 0)
             return (SUCCESS_RESPONSE);
         else
             return (SERVER_ERROR_RESPONSE);

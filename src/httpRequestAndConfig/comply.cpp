@@ -8,7 +8,7 @@ std::string concatPath(const std::string &pathA, const std::string &pathB)
 }
 std::string root(const std::string &path, const Location &location)
 {
-    return concatPath(location.root, path.substr(location.path.length()));
+    return concatPath(location.root, location.path.length() <= path.size() ? path.substr(location.path.length()) : "");
 }
 
 std::string index(const std::string &path, const Location &location)
