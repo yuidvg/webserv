@@ -27,7 +27,7 @@ bool isNumber(const std::string str)
     return (true);
 }
 
-std::vector< std::string> tokenize(const std::string &original, const char &delim)
+std::vector<std::string> tokenize(const std::string &original, const char &delim)
 {
     Strings tokens;
     std::stringstream ss(original);
@@ -58,5 +58,17 @@ std::string getlineCustom(std::istringstream &requestTextStream)
     if (line[line.length() - 1] == '\r')
         line.erase(line.length() - 1);
     return line;
+}
+
+std::string removeCharacter(const std::string str, const char charToRemove)
+{
+    size_t position = str.find(charToRemove);
+    std::string result = str;
+    while (position != std::string::npos)
+    {
+        result.erase(position, 1);
+        position = result.find(charToRemove, position);
+    }
+    return result;
 }
 } // namespace utils

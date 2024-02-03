@@ -21,7 +21,13 @@ std::string index(const std::string &path, const Location &location)
 }
 
 } // namespace
+
 std::string resolvePath(const std::string &path, const Location &location)
 {
     return root(index(path, location), location);
+}
+
+std::string resolvePath(const std::string &target, const std::string &uploadPath)
+{
+    return concatPath(target, uploadPath);
 }
