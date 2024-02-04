@@ -48,7 +48,8 @@ ParseHeaderResult parseHttpHeaders(std::istringstream &requestTextStream)
         return ParseHeaderResult::Error(BAD_REQUEST);
 }
 
-ParseBodyResult parseHttpBody(std::istringstream &requestTextStream, const Headers &headers, const Server &server, const std::string &method)
+ParseBodyResult parseHttpBody(std::istringstream &requestTextStream, const Headers &headers, const Server &server,
+                              const std::string &method)
 {
     std::string line;
     const std::string body((std::istreambuf_iterator<char>(requestTextStream)), std::istreambuf_iterator<char>());
@@ -99,12 +100,13 @@ ParseRequestResult parseHttpRequest(HttpRequestText &httpRequestText, const Serv
             if (headersResult.success)
             {
                 const Headers headers = headersResult.value;
-                const ParseBodyResult body = parseHttpBody(requestTextStream, headers, server, parseRequestLineResult.value.method);
+                const ParseBodyResult body =
+                    parseHttpBody(requestTextStream, headers, server, parseRequestLineResult.value.method);
                 if (body.success)
                 {
                     const RequestLine requestLine = parseRequestLineResult.value;
-                    const HttpRequest result(requestLine.method, requestLine.target, requestLine.version, headers,
-                                             body.value, httpRequestText.getHostName().value);
+                    const HttpRequest result(requestLine.method, requestLine.target, headers, body.value,
+                                             httpRequestText.getHostName().value);
                     return ParseRequestResult::Success(result);
                 }
                 else
