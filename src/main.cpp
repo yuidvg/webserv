@@ -31,7 +31,7 @@ int main(int argc, char **argv)
     eventLoop(createdSocketsResult.value);
 }
 
-__attribute__((destructor)) static void destructor(void)
-{
-    system("leaks -q webserv");
-}
+// __attribute__((destructor)) static void destructor(void)
+// {
+//     system("leaks -q webserv");
+// }

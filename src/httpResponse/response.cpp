@@ -12,6 +12,7 @@ bool isMethodAllowed(const HttpRequest &request, const Location &location)
             return true;
     return false;
 }
+} // namespace
 
 HttpResponse responseToValidRequest(const HttpRequest &request, const Socket &socket)
 {
@@ -22,11 +23,11 @@ HttpResponse responseToValidRequest(const HttpRequest &request, const Socket &so
     {
         const std::string resolvedPath = resolvePath(request.target, location);
         const Uri uri = segmentUri(resolvedPath, location.cgiExtension);
-        // if (uri.scriptPath.size() > 0)
-        // {
-        //     return executeCgi(request, socket, uri);
-        // }
-        // else
+        if (uri.scriptPath.size() > 0)
+        {
+            return executeCgi(request, socket, uri);
+        }
+        else
         {
             if (!location.redirect.empty())
             {
@@ -47,7 +48,6 @@ HttpResponse responseToValidRequest(const HttpRequest &request, const Socket &so
         return METHOD_NOT_ALLOWED_RESPONSE(utils::join(location.allowMethods, ", "));
     }
 }
-} // namespace
 
 HttpResponse response(const ParseRequestResult &requestResult, const Socket &socket)
 {

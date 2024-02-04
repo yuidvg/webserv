@@ -1,4 +1,5 @@
 #include ".hpp"
+#include "../cgiResponse/.hpp"
 #include "../httpRequestAndConfig/.hpp"
 
 namespace
@@ -65,27 +66,55 @@ HttpResponse executeCgi(const HttpRequest &request, const Socket &socket, const 
     args[1] = NULL;
     const pid_t pid = fork();
     if (pid == -1)
+    {
+        close(pipefds[OUT]);
+        close(pipefds[IN]);
         return (SERVER_ERROR_RESPONSE);
+    }
     else if (pid == 0) // child process
     {
         std::cout << "child process" << std::endl;
+        close(pipefds[OUT]);
+        dup2(pipefds[IN], STDOUT_FILENO);
         close(pipefds[IN]);
-        dup2(pipefds[OUT], STDIN_FILENO);
         errno = 0;
         execve(uri.scriptPath.c_str(), args, envp);
         exit(errno);
     }
     else // parent process
     {
-        close(pipefds[OUT]);
-        write(pipefds[IN], request.body.c_str(), request.body.size());
-        int status;
-        waitpid(pid, &status, 0);
-        const int exitStatus = WEXITSTATUS(status);
-        if (WIFEXITED(status) && exitStatus == 0)
-            return (SUCCESS_RESPONSE);
+        close(pipefds[IN]);
+
+        ReadFileResult readFileResult = utils::readFile(pipefds[OUT], MAX_LEN);
+        if (readFileResult.success)
+        {
+            close(pipefds[OUT]);
+            std::string response = readFileResult.value;
+
+            const ParseCgiResponseResult parseCgiResponseResult = parseCgiResponse(response);
+            if (parseCgiResponseResult.success)
+            {
+                CgiResponse cgiResponse = parseCgiResponseResult.value;
+
+                int status;
+                waitpid(pid, &status, 0);
+                const int exitStatus = WEXITSTATUS(status);
+                if (WIFEXITED(status) && exitStatus == 0)
+                    return (HttpResponse(SUCCESS, cgiResponse.body, cgiResponse.contentType, cgiResponse.location));
+                else
+                    return (SERVER_ERROR_RESPONSE);
+            }
+            else
+            {
+                return (parseCgiResponseResult.error); // errorがメンバ変数である場合
+            }
+        }
         else
+        {
+            std::cerr << "read failed" << std::endl;
             return (SERVER_ERROR_RESPONSE);
+        }
+
     }
     return (SUCCESS_RESPONSE);
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CgiResponse.hpp"
 #include "Config.hpp"
 #include "Headers.hpp"
 #include "HttpRequest.hpp"

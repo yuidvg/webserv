@@ -6,7 +6,6 @@ namespace parseConfig
 {
 LocationResult parseLocationDirective(const std::vector<std::string> directiveTokens, std::vector<std::string> &tokens);
 ServerResult parseServer(const std::vector<std::string> directiveTokens, std::vector<std::string> &tokens);
-StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal);
 NameResult parseServerName(const std::vector<std::string> directiveTokens);
 PortResult parseListen(const std::vector<std::string> directiveTokens);
 ErrorPagesResult parseErrorPage(const std::vector<std::string> directiveTokens);

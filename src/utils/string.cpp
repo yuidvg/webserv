@@ -71,4 +71,45 @@ std::string removeCharacter(const std::string str, const char charToRemove)
     }
     return result;
 }
+
+StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal)
+{
+    if (!utils::isNumber(str))
+    {
+        return StringToIntResult::Error("値が数値ではありません");
+    }
+
+    std::istringstream iss(str);
+    int num;
+    if (!(iss >> num) || !iss.eof())
+    {
+        return StringToIntResult::Error("数値の変換に失敗しました");
+    }
+
+    if (num < minVal || num > maxVal)
+    {
+        return StringToIntResult::Error("数値が許容範囲外です");
+    }
+
+    return StringToIntResult::Success(num);
+}
+
+ReadFileResult readFile(const int fd, const size_t size)
+{
+    char *buffer = new char[size];
+    ssize_t readSize;
+    std::string result = "";
+
+    while ((readSize = read(fd, buffer, size)) > 0)
+    {
+        result.append(buffer, readSize);
+    }
+    if (readSize == -1)
+    {
+        return ReadFileResult::Error("ファイルの読み込みに失敗しました");
+    }
+    delete[] buffer;
+    return ReadFileResult::Success(result);
+}
+
 } // namespace utils

@@ -3,7 +3,7 @@
 
 HttpResponse response(const ParseRequestResult &requestResult, const Socket &socket);
 std::string responseText(const HttpResponse &response);
-
+HttpResponse responseToValidRequest(const HttpRequest &request, const Socket &socket);
 // methods
 HttpResponse conductGet(const Uri &uri, const Location &location);
 HttpResponse conductDelete(const Uri &uri);
