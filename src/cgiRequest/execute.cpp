@@ -100,9 +100,9 @@ HttpResponse executeCgi(const HttpRequest &request, const Socket &socket, const 
                 waitpid(pid, &status, 0);
                 const int exitStatus = WEXITSTATUS(status);
                 if (WIFEXITED(status) && exitStatus == 0)
-                    return (HttpResponse(SUCCESS, cgiResponse.body, cgiResponse.contentType, cgiResponse.location));
+                    return processCgiResponse(cgiResponse, request, socket);
                 else
-                    return (SERVER_ERROR_RESPONSE);
+                    return SERVER_ERROR_RESPONSE;
             }
             else
             {
