@@ -66,7 +66,11 @@ HttpResponse executeCgi(const HttpRequest &request, const Socket &socket, const 
     args[1] = NULL;
     const pid_t pid = fork();
     if (pid == -1)
+    {
+        close(pipefds[OUT]);
+        close(pipefds[IN]);
         return (SERVER_ERROR_RESPONSE);
+    }
     else if (pid == 0) // child process
     {
         std::cout << "child process" << std::endl;
@@ -80,31 +84,37 @@ HttpResponse executeCgi(const HttpRequest &request, const Socket &socket, const 
     else // parent process
     {
         close(pipefds[IN]);
-        std::string response = "";
-        char buffer[1024];
 
-        ssize_t n;
-        while ((n = read(pipefds[OUT], buffer, sizeof(buffer))) > 0)
+        ReadFileResult readFileResult = utils::readFile(pipefds[OUT], MAX_LEN);
+        if (readFileResult.success)
         {
-            response.append(buffer, n);
+            close(pipefds[OUT]);
+            std::string response = readFileResult.value;
+
+            const ParseCgiResponseResult parseCgiResponseResult = parseCgiResponse(response);
+            if (parseCgiResponseResult.success)
+            {
+                CgiResponse cgiResponse = parseCgiResponseResult.value;
+
+                int status;
+                waitpid(pid, &status, 0);
+                const int exitStatus = WEXITSTATUS(status);
+                if (WIFEXITED(status) && exitStatus == 0)
+                    return (HttpResponse(SUCCESS, cgiResponse.body, cgiResponse.contentType, cgiResponse.location));
+                else
+                    return (SERVER_ERROR_RESPONSE);
+            }
+            else
+            {
+                return (parseCgiResponseResult.error); // errorがメンバ変数である場合
+            }
         }
-        if (n == -1)
+        else
         {
             std::cerr << "read failed" << std::endl;
             return (SERVER_ERROR_RESPONSE);
         }
-        close(pipefds[OUT]);
 
-        CgiResponse cgiResponse(response);
-
-        int status;
-        waitpid(pid, &status, 0);
-        const int exitStatus = WEXITSTATUS(status);
-        if (WIFEXITED(status) && exitStatus == 0)
-            return (
-                HttpResponse(SUCCESS, cgiResponse.getBody(), cgiResponse.getContentType(), cgiResponse.getLocation()));
-        else
-            return (SERVER_ERROR_RESPONSE);
     }
     return (SUCCESS_RESPONSE);
 }
