@@ -7,7 +7,7 @@ FileContentResult fileContent(const std::string &path)
 {
     std::ifstream ifs(path);
     if (!ifs.is_open())
-        return (FileContentResult::Error(HttpResponse(BAD_REQUEST, Headers(), "File not found")));
+        return (FileContentResult::Error(HttpResponse(BAD_REQUEST, "File not found")));
 
     std::string fileContent;
     std::string line;
@@ -26,7 +26,7 @@ HttpResponse writeToFile(const std::string &path, const std::string &fileContent
     if (ofs.is_open())
     {
         ofs << fileContent;
-        return (HttpResponse(SUCCESS, Headers(), ""));
+        return (HttpResponse(SUCCESS, fileContent, "text/html"));
     }
     else
     {
@@ -92,4 +92,17 @@ IsDirectoryResult isDirectory(const std::string &path)
     }
     return IsDirectoryResult::Success(S_ISDIR(statbuf.st_mode));
 }
+
+bool createFile(const std::string &fileName)
+{
+    std::ofstream file(fileName.c_str()); // ファイルを開く（または作成する）
+    if (!file)
+    {
+        std::cerr << "Failed to create file: " << fileName << std::endl;
+        return false;
+    }
+    file.close();
+    return true;
+}
+
 } // namespace utils

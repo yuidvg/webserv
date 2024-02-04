@@ -4,32 +4,6 @@
 namespace parseConfig
 {
 
-StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal)
-{
-    if (!utils::isNumber(str))
-    {
-        return StringToIntResult::Error("値が数値ではありません");
-    }
-
-    std::istringstream iss(str);
-    int num;
-    if (!(iss >> num) || !iss.eof())
-    {
-        return StringToIntResult::Error("数値の変換に失敗しました");
-    }
-
-    if (num < minVal || num > maxVal)
-    {
-        return StringToIntResult::Error("数値が許容範囲外です");
-    }
-
-    return StringToIntResult::Success(num);
-}
-
-/*
-    Server directive
-*/
-
 ServerResult parseServer(const std::vector<std::string> directiveTokens, std::vector<std::string> &tokens)
 {
     if (directiveTokens.size() != 2)
@@ -57,7 +31,7 @@ PortResult parseListen(const std::vector<std::string> directiveTokens)
     if (directiveTokens.size() != 2)
         return PortResult::Error("Config: listenの引数が多いです");
 
-    StringToIntResult result = stringToInt(directiveTokens[1], 0, 65535);
+    StringToIntResult result = utils::stringToInt(directiveTokens[1], 0, 65535);
     if (!result.success)
     {
         return PortResult::Error(result.error);
@@ -71,7 +45,7 @@ ErrorPagesResult parseErrorPage(const std::vector<std::string> directiveTokens)
     if (directiveTokens.size() != 3)
         return ErrorPagesResult::Error("Config: error_pageの引数が多いです");
 
-    StringToIntResult errorCodeResult = stringToInt(directiveTokens[1], 100, 599);
+    StringToIntResult errorCodeResult = utils::stringToInt(directiveTokens[1], 100, 599);
     if (!errorCodeResult.success)
     {
         return ErrorPagesResult::Error("Config: error_pageのエラーコードが不正です");
@@ -88,7 +62,7 @@ ClientMaxBodySizeResult parseClientMaxBodySize(const std::vector<std::string> di
     if (directiveTokens.size() != 2)
         return ClientMaxBodySizeResult::Error(directiveTokens[1] + "引数の数が不正です");
 
-    StringToIntResult sizeResult = stringToInt(directiveTokens[1], 0, INT_MAX);
+    StringToIntResult sizeResult = utils::stringToInt(directiveTokens[1], 0, INT_MAX);
     if (!sizeResult.success)
     {
         return ClientMaxBodySizeResult::Error("Config: client_max_body_sizeの値が不正です");

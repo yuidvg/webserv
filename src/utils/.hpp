@@ -15,6 +15,13 @@ bool isNumber(const std::string str);
 std::string hexToUtf8Char(const std::string &hex);
 std::string getlineCustom(std::istringstream &requestTextStream);
 std::vector<std::string> tokenize(const std::string &original, const char &delim);
+std::string removeCharacter(const std::string str, const char charToRemove);
+StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal);
+ReadFileResult readFile(const int fd, const size_t size);
+
+// uri
+bool isAbsolutePath(const std::string &path);
+bool isAbsoluteUri(const std::string &uri);
 
 // fd_set
 fd_set fdSetFrom(const Sockets sds);
@@ -25,7 +32,11 @@ FileContentResult fileContent(const std::string &path);
 HttpResponse writeToFile(const std::string &path, const std::string &fileContent);
 std::string contentType(const std::string &path);
 IsDirectoryResult isDirectory(const std::string &path);
+bool createFile(const std::string &fileName);
 
 // vector
 std::string join(const std::vector<std::string> &list, const std::string &delimiter);
+
+// status
+bool isStatusInRange(const int status);
 } // namespace utils

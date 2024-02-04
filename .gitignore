@@ -12,6 +12,7 @@ src/*/main.cpp
 /obj/**
 *.txt
 client_app
-*.rb
+*.cgi
+uploadPath/*
 
 *.plist*

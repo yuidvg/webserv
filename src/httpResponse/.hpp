@@ -3,11 +3,11 @@
 
 HttpResponse response(const ParseRequestResult &requestResult, const Socket &socket);
 std::string responseText(const HttpResponse &response);
-
+HttpResponse responseToValidRequest(const HttpRequest &request, const Socket &socket);
 // methods
-HttpResponse conductGet(const HttpRequest &request, const Location &location);
+HttpResponse conductGet(const Uri &uri, const Location &location);
+HttpResponse conductDelete(const Uri &uri);
 HttpResponse conductPost(const HttpRequest &request, const Location &location);
-HttpResponse conductDelete(const HttpRequest &request, const Location &location);
 
 HttpResponse provideErrorResponse(const HttpResponse &httpResponse, const Server &server);
 HttpResponse redirectResponse(const std::string &redirectUrl);

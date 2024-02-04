@@ -20,7 +20,7 @@ template <typename T> void printError(const T &message)
     std::cerr << message << std::endl;
 }
 
-template <typename T> bool contains(const T needle, const std::vector< T> haystack)
+template <typename T> bool contains(const T needle, const std::vector<T> haystack)
 {
     return std::find(haystack.begin(), haystack.end(), needle) != haystack.end();
 }
@@ -39,10 +39,10 @@ template <typename T> std::vector<T> combined(const std::vector<T> a, const std:
     return combined;
 }
 
-template <typename T> std::vector< T> excluded(const std::vector< T> haystack, const T needle)
+template <typename T> std::vector<T> excluded(const std::vector<T> haystack, const T needle)
 {
-    std::vector< T> excluded;
-    for (typename std::vector< T>::const_iterator it = haystack.begin(); it != haystack.end(); ++it)
+    std::vector<T> excluded;
+    for (typename std::vector<T>::const_iterator it = haystack.begin(); it != haystack.end(); ++it)
     {
         if (*it != needle)
         {

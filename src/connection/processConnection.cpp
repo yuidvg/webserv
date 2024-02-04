@@ -22,31 +22,30 @@ bool processConnection(const Socket &socket)
     std::cout << "Received \n" << receivedLength << " bytes: \n" << buffer << std::endl;
 
     HttpRequestText httpRequestText(buffer);
+
     GetHostNameResult getHostNameResult = httpRequestText.getHostName();
-    if (!getHostNameResult.success)
+    if (getHostNameResult.success)
     {
-        utils::printError(getHostNameResult.error); // TODO: ここでエラーレスポンス？
-        return false;
-    }
-    Server server = CONFIG.getServer(getHostNameResult.value, socket.port);
+        Server server = CONFIG.getServer(getHostNameResult.value, socket.port);
 
-    const ParseRequestResult parseHttpRequestResult = parseHttpRequest(httpRequestText, server);
-    if (!parseHttpRequestResult.success)
-    {
-        std::cout << "parseHttpRequestResult.error: " << parseHttpRequestResult.error.statusCode << std::endl;
-        return false;
-    }
-    const HttpResponse httpResponse = response(parseHttpRequestResult, socket);
-    const std::string httpResponseText = responseText(httpResponse);
+        const ParseRequestResult parseHttpRequestResult = parseHttpRequest(httpRequestText, server);
+        const HttpResponse httpResponse = response(parseHttpRequestResult, socket);
+        const std::string httpResponseText = responseText(httpResponse);
 
-    const int sentLength = send(socket.descriptor, httpResponseText.c_str(), httpResponseText.length(), 0);
-    if (sentLength > 0)
-    {
-        return true;
+        const int sentLength = send(socket.descriptor, httpResponseText.c_str(), httpResponseText.length(), 0);
+        if (sentLength > 0)
+        {
+            return true;
+        }
+        else
+        {
+            utils::printError("send() failed.");
+            return false;
+        }
     }
     else
     {
-        utils::printError("send() failed.");
+        utils::printError(getHostNameResult.error);
         return false;
     }
 }
