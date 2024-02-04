@@ -12,7 +12,6 @@ src/*/main.cpp
 /obj/**
 *.txt
 client_app
-*.cgi
 uploadPath/*
 
 *.plist*
