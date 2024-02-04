@@ -2,10 +2,11 @@
 #include "../httpRequestAndConfig/.hpp"
 #include ".hpp"
 
-HttpResponse conductDelete(const Uri &uri)
+HttpResponse conductDelete(const std::string &path)
 {
-    if (remove(uri.extraPath.c_str()) == 0)
-        return SUCCESS_RESPONSE;
+    const std::string relativePath = path.substr(1);
+    if (remove(relativePath.c_str()) == 0)
+        return (HttpResponse(SUCCESS, path, "text/html"));
     else
         return BAD_REQUEST_RESPONSE;
 }
