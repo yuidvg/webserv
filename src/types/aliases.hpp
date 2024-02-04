@@ -60,4 +60,6 @@ typedef Result<const int, const std::string> StringToIntResult;
 typedef Result<const bool, const HttpResponse> IsDirectoryResult;
 typedef Result<const std::string, const HttpResponse> FileContentResult;
 
-typedef std::vector< std::string> Strings;
+typedef std::vector<std::string> Strings;
+
+typedef Result<CgiResponse, HttpResponse> ParseCgiResponseResult;
