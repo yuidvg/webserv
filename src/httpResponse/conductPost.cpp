@@ -4,25 +4,16 @@
 
 HttpResponse conductPost(const HttpRequest &request, const Location &location)
 {
-    const std::string targetResourcePath = location.uploadPath;
-    const IsDirectoryResult isDirectoryResult = utils::isDirectory(targetResourcePath);
-    if (isDirectoryResult.success)
-    {
-        const bool isDirectory = isDirectoryResult.value;
-        if (isDirectory)
-        {
-            const std::string fileName = std::string(utils::removeCharacter(request.target, '/') + ".txt");
-            if (!utils::createFile(fileName))
-                return BAD_REQUEST_RESPONSE;
-            return utils::writeToFile(resolvePath(location.uploadPath, fileName), request.body);
-        }
-        else // when uri.extraPath is assumed to be a file.
-        {
-            return BAD_REQUEST_RESPONSE;
-        }
-    }
-    else
-    {
+    const std::string targetFilePath = resolvePath(location.uploadPath, request.target);
+
+    const IsDirectoryResult isDirectoryResult = utils::isDirectory(location.uploadPath);
+    if (!isDirectoryResult.success)
         return isDirectoryResult.error;
-    }
+    if (!isDirectoryResult.value)
+        return BAD_REQUEST_RESPONSE;
+    const std::string fileName = std::string(utils::removeCharacter(request.target, '/') + ".txt");
+    if (!utils::createFile(fileName))
+        return BAD_REQUEST_RESPONSE;
+    const std::string fullFilePath = resolvePath(location.uploadPath, fileName);
+    return utils::writeToFile(fullFilePath, request.body);
 }

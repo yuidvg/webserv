@@ -26,7 +26,7 @@ HttpResponse writeToFile(const std::string &path, const std::string &fileContent
     if (ofs.is_open())
     {
         ofs << fileContent;
-        return (HttpResponse(SUCCESS, ""));
+        return (HttpResponse(SUCCESS, fileContent, "text/html"));
     }
     else
     {
