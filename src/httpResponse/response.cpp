@@ -35,9 +35,9 @@ HttpResponse responseToValidRequest(const HttpRequest &request, const Socket &so
             if (request.method == "GET")
                 return conductGet(uri, location);
             else if (request.method == "POST")
-                return conductPost(request, uri, location);
+                return conductPost(request, location);
             else if (request.method == "DELETE")
-                return conductDelete(uri, location);
+                return conductDelete(uri);
             else
                 return METHOD_NOT_ALLOWED_RESPONSE("GET, POST, DELETE");
         }

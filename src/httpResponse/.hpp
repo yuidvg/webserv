@@ -6,8 +6,8 @@ std::string responseText(const HttpResponse &response);
 
 // methods
 HttpResponse conductGet(const Uri &uri, const Location &location);
-HttpResponse conductPost(const HttpRequest &request, const Uri &uri, const Location &location);
-HttpResponse conductDelete(const Uri &uri, const Location &location);
+HttpResponse conductDelete(const Uri &uri);
+HttpResponse conductPost(const HttpRequest &request, const Location &location);
 
 HttpResponse provideErrorResponse(const HttpResponse &httpResponse, const Server &server);
 HttpResponse redirectResponse(const std::string &redirectUrl);

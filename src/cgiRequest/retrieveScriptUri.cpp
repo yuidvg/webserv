@@ -13,7 +13,7 @@ std::string::size_type findScriptExtensionPos(const std::string &target, const s
     }
     else
     {
-        return 0;
+        return cgiExtension.size() * -1;
     }
 }
 } // namespace

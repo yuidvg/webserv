@@ -60,19 +60,15 @@ std::string getlineCustom(std::istringstream &requestTextStream)
     return line;
 }
 
-Strings split(const std::string &original, const std::string &delim)
+std::string removeCharacter(const std::string str, const char charToRemove)
 {
-    Strings tokens;
-    size_t start = 0;
-    size_t end = original.find(delim);
-
-    while (end != std::string::npos)
+    size_t position = str.find(charToRemove);
+    std::string result = str;
+    while (position != std::string::npos)
     {
-        tokens.push_back(original.substr(start, end - start));
-        start = end + delim.length();
-        end = original.find(delim, start);
+        result.erase(position, 1);
+        position = result.find(charToRemove, position);
     }
-    tokens.push_back(original.substr(start, end));
-    return tokens;
+    return result;
 }
 } // namespace utils
