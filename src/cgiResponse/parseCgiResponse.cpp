@@ -35,5 +35,11 @@ ParseCgiResponseResult parseCgiResponse(std::string const &response)
     const StringToIntResult statusResult =
         utils::stringToInt(statusLines.size() > 0 ? statusLines[0].substr(STATUS_FIELD.length()) : "", 100, 599);
     const int status = statusResult.success ? statusResult.value : 0;
-    return ParseCgiResponseResult::Success(CgiResponse(contentType, location, status, Headers(), response));
+
+    /*
+    bodyとoptional headerの取得が必要
+    */
+    std::string body = "";
+
+    return ParseCgiResponseResult::Success(CgiResponse(contentType, location, status, Headers(), body));
 }
