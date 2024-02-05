@@ -29,6 +29,16 @@ Servers filter(const Servers &servers, const std::string &host)
     }
     return filtered;
 }
+
+std::string removeCharAndFollowing(const std::string &input, const char &chara)
+{
+    std::string::size_type pos = input.find(chara);
+    if (pos != std::string::npos)
+    {
+        return input.substr(0, pos);
+    }
+    return input;
+}
 } // namespace
 
 class Config
@@ -43,7 +53,7 @@ class Config
         const Servers serversWithPort = filter(servers, port);
         if (serversWithPort.size() > 0)
         {
-            const Servers serversWithPortAndName = filter(serversWithPort, host);
+            const Servers serversWithPortAndName = filter(serversWithPort, removeCharAndFollowing(host, ':'));
             if (serversWithPortAndName.size() > 0)
             {
                 return serversWithPortAndName[0];

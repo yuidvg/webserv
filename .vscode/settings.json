@@ -62,7 +62,8 @@
 		"functional": "cpp",
 		"version": "cpp",
 		"__memory": "cpp",
-		"cerrno": "cpp"
+		"cerrno": "cpp",
+		"set": "cpp"
 	},
 	"[cpp]": {
 		"editor.wordBasedSuggestions": "off",

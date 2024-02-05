@@ -31,7 +31,7 @@ NewListenSocketResult getListenSocket(const Server server)
         close(sd);
         // return (NewListenSocketResult::Error("bind() failed: "));
         return (NewListenSocketResult::Error(std::string("bind() failed: " + std::string(strerror(errno)) +
-                                                      "\nポート番号" + std::to_string(server.port))));
+                                                         "\nポート番号" + std::to_string(server.port))));
     }
 
     if (listen(sd, 5) < 0)
@@ -42,15 +42,20 @@ NewListenSocketResult getListenSocket(const Server server)
     return NewListenSocketResult::Success(Socket(sd, ntohs(addr.sin_port)));
 }
 } // namespace
+
 GetListenSocketsResult getListenSockets(Servers servers)
 {
     Sockets sockets;
-    for (Servers::iterator serverIt = servers.begin(); serverIt != servers.end(); serverIt++)
+    std::set<int> openedPorts;
+    for (Servers::iterator serverIt = servers.begin(); serverIt != servers.end(); ++serverIt)
     {
+        if (openedPorts.find(serverIt->port) != openedPorts.end())
+            continue;
         NewListenSocketResult newSocketResult = getListenSocket(*serverIt);
         if (newSocketResult.success)
         {
             sockets.push_back(newSocketResult.value);
+            openedPorts.insert(serverIt->port);
         }
         else
         {

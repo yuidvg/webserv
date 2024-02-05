@@ -5,6 +5,7 @@ struct Socket
     const unsigned int descriptor;
     const unsigned int port;
     const std::string opponentIp;
+    // TODO: opponetPortいる？
     const unsigned int opponentPort;
 
     Socket() : descriptor(0), port(0), opponentIp(""), opponentPort(0){};
