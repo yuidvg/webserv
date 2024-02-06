@@ -18,6 +18,7 @@ std::vector<std::string> split(const std::string &original, const std::string &d
 std::string removeCharacter(const std::string str, const char charToRemove);
 StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal);
 ReadFileResult readFile(const int fd);
+std::string itoa(const int &num);
 
 // uri
 bool isAbsolutePath(const std::string &path);

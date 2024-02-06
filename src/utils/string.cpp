@@ -118,4 +118,11 @@ ReadFileResult readFile(const int fd)
     return ReadFileResult::Success(result);
 }
 
+std::string itoa(const int &num)
+{
+    std::stringstream ss;
+    ss << num;
+    return ss.str();
+}
+
 } // namespace utils

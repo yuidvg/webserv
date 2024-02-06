@@ -32,7 +32,7 @@ char *const *enviromentVariables(const HttpRequest &request, const Socket &socke
     std::map<std::string, std::string> env;
 
     env["AUTH_TYPE"] = authType(request);
-    env["CONTENT_LENGTH"] = request.body.size();
+    env["CONTENT_LENGTH"] = utils::itoa(request.body.size());
     env["CONTENT_TYPE"] = utils::value(request.headers, std::string("Content-Type"));
     env["GATEWAY_INTERFACE"] = GATEWAY_INTERFACE;
     env["PATH_INFO"] = uri.extraPath;
