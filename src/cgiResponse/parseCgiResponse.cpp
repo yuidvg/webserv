@@ -21,7 +21,7 @@ bool isStatusLine(std::string const &line)
 
 ParseCgiResponseResult parseCgiResponse(std::string const &response)
 {
-    const std::vector<std::string> lines = utils::tokenize(response, '\n');
+    const std::vector<std::string> lines = utils::split(response, "\n");
 
     // find("Content-Type: ")の後ろにある文字列を取得
     const std::vector<std::string> contentTypeLines = utils::filter(lines, isContentTypeLine);

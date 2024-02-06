@@ -23,7 +23,7 @@ char *const *mapStringStringToCStringArray(const std::map<std::string, std::stri
 std::string authType(const HttpRequest &request)
 {
     const std::string authorization = utils::value(request.headers, std::string("Authorization"));
-    const std::vector<std::string> tokens = utils::tokenize(authorization, ' ');
+    const std::vector<std::string> tokens = utils::split(authorization, " ");
     return tokens.size() > 0 ? tokens[0] : "";
 }
 
@@ -114,7 +114,6 @@ HttpResponse executeCgi(const HttpRequest &request, const Socket &socket, const 
             std::cerr << "read failed" << std::endl;
             return (SERVER_ERROR_RESPONSE);
         }
-
     }
     return (SUCCESS_RESPONSE);
 }
