@@ -41,7 +41,7 @@ const std::string OPEN_BRACKET = "{";
 const std::string CLOSE_BRACKET = "}";
 
 // httpRequest
-const int MAX_LEN = 8192;
+#define MAX_LEN 8192
 
 // httpResponse
 const HttpResponse BAD_REQUEST_RESPONSE =

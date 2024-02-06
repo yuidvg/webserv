@@ -54,8 +54,9 @@ char *const *enviromentVariables(const HttpRequest &request, const Socket &socke
 
 HttpResponse executeCgi(const HttpRequest &request, const Socket &socket, const Uri &uri)
 {
-    int pipefds[2];
-    if (pipe(pipefds) == -1)
+    int requestPipe[2];
+    int responsePipe[2];
+    if (pipe(requestPipe) == -1 || pipe(responsePipe) == -1)
     {
         std::cerr << "pipe failed" << std::endl;
         return (SERVER_ERROR_RESPONSE);
@@ -67,53 +68,70 @@ HttpResponse executeCgi(const HttpRequest &request, const Socket &socket, const 
     const pid_t pid = fork();
     if (pid == -1)
     {
-        close(pipefds[OUT]);
-        close(pipefds[IN]);
+        close(requestPipe[OUT]);
+        close(requestPipe[IN]);
+        close(responsePipe[OUT]);
+        close(responsePipe[IN]);
         return (SERVER_ERROR_RESPONSE);
     }
     else if (pid == 0) // child process
     {
         std::cout << "child process" << std::endl;
-        close(pipefds[OUT]);
-        dup2(pipefds[IN], STDOUT_FILENO);
-        close(pipefds[IN]);
+        close(requestPipe[IN]);
+        dup2(requestPipe[OUT], STDIN_FILENO);
+
+        close(responsePipe[OUT]);
+        dup2(responsePipe[IN], STDOUT_FILENO);
         errno = 0;
+        std::cerr << "execve: " << uri.scriptPath << std::endl;
         execve(uri.scriptPath.c_str(), args, envp);
-        exit(errno);
+        std::cerr << "execve failed: " << strerror(errno) << std::endl;
+        return (SERVER_ERROR_RESPONSE);
     }
     else // parent process
     {
-        close(pipefds[IN]);
-
-        ReadFileResult readFileResult = utils::readFile(pipefds[OUT], MAX_LEN);
-        if (readFileResult.success)
+        close(requestPipe[OUT]);
+        close(responsePipe[IN]);
+        if (request.body.size() == 0 || write(requestPipe[IN], request.body.c_str(), request.body.size()) > 0)
         {
-            close(pipefds[OUT]);
-            std::string response = readFileResult.value;
-
-            const ParseCgiResponseResult parseCgiResponseResult = parseCgiResponse(response);
-            if (parseCgiResponseResult.success)
+            close(requestPipe[IN]);
+            int status;
+            waitpid(pid, &status, 0);
+            // const int exitStatus = WEXITSTATUS(status);
+            if (WIFEXITED(status))
             {
-                CgiResponse cgiResponse = parseCgiResponseResult.value;
+                ReadFileResult readFileResult = utils::readFile(responsePipe[OUT]);
+                if (readFileResult.success)
+                {
+                    close(responsePipe[OUT]);
+                    std::string response = readFileResult.value;
 
-                int status;
-                waitpid(pid, &status, 0);
-                const int exitStatus = WEXITSTATUS(status);
-                if (WIFEXITED(status) && exitStatus == 0)
-                    return processCgiResponse(cgiResponse, request, socket);
+                    const ParseCgiResponseResult parseCgiResponseResult = parseCgiResponse(response);
+                    if (parseCgiResponseResult.success)
+                    {
+                        CgiResponse cgiResponse = parseCgiResponseResult.value;
+                        return processCgiResponse(cgiResponse, request, socket);
+                    }
+                    else
+                    {
+                        return (parseCgiResponseResult.error);
+                    }
+                }
                 else
-                    return SERVER_ERROR_RESPONSE;
+                {
+                    std::cerr << "read failed" << std::endl;
+                    return (SERVER_ERROR_RESPONSE);
+                }
             }
             else
             {
-                return (parseCgiResponseResult.error); // errorがメンバ変数である場合
+                return SERVER_ERROR_RESPONSE;
             }
         }
         else
         {
-            std::cerr << "read failed" << std::endl;
+            std::cerr << "write failed" << std::endl;
             return (SERVER_ERROR_RESPONSE);
         }
     }
-    return (SUCCESS_RESPONSE);
 }

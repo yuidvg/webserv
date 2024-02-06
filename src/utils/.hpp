@@ -17,7 +17,7 @@ std::string getlineCustom(std::istringstream &requestTextStream);
 std::vector<std::string> split(const std::string &original, const std::string &delim);
 std::string removeCharacter(const std::string str, const char charToRemove);
 StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal);
-ReadFileResult readFile(const int fd, const size_t size);
+ReadFileResult readFile(const int fd);
 
 // uri
 bool isAbsolutePath(const std::string &path);

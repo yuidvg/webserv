@@ -101,13 +101,13 @@ StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal)
     return StringToIntResult::Success(num);
 }
 
-ReadFileResult readFile(const int fd, const size_t size)
+ReadFileResult readFile(const int fd)
 {
-    char *buffer = new char[size];
+    char buffer[MAX_LEN];
     ssize_t readSize;
     std::string result = "";
 
-    while ((readSize = read(fd, buffer, size)) > 0)
+    while ((readSize = read(fd, buffer, MAX_LEN)) > 0)
     {
         result.append(buffer, readSize);
     }
@@ -115,7 +115,6 @@ ReadFileResult readFile(const int fd, const size_t size)
     {
         return ReadFileResult::Error("ファイルの読み込みに失敗しました");
     }
-    delete[] buffer;
     return ReadFileResult::Success(result);
 }
 
