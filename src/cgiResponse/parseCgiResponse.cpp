@@ -21,25 +21,29 @@ bool isStatusLine(std::string const &line)
 
 ParseCgiResponseResult parseCgiResponse(std::string const &response)
 {
-    const std::vector<std::string> lines = utils::tokenize(response, '\n');
+    const std::vector<std::string> headerAndBody = utils::split(response, EMPTY_LINE);
+    if (headerAndBody.size() > 0)
+    {
+        const std::vector<std::string> headerLines = utils::split(headerAndBody[0], "\n");
+        // find("Content-Type: ")の後ろにある文字列を取得
+        const std::vector<std::string> contentTypeLines = utils::filter(headerLines, isContentTypeLine);
+        const std::string contentType =
+            contentTypeLines.size() > 0 ? contentTypeLines[0].substr(CONTENT_TYPE_FIELD.length()) : "";
+        // find("Location: ")の後ろにある文字列を取得
+        const std::vector<std::string> locationLines = utils::filter(headerLines, isLocationLine);
+        const std::string location = locationLines.size() > 0 ? locationLines[0].substr(LOCATION_FIELD.length()) : "";
+        // find("Status: ")の後ろにある文字列を数字か判定して取得
+        const std::vector<std::string> statusLines = utils::filter(headerLines, isStatusLine);
+        const StringToIntResult statusResult =
+            utils::stringToInt(statusLines.size() > 0 ? statusLines[0].substr(STATUS_FIELD.length()) : "", 100, 599);
+        const int status = statusResult.success ? statusResult.value : 0;
+        const std::string body =
+            headerAndBody.size() > 1 ? response.substr(headerAndBody[0].length() + EMPTY_LINE.length()) : "";
 
-    // find("Content-Type: ")の後ろにある文字列を取得
-    const std::vector<std::string> contentTypeLines = utils::filter(lines, isContentTypeLine);
-    const std::string contentType =
-        contentTypeLines.size() > 0 ? contentTypeLines[0].substr(CONTENT_TYPE_FIELD.length()) : "";
-    // find("Location: ")の後ろにある文字列を取得
-    const std::vector<std::string> locationLines = utils::filter(lines, isLocationLine);
-    const std::string location = locationLines.size() > 0 ? locationLines[0].substr(LOCATION_FIELD.length()) : "";
-    // find("Status: ")の後ろにある文字列を数字か判定して取得
-    const std::vector<std::string> statusLines = utils::filter(lines, isStatusLine);
-    const StringToIntResult statusResult =
-        utils::stringToInt(statusLines.size() > 0 ? statusLines[0].substr(STATUS_FIELD.length()) : "", 100, 599);
-    const int status = statusResult.success ? statusResult.value : 0;
-
-    /*
-    bodyとoptional headerの取得が必要
-    */
-    std::string body = "";
-
-    return ParseCgiResponseResult::Success(CgiResponse(contentType, location, status, Headers(), body));
+        return ParseCgiResponseResult::Success(CgiResponse(contentType, location, status, Headers(), body));
+    }
+    else
+    {
+        return ParseCgiResponseResult::Error(SERVER_ERROR_RESPONSE);
+    }
 }
