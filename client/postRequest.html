@@ -4,13 +4,9 @@
     <title>サンプルフォーム</title>
 </head>
 <body>
-    <h1>データ送信フォーム</h1>
-    <form action="http://localhost:8080/upload" method="POST">
-        <p>ニックネーム：<input type="text" name="nickname" placeholder="たろう"></p>
-        <p>性別：
-            <input type="radio" name="gender" value="male" checked> 男性
-            <input type="radio" name="gender" value="female"> 女性
-          </p>
+    <h1>食べ物では何が好きですか？</h1>
+    <form method=POST action="localhost:8080/submit.cgi">
+        <input type="text" name="food">
         <input type="submit" value="送信">
     </form>
 </body>
