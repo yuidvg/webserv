@@ -14,10 +14,11 @@ std::string lowerCase(const std::string str);
 bool isNumber(const std::string str);
 std::string hexToUtf8Char(const std::string &hex);
 std::string getlineCustom(std::istringstream &requestTextStream);
-std::vector<std::string> tokenize(const std::string &original, const char &delim);
+std::vector<std::string> split(const std::string &original, const std::string &delim);
 std::string removeCharacter(const std::string str, const char charToRemove);
 StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal);
-ReadFileResult readFile(const int fd, const size_t size);
+ReadFileResult readFile(const int fd);
+std::string itoa(const int &num);
 
 // uri
 bool isAbsolutePath(const std::string &path);

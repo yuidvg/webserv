@@ -27,14 +27,21 @@ bool isNumber(const std::string str)
     return (true);
 }
 
-std::vector<std::string> tokenize(const std::string &original, const char &delim)
+std::vector<std::string> split(const std::string &original, const std::string &delim)
 {
-    Strings tokens;
-    std::stringstream ss(original);
-    std::string token;
-    while (std::getline(ss, token, delim))
+    std::vector<std::string> tokens;
+    std::string::size_type start = 0;
+    std::string::size_type end = 0;
+    while ((end = original.find(delim, start)) != std::string::npos)
+    {
+        const std::string token = original.substr(start, end - start);
         if (!token.empty())
             tokens.push_back(token);
+        start = end + delim.length();
+    }
+    const std::string lastToken = original.substr(start);
+    if (!lastToken.empty())
+        tokens.push_back(lastToken);
     return tokens;
 }
 
@@ -94,13 +101,13 @@ StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal)
     return StringToIntResult::Success(num);
 }
 
-ReadFileResult readFile(const int fd, const size_t size)
+ReadFileResult readFile(const int fd)
 {
-    char *buffer = new char[size];
+    char buffer[MAX_LEN];
     ssize_t readSize;
     std::string result = "";
 
-    while ((readSize = read(fd, buffer, size)) > 0)
+    while ((readSize = read(fd, buffer, MAX_LEN)) > 0)
     {
         result.append(buffer, readSize);
     }
@@ -108,8 +115,14 @@ ReadFileResult readFile(const int fd, const size_t size)
     {
         return ReadFileResult::Error("ファイルの読み込みに失敗しました");
     }
-    delete[] buffer;
     return ReadFileResult::Success(result);
+}
+
+std::string itoa(const int &num)
+{
+    std::stringstream ss;
+    ss << num;
+    return ss.str();
 }
 
 } // namespace utils

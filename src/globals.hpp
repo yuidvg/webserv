@@ -41,7 +41,7 @@ const std::string OPEN_BRACKET = "{";
 const std::string CLOSE_BRACKET = "}";
 
 // httpRequest
-const int MAX_LEN = 8192;
+#define MAX_LEN 8192
 
 // httpResponse
 const HttpResponse BAD_REQUEST_RESPONSE =
@@ -66,3 +66,5 @@ extern Config CONFIG;
 const std::string BASE_64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 const std::string URI_SCHEME_DELIMITER = "://";
+
+const std::string EMPTY_LINE = "\n\n";
