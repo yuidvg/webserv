@@ -14,4 +14,4 @@ make
 
 
 ## 依存関係図
-<img width="2941" alt="Screenshot 2024-01-18 at 20 45 06" src="https://github.com/yuidvg/webserv/assets/27997221/be17de35-51b8-4eb7-a31c-a93e44ea9709">
+<img width="2941" alt="Screenshot 2024-01-18 at 20 45 06" src="https://github.com/yuidvg/webserv/assets/86033765/2e335aca-1783-49ed-b3d0-7ee191273073">
