@@ -1,8 +1,7 @@
-#include "all.hpp"
+#include ".hpp"
 
 namespace utils
 {
-
 std::string &trim(std::string &str)
 {
     while (std::isspace(str[0]))
@@ -28,86 +27,102 @@ bool isNumber(const std::string str)
     return (true);
 }
 
-unsigned int lengthOfPrefixMatch(const std::string string, const std::string pattern)
+std::vector<std::string> split(const std::string &original, const std::string &delim)
 {
-    if (string.find(pattern) == 0)
-        return pattern.length();
-    else
-        return 0;
-}
-
-FileContentResult content(const std::string path)
-{
-    std::ifstream ifs(path);
-    if (!ifs.is_open())
-        return (FileContentResult::Error(HttpResponse(BAD_REQUEST, Headers(), "File not found")));
-
-    std::string content;
-    std::string line;
-
-    while (std::getline(ifs, line))
+    std::vector<std::string> tokens;
+    std::string::size_type start = 0;
+    std::string::size_type end = 0;
+    while ((end = original.find(delim, start)) != std::string::npos)
     {
-        content += line;
-        content.push_back('\n');
+        const std::string token = original.substr(start, end - start);
+        if (!token.empty())
+            tokens.push_back(token);
+        start = end + delim.length();
     }
-    return (FileContentResult::Success(content));
+    const std::string lastToken = original.substr(start);
+    if (!lastToken.empty())
+        tokens.push_back(lastToken);
+    return tokens;
 }
 
-std::string contentType(const std::string path)
+std::string hexToUtf8Char(const std::string &hex)
 {
-    const std::string extension = path.substr(path.find_last_of(".") + 1);
-    if (extension == "html" || extension == "htm")
-        return "text/html";
-    else if (extension == "css")
-        return "text/css";
-    else if (extension == "js")
-        return "application/javascript";
-    else if (extension == "jpg" || extension == "jpeg")
-        return "image/jpeg";
-    else if (extension == "png")
-        return "image/png";
-    else if (extension == "json")
-        return "application/json";
-    else if (extension == "xml")
-        return "application/xml";
-    else if (extension == "pdf")
-        return "application/pdf";
-    else if (extension == "zip")
-        return "application/zip";
-    else if (extension == "mp3")
-        return "audio/mpeg";
-    else if (extension == "mp4")
-        return "video/mp4";
-    else if (extension == "wav")
-        return "audio/wav";
-    else if (extension == "avi")
-        return "video/x-msvideo";
-    else if (extension == "mov")
-        return "video/quicktime";
-    else if (extension == "doc")
-        return "application/msword";
-    else if (extension == "xls")
-        return "application/vnd.ms-excel";
-    else if (extension == "ppt")
-        return "application/vnd.ms-powerpoint";
-    else if (extension == "gif")
-        return "image/gif";
-    else if (extension == "bmp")
-        return "image/bmp";
-    else if (extension == "ico")
-        return "image/vnd.microsoft.icon";
-    else if (extension == "svg")
-        return "image/svg+xml";
-    else
-        return "text/plain";
+    std::stringstream ss;
+    ss << std::hex << hex;
+    int dec;
+    ss >> dec;
+    // 10進数をcharに変換
+    std::string decStr;
+    decStr += static_cast<char>(dec);
+    return decStr;
 }
 
-std::string getLine(std::istream &stream)
+std::string getlineCustom(std::istringstream &requestTextStream)
 {
     std::string line;
 
-    std::getline(stream, line);
-    return (line);
+    std::getline(requestTextStream, line);
+    if (line[line.length() - 1] == '\r')
+        line.erase(line.length() - 1);
+    return line;
+}
+
+std::string removeCharacter(const std::string str, const char charToRemove)
+{
+    size_t position = str.find(charToRemove);
+    std::string result = str;
+    while (position != std::string::npos)
+    {
+        result.erase(position, 1);
+        position = result.find(charToRemove, position);
+    }
+    return result;
+}
+
+StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal)
+{
+    if (!utils::isNumber(str))
+    {
+        return StringToIntResult::Error("値が数値ではありません");
+    }
+
+    std::istringstream iss(str);
+    int num;
+    if (!(iss >> num) || !iss.eof())
+    {
+        return StringToIntResult::Error("数値の変換に失敗しました");
+    }
+
+    if (num < minVal || num > maxVal)
+    {
+        return StringToIntResult::Error("数値が許容範囲外です");
+    }
+
+    return StringToIntResult::Success(num);
+}
+
+ReadFileResult readFile(const int fd)
+{
+    char buffer[MAX_LEN];
+    ssize_t readSize;
+    std::string result = "";
+
+    while ((readSize = read(fd, buffer, MAX_LEN)) > 0)
+    {
+        result.append(buffer, readSize);
+    }
+    if (readSize == -1)
+    {
+        return ReadFileResult::Error("ファイルの読み込みに失敗しました");
+    }
+    return ReadFileResult::Success(result);
+}
+
+std::string itoa(const int &num)
+{
+    std::stringstream ss;
+    ss << num;
+    return ss.str();
 }
 
 } // namespace utils

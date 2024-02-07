@@ -1,11 +1,12 @@
-#ifndef PARSECONFIG_HPP
-#define PARSECONFIG_HPP
+#pragma once
 
 #include "../webserv.hpp"
 
+namespace parseConfig
+{
 ConfigResult parseConfig(const char *configPath);
 ParseServerResult parseServerContext(std::vector<std::string> &tokens);
 ParseLocationResult parseLocationContext(std::vector<std::string> &tokens, std::string &locationPath);
-void removeSemicolonFromToken(std::vector<std::string> &token);
+}
 
-#endif
+

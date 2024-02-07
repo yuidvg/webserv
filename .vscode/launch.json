@@ -2,6 +2,14 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"name": "(lldb) Attach",
+			"type": "cppdbg",
+			"request": "attach",
+			"program": "${workspaceFolder}/webserv",
+			"processId": "${command:pickProcess}",
+			"MIMode": "lldb"
+		},
+		{
 			"name": "(lldb) Launch",
 			"type": "cppdbg",
 			"request": "launch",
@@ -14,8 +22,23 @@
 			"environment": [],
 			"externalConsole": false,
 			"MIMode": "lldb",
-			"preLaunchTask": "buildWithDebug"
-		}
+			"preLaunchTask": "buildWithDebug",
+			"postDebugTask": "kill",
+
+		},
+		{
+			"name": "(lldb) Launch on current file",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "${fileDirname}/${fileBasenameNoExtension}.out",
+			"args": [],
+			"stopAtEntry": false,
+			"cwd": "${fileDirname}",
+			"environment": [],
+			"externalConsole": false,
+			"MIMode": "lldb",
+			"preLaunchTask": "compileCurrentFile",
+		},
 	],
 	"compounds": []
 }

@@ -1,6 +1,5 @@
 
-#ifndef RESULT_TPP
-#define RESULT_TPP
+#pragma once
 
 #include "Result.hpp"
 
@@ -19,4 +18,4 @@ template <typename T, typename E> Result<T, E> Result<T, E>::Error(const E error
     return (Result<T, E>(T(), error, false));
 }
 
-#endif
+

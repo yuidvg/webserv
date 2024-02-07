@@ -1,6 +1,5 @@
-#include "eventLoop.hpp"
-#include "../socket/all.hpp"
-#include "process.hpp"
+#include "../socket/.hpp"
+#include ".hpp"
 
 void eventLoop(const Sockets listenSockets)
 {
@@ -18,10 +17,10 @@ void eventLoop(const Sockets listenSockets)
         for (Sockets::iterator readableSocketIt = readableSockets.begin(); readableSocketIt != readableSockets.end();
              ++readableSocketIt)
         {
-            if (utils::contained(*readableSocketIt, listenSockets))
+            if (utils::contains(*readableSocketIt, listenSockets))
             {
                 const Socket listenSocket = *readableSocketIt;
-                NewSocketResult newConnectedSocketResult = newConnectedSocket(listenSocket);
+                NewListenSocketResult newConnectedSocketResult = newConnectedSocket(listenSocket);
                 if (!newConnectedSocketResult.success)
                 {
                     utils::printError(newConnectedSocketResult.error);
@@ -33,7 +32,7 @@ void eventLoop(const Sockets listenSockets)
             {
                 if (!processConnection(*readableSocketIt))
                 {
-                    close(readableSocketIt->descriptor);
+                    close((*readableSocketIt).descriptor);
                     connectedSockets = utils::excluded(connectedSockets, *readableSocketIt);
                 }
             }

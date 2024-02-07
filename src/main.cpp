@@ -1,7 +1,9 @@
+#include "connection/.hpp"
 #include "config/parseConfig.hpp"
-#include "connection/eventLoop.hpp"
-#include "socket/all.hpp"
+#include "socket/.hpp"
 #include "webserv.hpp"
+
+Config CONFIG;
 
 int main(int argc, char **argv)
 {
@@ -10,17 +12,17 @@ int main(int argc, char **argv)
         utils::printError("引数が多すぎます");
         return 1;
     }
-    const std::string configPath = argc == 2 ? argv[1] : "config/default.conf";
+    const std::string configPath = argc == 2 ? argv[1] : "CONFIG/default.conf";
 
-    ConfigResult configResult = parseConfig(configPath.c_str());
+    ConfigResult configResult = parseConfig::parseConfig(configPath.c_str());
     if (!configResult.success)
     {
         utils::printError(configResult.error);
         return 1;
     }
     const Servers servers = configResult.value;
-
-    CreatedSocketsResult createdSocketsResult = getListenSockets(servers);
+    CONFIG.injectServers(servers);
+    GetListenSocketsResult createdSocketsResult = getListenSockets(servers);
     if (!createdSocketsResult.success)
     {
         utils::printError(createdSocketsResult.error);
@@ -29,7 +31,7 @@ int main(int argc, char **argv)
     eventLoop(createdSocketsResult.value);
 }
 
-__attribute__((destructor)) static void destructor(void)
-{
-    system("leaks -q webserv");
-}
+// __attribute__((destructor)) static void destructor(void)
+// {
+//     system("leaks -q webserv");
+// }

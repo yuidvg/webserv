@@ -2,7 +2,8 @@
 #include "parseDirective.hpp"
 #include "tokenizeConfig.hpp"
 
-using namespace parseDirective;
+namespace parseConfig
+{
 
 ParseLocationResult parseLocationContext(std::vector<std::string> &tokens, std::string &locationPath)
 {
@@ -11,12 +12,10 @@ ParseLocationResult parseLocationContext(std::vector<std::string> &tokens, std::
     std::string root = location.root;
     bool autoindex = location.autoindex;
     std::string index = location.index;
-    size_t clientMaxBodySize = location.clientMaxBodySize;
-    std::map<int, std::string> errorPages = location.errorPages;
     std::vector<std::string> allowMethods = location.allowMethods;
     std::string cgiExtension = location.cgiExtension;
     std::string uploadPath = location.uploadPath;
-    std::map<int, std::string> redirect = location.redirect;
+    std::string redirect = location.redirect;
 
     while (!tokens.empty())
     {
@@ -46,21 +45,6 @@ ParseLocationResult parseLocationContext(std::vector<std::string> &tokens, std::
                 return ParseLocationResult::Error(indexRes.error);
             index = indexRes.value;
         }
-        else if (directiveTokens[0] == CLIENT_MAX_BODY_SIZE)
-        {
-            ClientMaxBodySizeResult clientMaxBodySizeRes = parseClientMaxBodySize(directiveTokens);
-            if (!clientMaxBodySizeRes.success)
-                return ParseLocationResult::Error(clientMaxBodySizeRes.error);
-            clientMaxBodySize = clientMaxBodySizeRes.value;
-        }
-        else if (directiveTokens[0] == ERROR_PAGE)
-        {
-            ErrorPagesResult errorPageRes = parseErrorPage(directiveTokens);
-            if (!errorPageRes.success)
-                return ParseLocationResult::Error(errorPageRes.error);
-            std::map<int, std::string> newErrorPages = errorPageRes.value;
-            errorPages.insert(newErrorPages.begin(), newErrorPages.end());
-        }
         else if (directiveTokens[0] == ALLOW_METHOD)
         {
             AllowMethodsResult allowMethodsRes = parseAllowMethodDirective(directiveTokens);
@@ -86,17 +70,19 @@ ParseLocationResult parseLocationContext(std::vector<std::string> &tokens, std::
         {
             RedirectResult redirectRes = parseReturnDirective(directiveTokens);
             if (!redirectRes.success)
-            {
                 return ParseLocationResult::Error(redirectRes.error);
-            }
-            std::map<int, std::string> newRedirect = redirectRes.value;
-            redirect.insert(newRedirect.begin(), newRedirect.end());
+            redirect = redirectRes.value;
         }
 
         else if (directiveTokens[0] == CLOSE_BRACKET)
         {
-            return ParseLocationResult::Success(Location(path, root, autoindex, index, clientMaxBodySize, errorPages,
-                                                         allowMethods, cgiExtension, uploadPath, redirect));
+            return ParseLocationResult::Success(
+                Location(path, root, autoindex, index, allowMethods, cgiExtension, uploadPath, redirect));
+        }
+        else
+        {
+            return ParseLocationResult::Error(
+                std::string("Locationコンテキストの[" + directiveTokens[0] + "]が不正です"));
         }
     }
     return ParseLocationResult::Error("Locationブロックで文字列が見つかりませんでした");
@@ -109,7 +95,7 @@ ParseServerResult parseServerContext(std::vector<std::string> &tokens)
     size_t port = server.port;
     std::map<int, std::string> errorPages;
     size_t clientMaxBodySize = server.clientMaxBodySize;
-    std::vector<Location> locations;
+    Locations locations;
 
     while (!tokens.empty())
     {
@@ -145,7 +131,10 @@ ParseServerResult parseServerContext(std::vector<std::string> &tokens)
             if (!errorPageRes.success)
                 return ParseServerResult::Error(errorPageRes.error);
             std::map<int, std::string> newErrorPages = errorPageRes.value;
-            errorPages.insert(newErrorPages.begin(), newErrorPages.end());
+            for (std::map<int, std::string>::iterator it = newErrorPages.begin(); it != newErrorPages.end(); ++it)
+            {
+                errorPages.insert(*it);
+            }
         }
         else if (directiveTokens[0] == CLIENT_MAX_BODY_SIZE)
         {
@@ -158,12 +147,15 @@ ParseServerResult parseServerContext(std::vector<std::string> &tokens)
         {
             return ParseServerResult::Success(Server(name, port, errorPages, clientMaxBodySize, locations));
         }
+        else
+        {
+            return ParseServerResult::Error(std::string("Serverコンテキストの[" + directiveTokens[0] + "]が不正です"));
+        }
     }
 
     return ParseServerResult::Error(
         "Serverブロックが正常に終了しませんでした。\nserverブロックの中身が無い or } がありません");
 }
-
 
 ConfigResult parseConfig(const char *configPath)
 {
@@ -172,7 +164,7 @@ ConfigResult parseConfig(const char *configPath)
         return ConfigResult::Error(tokensResult.error);
     std::vector<std::string> tokens = tokensResult.value;
 
-    std::vector<const Server> servers;
+    std::vector<Server> servers;
 
     while (!tokens.empty())
     {
@@ -195,3 +187,4 @@ ConfigResult parseConfig(const char *configPath)
     }
     return ConfigResult::Success(servers);
 }
+} // namespace parseConfig

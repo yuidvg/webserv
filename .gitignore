@@ -1,7 +1,7 @@
 *.o
 *.a
 *.d
-*.out
+*.out*
 *.DS_Store
 .sample
 webserv
@@ -9,6 +9,9 @@ webserv
 webserv
 src/Makefile
 src/*/main.cpp
-obj
+/obj/**
 *.txt
 client_app
+uploadPath/*
+
+*.plist*

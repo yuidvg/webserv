@@ -1,34 +1,8 @@
-#include "parseDirective.hpp"
 #include "parseConfig.hpp"
+#include "parseDirective.hpp"
 
-namespace parseDirective
+namespace parseConfig
 {
-
-StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal)
-{
-    if (!utils::isNumber(str))
-    {
-        return StringToIntResult::Error("値が数値ではありません");
-    }
-
-    std::istringstream iss(str);
-    int num;
-    if (!(iss >> num) || !iss.eof())
-    {
-        return StringToIntResult::Error("数値の変換に失敗しました");
-    }
-
-    if (num < minVal || num > maxVal)
-    {
-        return StringToIntResult::Error("数値が許容範囲外です");
-    }
-
-    return StringToIntResult::Success(num);
-}
-
-/*
-    Server directive
-*/
 
 ServerResult parseServer(const std::vector<std::string> directiveTokens, std::vector<std::string> &tokens)
 {
@@ -44,20 +18,20 @@ ServerResult parseServer(const std::vector<std::string> directiveTokens, std::ve
     return ServerResult::Success(serverRes.value);
 }
 
-parseDirective::NameResult parseServerName(const std::vector<std::string> directiveTokens)
+NameResult parseServerName(const std::vector<std::string> directiveTokens)
 {
     if (directiveTokens.size() != 2)
         return NameResult::Error("Config: server_nameの引数が多いです");
     return NameResult::Success(directiveTokens[1]);
 }
 
-parseDirective::PortResult parseListen(const std::vector<std::string> directiveTokens)
+PortResult parseListen(const std::vector<std::string> directiveTokens)
 {
 
     if (directiveTokens.size() != 2)
         return PortResult::Error("Config: listenの引数が多いです");
 
-    StringToIntResult result = stringToInt(directiveTokens[1], 0, 65535);
+    StringToIntResult result = utils::stringToInt(directiveTokens[1], 0, 65535);
     if (!result.success)
     {
         return PortResult::Error(result.error);
@@ -71,7 +45,7 @@ ErrorPagesResult parseErrorPage(const std::vector<std::string> directiveTokens)
     if (directiveTokens.size() != 3)
         return ErrorPagesResult::Error("Config: error_pageの引数が多いです");
 
-    StringToIntResult errorCodeResult = stringToInt(directiveTokens[1], 100, 599);
+    StringToIntResult errorCodeResult = utils::stringToInt(directiveTokens[1], 100, 599);
     if (!errorCodeResult.success)
     {
         return ErrorPagesResult::Error("Config: error_pageのエラーコードが不正です");
@@ -88,7 +62,7 @@ ClientMaxBodySizeResult parseClientMaxBodySize(const std::vector<std::string> di
     if (directiveTokens.size() != 2)
         return ClientMaxBodySizeResult::Error(directiveTokens[1] + "引数の数が不正です");
 
-    StringToIntResult sizeResult = stringToInt(directiveTokens[1], 0, INT_MAX);
+    StringToIntResult sizeResult = utils::stringToInt(directiveTokens[1], 0, INT_MAX);
     if (!sizeResult.success)
     {
         return ClientMaxBodySizeResult::Error("Config: client_max_body_sizeの値が不正です");
@@ -116,7 +90,7 @@ LocationResult parseLocationDirective(const std::vector<std::string> directiveTo
     return LocationResult::Success(locationResult.value);
 }
 
-/* 
+/*
 location directive
 */
 RootResult parseRootDirective(const std::vector<std::string> directiveTokens)
@@ -186,17 +160,12 @@ UploadPathResult parseUploadPathDirective(const std::vector<std::string> directi
 
 RedirectResult parseReturnDirective(const std::vector<std::string> directiveTokens)
 {
-    if (directiveTokens.size() != 3)
+    if (directiveTokens.size() != 2)
     {
         return RedirectResult::Error("Config: returnの引数が不正です");
     }
-
-    StringToIntResult statusCodeResult = stringToInt(directiveTokens[1], 300, 399);
-    if (!statusCodeResult.success)
-        return RedirectResult::Error("Config: returnのステータスコードが不正です");
-    std::map<int, std::string> redirect;
-    redirect[statusCodeResult.value] = directiveTokens[2];
-    return RedirectResult::Success(redirect);
+    const std::string uri = directiveTokens[1];
+    return RedirectResult::Success(uri);
 }
 
 }

@@ -1,19 +1,35 @@
-#ifndef SOCKET_HPP
-#define SOCKET_HPP
-
-#include "Server.hpp"
-#include "external.hpp"
+#pragma once
 
 struct Socket
 {
-    const int descriptor;
-    const Server server;
-    Socket();
-    Socket(const unsigned int descriptor, const Server server);
-    bool operator==(const Socket other) const;
-    bool operator!=(const Socket other) const;
+    const unsigned int descriptor;
+    const unsigned int port;
+    const std::string opponentIp;
+    // TODO: opponetPortいる？
+    const unsigned int opponentPort;
+
+    Socket() : descriptor(0), port(0), opponentIp(""), opponentPort(0){};
+    Socket(const unsigned int &descriptor, const unsigned int &port, const std::string &opponentIp = "",
+           const unsigned int &opponentPort = 0)
+        : descriptor(descriptor), port(port), opponentIp(opponentIp), opponentPort(opponentPort){};
+    bool operator==(const Socket &other) const
+    {
+        return descriptor == other.descriptor && port == other.port && opponentIp == other.opponentIp &&
+               opponentPort == other.opponentPort;
+    };
+    bool operator!=(const Socket &other) const
+    {
+        return !(*this == other);
+    };
+    Socket(const Socket &other)
+        : descriptor(other.descriptor), port(other.port), opponentIp(other.opponentIp), opponentPort(other.opponentPort)
+    {
+    }
+    Socket &operator=(const Socket &other)
+    {
+        (void)other;
+        return *this;
+    }
 };
 
-
-
-#endif
+typedef std::vector<Socket> Sockets;

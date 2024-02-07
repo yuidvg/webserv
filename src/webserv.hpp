@@ -1,8 +1,5 @@
-#ifndef WEBSERV_HPP
-#define WEBSERV_HPP
+#pragma once
 
-#include "consts.hpp"
-#include "types/all.hpp"
-#include "utils/all.hpp"
-
-#endif
+#include "globals.hpp"
+#include "types/.hpp"
+#include "utils/.hpp"

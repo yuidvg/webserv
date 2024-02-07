@@ -1,13 +1,11 @@
-#ifndef PARSE_DIRECTIVE_HPP
-#define PARSE_DIRECTIVE_HPP
+#pragma once
 
 #include "../webserv.hpp"
 
-namespace parseDirective
+namespace parseConfig
 {
 LocationResult parseLocationDirective(const std::vector<std::string> directiveTokens, std::vector<std::string> &tokens);
 ServerResult parseServer(const std::vector<std::string> directiveTokens, std::vector<std::string> &tokens);
-StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal);
 NameResult parseServerName(const std::vector<std::string> directiveTokens);
 PortResult parseListen(const std::vector<std::string> directiveTokens);
 ErrorPagesResult parseErrorPage(const std::vector<std::string> directiveTokens);
@@ -21,4 +19,4 @@ CgiExtensionResult parseCgiExecutorDirective(const std::vector<std::string> dire
 UploadPathResult parseUploadPathDirective(const std::vector<std::string> directiveTokens);
 RedirectResult parseReturnDirective(const std::vector<std::string> directiveTokens);
 }
-#endif
+

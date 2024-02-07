@@ -1,29 +1,30 @@
-#ifndef EXTERNAL_HPP
-#define EXTERNAL_HPP
+#pragma once
 
 #include <algorithm>
+#include <cstdio>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
 
-#include <sys/socket.h>
-#include <sys/stat.h>
+#include <cctype>
 
-#include <algorithm>
 #include <arpa/inet.h>
-#include <cstring>
+#include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <iostream>
+#include <limits.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <sys/time.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
-
-#endif

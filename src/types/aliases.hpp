@@ -1,11 +1,9 @@
-#ifndef ALIASES_HPP
-#define ALIASES_HPP
-
+#pragma once
 #include "external.hpp"
 #include "structs.hpp"
 
-// config
-typedef Result<std::vector<std::string>, std::string> TokensResult;
+// CONFIG
+typedef Result<const std::vector<std::string>, const std::string> TokensResult;
 typedef Result<const Servers, const std::string> ConfigResult;
 typedef Result<const Server, const std::string> ParseServerResult;
 typedef Result<const Location, const std::string> ParseLocationResult;
@@ -14,46 +12,57 @@ typedef Result<const std::string, const std::string> StringResult;
 // http
 struct RequestLine
 {
-    std::string method;
-    std::string uri;
-    std::string version;
+    const std::string method;
+    const std::string target;
+    const std::string version;
 };
-typedef Result<RequestLine, HttpResponse> ParseRequestLineResult;
-typedef Result<Headers, HttpResponse> ParseHeaderResult;
-typedef Result<std::string, HttpResponse> ParseBodyResult;
-typedef Result<HttpRequest, HttpResponse> ParseRequestResult;
+typedef Result<const RequestLine, const HttpResponse> ParseRequestLineResult;
+typedef Result<const Headers, const HttpResponse> ParseHeaderResult;
+typedef Result<const std::string, const HttpResponse> ParseBodyResult;
+typedef Result<const HttpRequest, const HttpResponse> ParseRequestResult;
+typedef Result<const RequestLine, const int> GetRequestLineResult;
+
+// autoindex
+typedef Result<const std::string, const HttpResponse> DirectoryListHtmlResult;
+typedef Result<const std::string, const std::string> GetIndexFilePathResult;
+typedef Result<const Server, const HttpResponse> MatchedServerResult;
 
 // socket
-typedef std::vector<const Socket> Sockets;
-typedef Result<const Socket, const std::string> NewSocketResult;
-typedef Result<Sockets, std::string> CreatedSocketsResult;
-typedef Result<Sockets, std::string> ReadableSocketsResult;
+typedef Result<const Socket, const std::string> NewListenSocketResult;
+typedef Result<const Sockets, const std::string> GetListenSocketsResult;
+typedef Result<const Sockets, const std::string> ReadableSocketsResult;
 
-namespace cgi
+typedef Result<const unsigned int, const HttpResponse> PortNumberResult;
+
+typedef Result<const HttpResponse, const HttpResponse> ResponseResult;
+
+namespace parseConfig
 {
-typedef Result<std::string, std::string> ResponseResult;
-} // namespace cgi
+typedef Result<const Server, const std::string> ServerResult;
+typedef Result<const std::string, const std::string> NameResult;
+typedef Result<const int, const std::string> PortResult;
+typedef Result<const Location, const std::string> LocationResult;
+typedef Result<const std::map<int, std::string>, const std::string> ErrorPagesResult;
+typedef Result<const size_t, const std::string> ClientMaxBodySizeResult;
+typedef Result<const std::string, const std::string> PathResult;
+typedef Result<const std::string, const std::string> RootResult;
+typedef Result<const bool, const std::string> AutoindexResult;
+typedef Result<const std::string, const std::string> IndexResult;
+typedef Result<const std::vector<std::string>, const std::string> AllowMethodsResult;
+typedef Result<const std::string, const std::string> CgiExtensionResult;
+typedef Result<const std::string, const std::string> UploadPathResult;
+typedef Result<const std::string, const std::string> RedirectResult;
 
-namespace parseDirective
-{
-typedef Result<Server, std::string> ServerResult;
-typedef Result<std::string, std::string> NameResult;
-typedef Result<int, std::string> PortResult;
-typedef Result<Location, std::string> LocationResult;
 
-typedef Result<std::map<int, std::string>, std::string> ErrorPagesResult;
-typedef Result<size_t, std::string> ClientMaxBodySizeResult;
+} // namespace parseConfig
 
-typedef Result<std::string, std::string> PathResult;
-typedef Result<std::string, std::string> RootResult;
-typedef Result<bool, std::string> AutoindexResult;
-typedef Result<std::string, std::string> IndexResult;
-typedef Result<std::vector<std::string>, std::string> AllowMethodsResult;
-typedef Result<std::string, std::string> CgiExtensionResult;
-typedef Result<std::string, std::string> UploadPathResult;
-typedef Result<std::map<int, std::string>, std::string> RedirectResult;
+typedef Result<const int, const std::string> StringToIntResult;
+typedef Result<const bool, const HttpResponse> IsDirectoryResult;
+typedef Result<const std::string, const HttpResponse> FileContentResult;
 
-typedef Result<int, std::string> StringToIntResult;
-} // namespace parseDirective
+typedef std::vector<std::string> Strings;
 
-#endif
+typedef Result<const int, const std::string> StoiResult;
+typedef Result<CgiResponse, HttpResponse> ParseCgiResponseResult;
+
+typedef Result<const std::string, const std::string> ReadFileResult;

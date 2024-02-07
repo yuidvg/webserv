@@ -1,5 +1,4 @@
-#ifndef RESULT_HPP
-#define RESULT_HPP
+#pragma once
 
 #include "external.hpp"
 
@@ -16,4 +15,3 @@ template <typename T, typename E> struct Result
 
 #include "Result.tpp"
 
-#endif

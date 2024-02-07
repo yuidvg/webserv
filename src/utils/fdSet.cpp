@@ -1,4 +1,4 @@
-#include "all.hpp"
+#include ".hpp"
 
 namespace utils
 {
@@ -13,17 +13,17 @@ fd_set fdSetFrom(const Sockets sockets)
     return fdSet;
 }
 
-Sockets socketsIn(const fd_set fdSet, const Sockets sockets)
+Sockets sdsIn(const fd_set fdSet, const Sockets sockets)
 {
-    Sockets socketsFdSet;
+    Sockets socketsInFdSet;
     for (size_t i = 0; i < sockets.size(); ++i)
     {
         if (FD_ISSET(sockets[i].descriptor, &fdSet))
         {
-            socketsFdSet.push_back(sockets[i]);
+            socketsInFdSet.push_back(sockets[i]);
         }
     }
-    return socketsFdSet;
+    return socketsInFdSet;
 }
 
 } // namespace utils
