@@ -77,7 +77,7 @@ std::string responseText(const HttpResponse &response)
     {
         headers.push_back("Content-Type: " + response.contentType);
     }
-    if (response.body.size() > 0)
+    if (response.body.size() >= 0)
     {
         headers.push_back("Content-Length: " + std::to_string(response.body.size()));
     }

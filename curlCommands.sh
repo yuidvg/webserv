@@ -8,6 +8,8 @@ commands=(
     "curl http://localhost:8080/cgi-bin.cgi"
     "curl http://localhost:8080/RedirAfterFiveMinutes.cgi"
     "curl http://localhost:8080/submit.cgi"
+    "curl http://localhost:8080/redirect.cgi"
+    "curl http://localhost:8080/localRedirect.cgi"
 )
 
 # コマンドを一つずつ実行
@@ -15,5 +17,4 @@ for cmd in "${commands[@]}"; do
     echo -e "\033[32m${cmd}\033[0m"
     eval ${cmd}
     echo
-    sleep 2
 done
