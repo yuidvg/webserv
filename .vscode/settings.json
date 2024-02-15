@@ -1,4 +1,5 @@
 {
+	"C_Cpp.errorSquiggles": "enabled",
 	"files.associations": {
 		"iostream": "cpp",
 		"string": "cpp",
