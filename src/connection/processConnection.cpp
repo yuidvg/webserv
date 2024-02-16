@@ -33,7 +33,7 @@ bool processConnection(const Socket &socket)
         const std::string httpResponseText = responseText(httpResponse);
 
         const int sentLength = send(socket.descriptor, httpResponseText.c_str(), httpResponseText.length(), 0);
-        if (sentLength > 0)
+        if (sentLength >= 0)
         {
             return true;
         }
