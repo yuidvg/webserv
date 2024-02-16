@@ -97,35 +97,27 @@ HttpResponse executeCgi(const HttpRequest &request, const Socket &socket, const 
             close(requestPipe[IN]);
             int status;
             waitpid(pid, &status, 0);
-            // const int exitStatus = WEXITSTATUS(status);
-            if (WIFEXITED(status))
+            ReadFileResult readFileResult = utils::readFile(responsePipe[OUT]);
+            if (readFileResult.success)
             {
-                ReadFileResult readFileResult = utils::readFile(responsePipe[OUT]);
-                if (readFileResult.success)
-                {
-                    close(responsePipe[OUT]);
-                    std::string response = readFileResult.value;
+                close(responsePipe[OUT]);
+                std::string response = readFileResult.value;
 
-                    const ParseCgiResponseResult parseCgiResponseResult = parseCgiResponse(response);
-                    if (parseCgiResponseResult.success)
-                    {
-                        CgiResponse cgiResponse = parseCgiResponseResult.value;
-                        return processCgiResponse(cgiResponse, request, socket);
-                    }
-                    else
-                    {
-                        return (parseCgiResponseResult.error);
-                    }
+                const ParseCgiResponseResult parseCgiResponseResult = parseCgiResponse(response);
+                if (parseCgiResponseResult.success)
+                {
+                    CgiResponse cgiResponse = parseCgiResponseResult.value;
+                    return processCgiResponse(cgiResponse, request, socket);
                 }
                 else
                 {
-                    std::cerr << "read failed" << std::endl;
-                    return (SERVER_ERROR_RESPONSE);
+                    return (parseCgiResponseResult.error);
                 }
             }
             else
             {
-                return SERVER_ERROR_RESPONSE;
+                std::cerr << "read failed" << std::endl;
+                return (SERVER_ERROR_RESPONSE);
             }
         }
         else
