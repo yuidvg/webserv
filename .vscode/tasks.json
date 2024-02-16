@@ -4,7 +4,7 @@
 		{
 			"label": "buildWithDebug",
 			"type": "shell",
-			"command": "pkill lldb-mi; pkill webserv; make re",
+			"command": "pkill lldb-mi; pkill webserv; make fclean; make -j all",
 			"args": [
 			],
 			"problemMatcher": [
