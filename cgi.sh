@@ -2,11 +2,11 @@
 
 # 実行するURLのリストを配列として定義
 urls=(
-    "http://localhost:8080/cgi-bin.cgi"
-    "http://localhost:8080/RedirAfterFiveMinutes.cgi"
-    "http://localhost:8080/submit.cgi"
-    "http://localhost:8080/redirect.cgi"
-    "http://localhost:8080/localRedirect.cgi"
+    "http://localhost:8080/cgi-bin/helloWorld.cgi"
+    "http://localhost:8080/cgi-bin/redirAfterFiveMinutes.cgi"
+    "http://localhost:8080/cgi-bin/submit.cgi"
+    "http://localhost:8080/cgi-bin/redirect.cgi"
+    "http://localhost:8080/cgi-bin/localRedirect.cgi"
 )
 
 # 各URLに対してGET, POST, DELETEメソッドを実行
