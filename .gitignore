@@ -12,6 +12,7 @@ src/*/main.cpp
 /obj/**
 *.txt
 client_app
-uploadPath/*
+/uploadPath/*
+!/uploadPath/.gitkeep
 
 *.plist*
