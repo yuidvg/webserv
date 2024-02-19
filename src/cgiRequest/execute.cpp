@@ -22,7 +22,7 @@ char *const *mapStringStringToCStringArray(const std::map<std::string, std::stri
 
 std::string authType(const HttpRequest &request)
 {
-    const std::string authorization = utils::value(request.headers, std::string("Authorization"));
+    const std::string authorization = utils::value(request.headers, std::string("authorization"));
     const std::vector<std::string> tokens = utils::split(authorization, " ");
     return tokens.size() > 0 ? tokens[0] : "";
 }
@@ -33,7 +33,7 @@ char *const *enviromentVariables(const HttpRequest &request, const Socket &socke
 
     env["AUTH_TYPE"] = authType(request);
     env["CONTENT_LENGTH"] = utils::itoa(request.body.size());
-    env["CONTENT_TYPE"] = utils::value(request.headers, std::string("Content-Type"));
+    env["CONTENT_TYPE"] = utils::value(request.headers, std::string("content-type"));
     env["GATEWAY_INTERFACE"] = GATEWAY_INTERFACE;
     env["PATH_INFO"] = uri.extraPath;
     env["PATH_TRANSLATED"] =
