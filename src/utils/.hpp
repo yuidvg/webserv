@@ -40,4 +40,8 @@ std::string join(const std::vector<std::string> &list, const std::string &delimi
 
 // status
 bool isStatusInRange(const int status);
+
+// cstrArray
+void deleteCStrArray(char *const *array);
+
 } // namespace utils
