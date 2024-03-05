@@ -1,0 +1,1 @@
+c++ -g -MMD -Wall -Werror -Wextra -std=c++98 -I src -c src/socket/readableSds.cpp -o obj/socket/readableSds.o

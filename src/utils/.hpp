@@ -26,7 +26,7 @@ bool isAbsoluteUri(const std::string &uri);
 
 // fd_set
 fd_set fdSetFrom(const Sockets sds);
-Sockets sdsIn(const fd_set fdSet, const Sockets sds);
+Sockets socketsIn(const fd_set fdSet, const Sockets sds);
 
 // file
 FileContentResult fileContent(const std::string &path);
@@ -37,11 +37,15 @@ bool createFile(const std::string &fileName, const std::string &path);
 
 // vector
 std::string join(const std::vector<std::string> &list, const std::string &delimiter);
+FindSocketResult findSocket(const Sockets &sockets, const int descriptor);
 
 // status
 bool isStatusInRange(const int status);
 
 // cstrArray
 void deleteCStrArray(char *const *array);
+
+// kernelEvent
+bool registerEvent(const uintptr_t identifier, const int16_t filter);
 
 } // namespace utils

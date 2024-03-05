@@ -1,5 +1,5 @@
 #pragma once
 #include "../webserv.hpp"
 
-void eventLoop(const Sockets listenSockets);
-bool processConnection(const Socket &socket);
+void eventLoop(const Sockets &listenSockets);
+bool processMessage(const Socket &socket);

@@ -4,24 +4,9 @@
 #include "../types/HttpRequestText.hpp"
 #include ".hpp"
 
-bool processConnection(const Socket &socket)
+bool processMessage(const std::string &message)
 {
-    char buffer[500000];
-    memset(buffer, 0, sizeof(buffer));
-    const int receivedLength = recv(socket.descriptor, buffer, sizeof(buffer) - 1, 0);
-    if (receivedLength < 0)
-    {
-        utils::printError(std::string("recv() failed: " + std::string(strerror(errno))));
-        return false;
-    }
-    else if (receivedLength == 0)
-    {
-        std::cout << "Connection closed" << std::endl;
-        return false;
-    }
-    std::cout << "Received \n" << receivedLength << " bytes: \n" << buffer << std::endl;
-
-    HttpRequestText httpRequestText(buffer);
+    HttpRequestText httpRequestText(message);
 
     GetHostNameResult getHostNameResult = httpRequestText.getHostName();
     if (getHostNameResult.success)

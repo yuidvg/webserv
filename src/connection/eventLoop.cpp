@@ -1,41 +1,81 @@
 #include "../socket/.hpp"
 #include ".hpp"
 
-void eventLoop(const Sockets listenSockets)
+void eventLoop(const Sockets &listenSockets)
 {
     Sockets connectedSockets;
+    struct kevent eventList[EVENT_BATCH_SIZE];
 
     while (true)
     {
         const Sockets allSockets = utils::combined(listenSockets, connectedSockets);
-        const ReadableSocketsResult readableSocketsResult = readableSockets(allSockets);
-        if (!readableSocketsResult.success)
+        const int numOfEvents = kevent(KQ, NULL, 0, eventList, EVENT_BATCH_SIZE, NULL);
+        if (numOfEvents != -1)
         {
-            utils::printError(readableSocketsResult.error);
+            for (int i = 0; i < numOfEvents; ++i)
+            {
+                const struct kevent &event = eventList[i];
+                if (!(event.flags & EV_ERROR))
+                {
+
+                    FindSocketResult eventSocketResult = utils::findSocket(allSockets, event.ident);
+                    if (eventSocketResult.success)
+                    {
+                        Socket eventSocket = eventSocketResult.value;
+                        if (event.filter == EVFILT_READ)
+                        {
+                            if (utils::contains(eventSocket, listenSockets))
+                            {
+                                const NewSocketResult newConnectedSocketResult = newConnectedSocket(eventSocket);
+                                if (newConnectedSocketResult.success)
+                                {
+                                    std::cout << "new connection socket created." << std::endl;
+                                    connectedSockets.push_back(newConnectedSocketResult.value);
+                                }
+                                else
+                                {
+                                    utils::printError(newConnectedSocketResult.error);
+                                }
+                            }
+                            else
+                            {
+                                if (!eventSocket.receiveMessage(event.data))
+                                {
+                                    utils::printError("failed to receive message: invalid socket.");
+                                    close(eventSocket.descriptor);
+                                    connectedSockets = utils::excluded(connectedSockets, eventSocket);
+                                }
+                                else
+                                {
+                                    if (isHttpMessage(eventSocket.getReceivedMessage()))
+                                        processMessage(eventSocket);
+                                }
+                            }
+                        }
+                        else if (event.filter == EVFILT_WRITE)
+                        {
+                            if (!eventSocket.sendMessage(event.data))
+                            {
+                                utils::printError("failed to send message: invalid socket.");
+                                close(eventSocket.descriptor);
+                                connectedSockets = utils::excluded(connectedSockets, eventSocket);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        utils::printError(eventSocketResult.error);
+                    }
+                }
+                else
+                {
+                    utils::printError("kevent error");
+                }
+            }
         }
-        Sockets readableSockets = readableSocketsResult.value;
-        for (Sockets::iterator readableSocketIt = readableSockets.begin(); readableSocketIt != readableSockets.end();
-             ++readableSocketIt)
+        else
         {
-            if (utils::contains(*readableSocketIt, listenSockets))
-            {
-                const Socket listenSocket = *readableSocketIt;
-                NewListenSocketResult newConnectedSocketResult = newConnectedSocket(listenSocket);
-                if (!newConnectedSocketResult.success)
-                {
-                    utils::printError(newConnectedSocketResult.error);
-                }
-                std::cout << "新しい接続を受け入れた" << std::endl;
-                connectedSockets.push_back(newConnectedSocketResult.value);
-            }
-            else
-            {
-                if (!processConnection(*readableSocketIt))
-                {
-                    close((*readableSocketIt).descriptor);
-                    connectedSockets = utils::excluded(connectedSockets, *readableSocketIt);
-                }
-            }
+            utils::printError("unexpected event");
         }
     }
 }

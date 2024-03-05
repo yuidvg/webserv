@@ -1,5 +1,8 @@
 #include ".hpp"
 
+namespace utils
+{
+
 void deleteCStrArray(char *const *array)
 {
     for (int i = 0; array[i]; i++)
@@ -8,3 +11,5 @@ void deleteCStrArray(char *const *array)
     }
     delete[] array;
 }
+
+} // namespace utils

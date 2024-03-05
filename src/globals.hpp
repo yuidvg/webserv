@@ -41,7 +41,7 @@ const std::string OPEN_BRACKET = "{";
 const std::string CLOSE_BRACKET = "}";
 
 // httpRequest
-#define MAX_LEN 8192
+const size_t MAX_LEN = 8192;
 
 // httpResponse
 const HttpResponse BAD_REQUEST_RESPONSE =
@@ -68,3 +68,7 @@ const std::string BASE_64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrs
 const std::string URI_SCHEME_DELIMITER = "://";
 
 const std::string EMPTY_LINE = "\n\n";
+
+const int KQ = kqueue();
+
+const size_t EVENT_BATCH_SIZE = 1024;
