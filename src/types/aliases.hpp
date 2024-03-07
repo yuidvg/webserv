@@ -67,12 +67,5 @@ typedef Result<CgiResponse, HttpResponse> ParseCgiResponseResult;
 
 typedef Result<const std::string, const std::string> ReadFileResult;
 
-enum EVENT_TYPE
-{
-    READ = 1,
-    WRITE = 2
-};
-
-typedef std::vector<Event> Events;
 
 typedef Result<const Socket, const std::string> FindSocketResult;

@@ -4,7 +4,7 @@
 #include "../types/HttpRequestText.hpp"
 #include ".hpp"
 
-ParseStatus processMessage(const Socket socket)
+ParseStatus processMessage(const Socket &socket)
 {
     // Server server = CONFIG.getServer(getHostNameResult.value, socket.port);
 

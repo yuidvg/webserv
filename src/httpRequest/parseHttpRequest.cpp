@@ -191,10 +191,10 @@ ParseRequestResult parseHttpRequest(const Socket &socket)
     {
         std::istringstream requestTextStream(nonEmptyBlocks[0]);
         const ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(requestTextStream);
-        if (parseRequestLineResult.status == SUCCESS)
+        if (parseRequestLineResult.status == PARSED)
         {
             const ParseHeaderResult parseHeaderResult = parseHttpHeaders(requestTextStream);
-            if (parseHeaderResult.status == SUCCESS)
+            if (parseHeaderResult.status == PARSED)
             {
                 const GetHostNameResult getHostNameResult = getHostName(parseHeaderResult.value);
                 if (getHostNameResult.success)
@@ -202,7 +202,7 @@ ParseRequestResult parseHttpRequest(const Socket &socket)
                     const ParseBodyResult parseBodyResult = parseHttpBody(
                         requestTextStream, parseHeaderResult.value,
                         CONFIG.getServer(getHostNameResult.value, socket.port), parseRequestLineResult.value.method);
-                    if (parseBodyResult.status == SUCCESS)
+                    if (parseBodyResult.status == PARSED)
                     {
                         return ParseRequestResult::Success(
                             HttpRequest(parseRequestLineResult.value.method, parseRequestLineResult.value.target,

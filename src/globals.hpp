@@ -72,10 +72,3 @@ const std::string EMPTY_LINE = "\n\n";
 const int KQ = kqueue();
 
 const size_t EVENT_BATCH_SIZE = 1024;
-
-enum ParseStatus
-{
-    PENDING,
-    PARSED,
-    ERROR
-};

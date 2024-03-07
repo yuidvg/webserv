@@ -2,6 +2,13 @@
 
 #include "external.hpp"
 
+enum ParseStatus
+{
+    PENDING,
+    PARSED,
+    ERROR
+};
+
 template <typename T, typename E> struct ParseResult
 {
     ParseStatus status;
@@ -9,12 +16,11 @@ template <typename T, typename E> struct ParseResult
     const E error;
 
     ParseResult() : status(PENDING){};
-    ParseResult(const T value, const E error, const ParseStatus status)
-        : value(value), error(error), status(status){};
+    ParseResult(const T value, const E error, const ParseStatus status) : status(status), value(value), error(error){};
 
     static ParseResult<T, E> Success(const T value)
     {
-        return (ParseResult<T, E>(value, E(), SUCCESS));
+        return (ParseResult<T, E>(value, E(), PARSED));
     };
     static ParseResult<T, E> Error(const E error)
     {

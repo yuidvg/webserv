@@ -51,7 +51,7 @@ class Socket
     {
         return _receivedMessage;
     };
-    bool appendToBeSentMessage(const std::string &message)
+    void appendToBeSentMessage(const std::string &message)
     {
         _toBeSentMessage += message;
     };
