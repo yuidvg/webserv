@@ -18,7 +18,6 @@ void eventLoop(const Sockets &listenSockets)
                     const struct kevent &event = eventList[i];
                     if (!(event.flags & EV_ERROR))
                     {
-
                         FindSocketResult eventSocketResult = utils::findSocket(allSockets, event.ident);
                         if (eventSocketResult.success)
                         {
