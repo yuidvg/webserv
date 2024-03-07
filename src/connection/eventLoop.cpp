@@ -21,7 +21,7 @@ void eventLoop(const Sockets &listenSockets)
                     FindSocketResult eventSocketResult = utils::findSocket(allSockets, event.ident);
                     if (eventSocketResult.success)
                     {
-                        Socket eventSocket = eventSocketResult.value;
+                        Socket  = eventSocketResult.value;
                         if (event.filter == EVFILT_READ)
                         {
                             if (utils::contains(eventSocket, listenSockets))
@@ -47,8 +47,11 @@ void eventLoop(const Sockets &listenSockets)
                                 }
                                 else
                                 {
-                                    if (isHttpMessage(eventSocket.getReceivedMessage()))
-                                        processMessage(eventSocket);
+                                    if (!processMessage(eventSocket.getReceivedMessage()))
+                                    {
+                                        close(eventSocket.descriptor);
+                                        connectedSockets = utils::excluded(connectedSockets, eventSocket);
+                                    }
                                 }
                             }
                         }
