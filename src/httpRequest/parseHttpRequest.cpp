@@ -218,7 +218,7 @@ ParseRequestResult parseHttpRequest(const Socket &socket)
     const std::string message = socket.getReceivedMessage();
     const std::vector<std::string> blocks = utils::split(message, CRLF + CRLF);
     const std::vector<std::string> nonEmptyBlocks = removeEmptyBlocks(blocks);
-    if (nonEmptyBlocks.size() < 2)
+    if (nonEmptyBlocks.size() < 2 && message.find("POST") != std::string::npos)
         return ParseRequestResult::Pending();
     else
     {
