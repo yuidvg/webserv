@@ -14,7 +14,7 @@ const unsigned int OUT = 0;
 const std::string CRLF = "\r\n";
 
 // status code classes
-enum STATUS_CODE_CLASSES
+enum StatusCodeClasses
 {
     SUCCESS = 200,
     // 300番は複数のリダイレクト先が存在し、クライアントが選択する必要がある
@@ -72,3 +72,10 @@ const std::string EMPTY_LINE = "\n\n";
 const int KQ = kqueue();
 
 const size_t EVENT_BATCH_SIZE = 1024;
+
+enum ParseStatus
+{
+    PENDING,
+    PARSED,
+    ERROR
+};

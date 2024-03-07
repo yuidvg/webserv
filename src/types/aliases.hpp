@@ -10,12 +10,7 @@ typedef Result<const Location, const std::string> ParseLocationResult;
 typedef Result<const std::string, const std::string> StringResult;
 
 // http
-enum ParseStatus
-{
-    PENDING,
-    SUCCESS,
-    ERROR
-};
+
 struct RequestLine
 {
     const std::string method;
@@ -72,7 +67,7 @@ typedef Result<CgiResponse, HttpResponse> ParseCgiResponseResult;
 
 typedef Result<const std::string, const std::string> ReadFileResult;
 
-const enum EVENT_TYPE
+enum EVENT_TYPE
 {
     READ = 1,
     WRITE = 2

@@ -21,7 +21,7 @@ ParseStatus processMessage(const Socket socket)
         const int sentLength = send(socket.descriptor, httpResponseText.c_str(), httpResponseText.length(), 0);
         if (sentLength >= 0)
         {
-            return SUCCESS;
+            return PARSED;
         }
         else
         {

@@ -52,7 +52,7 @@ void eventLoop(const Sockets &listenSockets)
                                     {
                                         continue;
                                     }
-                                    else if (status == SUCCESS)
+                                    else if (status == PARSED)
                                     {
                                         std::cout << "message processed." << std::endl;
                                     }
