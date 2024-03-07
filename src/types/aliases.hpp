@@ -22,6 +22,7 @@ typedef ParseResult<const Headers, const HttpResponse> ParseHeaderResult;
 typedef ParseResult<const std::string, const HttpResponse> ParseBodyResult;
 typedef ParseResult<const HttpRequest, const HttpResponse> ParseRequestResult;
 typedef Result<const RequestLine, const int> GetRequestLineResult;
+typedef Result<const std::string, const HttpResponse> UnchunkBodyResult;
 
 // autoindex
 typedef Result<const std::string, const HttpResponse> DirectoryListHtmlResult;

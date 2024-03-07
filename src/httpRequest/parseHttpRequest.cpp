@@ -87,6 +87,34 @@ GetHostNameResult getHostName(const Headers &headers)
         return GetHostNameResult::Error(BAD_REQUEST);
 }
 
+UnchunkBodyResult unchunkBody(const std::string &body, const size_t maxBodySize)
+{
+    std::string unchunkedBody = "";
+    std::istringstream bodyStream(body);
+    std::string line;
+
+    while (!(line = utils::getlineCustom(bodyStream)).empty())
+    {
+        std::istringstream chunkSizeLine(line);
+        int chunkSize;
+        if (!(chunkSizeLine >> std::hex >> chunkSize) || !chunkSizeLine.eof())
+            return UnchunkBodyResult::Error(BAD_REQUEST);
+        if (chunkSize == 0)
+            break;
+
+        if (unchunkedBody.length() + chunkSize > maxBodySize)
+            return UnchunkBodyResult::Error(BAD_REQUEST);
+
+        char buffer[chunkSize];
+        bodyStream.read(buffer, chunkSize);
+        unchunkedBody.append(buffer, chunkSize);
+
+        // チャンクの末尾のCRLFを読み飛ばす
+        std::getline(bodyStream, line);
+    }
+    return UnchunkBodyResult::Success(unchunkedBody);
+}
+
 /* ======== main funcitons ======== */
 ParseRequestLineResult parseHttpRequestLine(std::istringstream &requestTextStream)
 {
@@ -143,16 +171,21 @@ ParseHeaderResult parseHttpHeaders(std::istringstream &requestTextStream)
         return ParseHeaderResult::Error(BAD_REQUEST);
 }
 
-ParseBodyResult parseHttpBody(std::istringstream &requestTextStream, const Headers &headers, const Server &server,
+ParseBodyResult parseHttpBody(const std::string &body, const Headers &headers, const Server &server,
                               const std::string &method)
 {
     std::string line;
-    const std::string body((std::istreambuf_iterator<char>(requestTextStream)), std::istreambuf_iterator<char>());
 
     if (headers.find("transfer-encoding") != headers.end())
     {
         if (headers.at("transfer-encoding") == "chunked" && body.length() <= server.clientMaxBodySize)
-            return ParseBodyResult::Success(body);
+        {
+            const UnchunkBodyResult unchunkedBodyResult = unchunkBody(body, server.clientMaxBodySize);
+            if (unchunkedBodyResult.success)
+                return ParseBodyResult::Success(unchunkedBodyResult.value);
+            else
+                return ParseBodyResult::Error(unchunkedBodyResult.error);
+        }
         else
             return ParseBodyResult::Error(BAD_REQUEST);
     }
@@ -199,8 +232,9 @@ ParseRequestResult parseHttpRequest(const Socket &socket)
                 const GetHostNameResult getHostNameResult = getHostName(parseHeaderResult.value);
                 if (getHostNameResult.success)
                 {
+                    std::istringstream bodyStream(nonEmptyBlocks[1]);
                     const ParseBodyResult parseBodyResult = parseHttpBody(
-                        requestTextStream, parseHeaderResult.value,
+                        nonEmptyBlocks[1], parseHeaderResult.value,
                         CONFIG.getServer(getHostNameResult.value, socket.port), parseRequestLineResult.value.method);
                     if (parseBodyResult.status == PARSED)
                     {
