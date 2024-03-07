@@ -2,26 +2,26 @@
 
 #include "external.hpp"
 
-template <typename T, typename E> struct HttpRequestParseResult
+template <typename T, typename E> struct ParseResult
 {
-    HttpRequestParseStatus status;
+    ParseStatus status;
     const T value;
     const E error;
 
-    HttpRequestParseResult() : status(PENDING){};
-    HttpRequestParseResult(const T value, const E error, const ParseStatus status)
+    ParseResult() : status(PENDING){};
+    ParseResult(const T value, const E error, const ParseStatus status)
         : value(value), error(error), status(status){};
 
-    static HttpRequestParseResult<T, E> Success(const T value)
+    static ParseResult<T, E> Success(const T value)
     {
-        return (HttpRequestParseResult<T, E>(value, E(), SUCCESS));
+        return (ParseResult<T, E>(value, E(), SUCCESS));
     };
-    static HttpRequestParseResult<T, E> Error(const E error)
+    static ParseResult<T, E> Error(const E error)
     {
-        return (HttpRequestParseResult<T, E>(T(), error, ERROR));
+        return (ParseResult<T, E>(T(), error, ERROR));
     };
-    static HttpRequestParseResult<T, E> Pending()
+    static ParseResult<T, E> Pending()
     {
-        return (HttpRequestParseResult<T, E>());
+        return (ParseResult<T, E>());
     };
 };

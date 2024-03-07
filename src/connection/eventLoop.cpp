@@ -47,18 +47,18 @@ void eventLoop(const Sockets &listenSockets)
                                 }
                                 else
                                 {
-                                    HttpRequestParseResult parseResult = processMessage(eventSocket);
-                                    if (parseResult.status == SUCCESS)
-                                    {
-                                        response();
-                                    }
-                                    else if (parseResult.status == PENDING)
+                                    const ParseStatus status = processMessage(eventSocket);
+                                    if (status == PENDING)
                                     {
                                         continue;
                                     }
+                                    else if (status == SUCCESS)
+                                    {
+                                        std::cout << "message processed." << std::endl;
+                                    }
                                     else
                                     {
-                                        utils::printError(parseResult.error);
+                                        utils::printError("failed to process message.");
                                     }
                                 }
                             }

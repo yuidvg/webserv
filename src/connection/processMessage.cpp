@@ -4,31 +4,29 @@
 #include "../types/HttpRequestText.hpp"
 #include ".hpp"
 
-bool processMessage(const std::string &message)
+ParseStatus processMessage(const Socket socket)
 {
-    GetHostNameResult getHostNameResult = httpRequestText.getHostName();
-    if (getHostNameResult.success)
-    {
-        Server server = CONFIG.getServer(getHostNameResult.value, socket.port);
+    Server server = CONFIG.getServer(getHostNameResult.value, socket.port);
 
-        const ParseRequestResult parseHttpRequestResult = parseHttpRequest(httpRequestText, server);
+    const ParseRequestResult parseHttpRequestResult = parseHttpRequest(socket.getReceivedMessage());
+    if (parseHttpRequestResult.status == PENDING)
+    {
+        return PENDING;
+    }
+    else
+    {
         const HttpResponse httpResponse = response(parseHttpRequestResult, socket);
         const std::string httpResponseText = responseText(httpResponse);
 
         const int sentLength = send(socket.descriptor, httpResponseText.c_str(), httpResponseText.length(), 0);
         if (sentLength >= 0)
         {
-            return true;
+            return SUCCESS;
         }
         else
         {
             utils::printError("send() failed.");
-            return false;
+            return ERROR;
         }
-    }
-    else
-    {
-        utils::printError(getHostNameResult.error);
-        return false;
     }
 }

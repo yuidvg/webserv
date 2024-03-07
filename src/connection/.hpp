@@ -2,4 +2,4 @@
 #include "../webserv.hpp"
 
 void eventLoop(const Sockets &listenSockets);
-bool processMessage(const Socket &socket);
+ParseStatus processMessage(const Socket &socket);

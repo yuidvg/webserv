@@ -1,7 +1,94 @@
 #include ".hpp"
 
+/* ========  helper functions ======== */
+std::vector<std::string> removeEmptyBlocks(const std::vector<std::string> &blocks)
+{
+    std::vector<std::string>::const_iterator it = blocks.begin();
+    while (it != blocks.end() && it->empty())
+    {
+        ++it;
+    }
+    std::vector<std::string> nonEmptyBlocks(it, blocks.end());
+    return nonEmptyBlocks;
+}
+
+bool isLineTooLong(const std::string &line)
+{
+    if (line.length() > MAX_LEN)
+        return true;
+    else
+        return false;
+}
+
+int getRequestLineStatusCode(const RequestLine requestLine)
+{
+    if (requestLine.target.find(':') != std::string::npos &&
+        requestLine.target.find('*') != std::string::npos) // CONNECT, OPTIONSは非対応
+        return BAD_REQUEST;
+
+    if (requestLine.version != SERVER_PROTOCOL)
+        return BAD_REQUEST;
+
+    return SUCCESS;
+}
+
+bool validateAndDecodeTarget(std::string &target)
+{
+    std::string decodedTarget;
+    std::string::iterator it = target.begin();
+
+    while (it != target.end())
+    {
+        if (*it == '%')
+        {
+            if (it + 2 >= target.end() || !std::isxdigit(*(it + 1)) || !std::isxdigit(*(it + 2)))
+                return false;
+            decodedTarget += utils::hexToUtf8Char(target.substr(it - target.begin() + 1, 2));
+            it += 3;
+        }
+        else
+        {
+            decodedTarget += *it;
+            it++;
+        }
+    }
+    target = decodedTarget;
+    return true;
+}
+
+GetRequestLineResult getRequestLine(std::istringstream &requestTextStream)
+{
+    std::string method, target, version;
+    std::string line;
+
+    while ((line = utils::getlineCustom(requestTextStream)).empty())
+        ;
+
+    if (!requestTextStream.eof() && !isLineTooLong(line))
+    {
+        std::istringstream requestLine(line);
+        if ((requestLine >> method >> target >> version) && requestLine.eof() && validateAndDecodeTarget(target))
+        {
+            const RequestLine requestLineElements = {method, target, version};
+            return GetRequestLineResult::Success(requestLineElements);
+        }
+        else
+            return GetRequestLineResult::Error(BAD_REQUEST);
+    }
+    else
+        return GetRequestLineResult::Error(BAD_REQUEST);
+}
+
+/* ======== main funcitons ======== */
 ParseRequestLineResult parseHttpRequestLine(std::istringstream &requestTextStream)
 {
+    // 最初に空行がある場合は読み飛ばす
+    std::string firstLine = utils::getlineCustom(requestTextStream);
+    while (firstLine.empty() && !requestTextStream.eof())
+        firstLine = utils::getlineCustom(requestTextStream);
+    if (!firstLine.empty())
+        requestTextStream.seekg(0);
+
     const GetRequestLineResult getRequestLineResult = getRequestLine(requestTextStream);
     if (getRequestLineResult.success)
     {
@@ -17,17 +104,17 @@ ParseRequestLineResult parseHttpRequestLine(std::istringstream &requestTextStrea
 
 ParseHeaderResult parseHttpHeaders(std::istringstream &requestTextStream)
 {
-    std::string line;
+    std::string headerLine;
     Headers headers;
 
-    while (!(line = utils::getlineCustom(requestTextStream)).empty())
+    while (!(headerLine = utils::getlineCustom(requestTextStream)).empty())
     {
-        if (!isLineTooLong(line) && !isspace(line[0]))
+        if (!isLineTooLong(headerLine) && !isspace(headerLine[0]))
         {
             std::string key, value;
-            std::istringstream headerLine(line);
+            std::istringstream headerLineStream(headerLine);
 
-            if (std::getline(headerLine, key, ':') && std::getline(headerLine, value))
+            if (std::getline(headerLineStream, key, ':') && std::getline(headerLineStream, value))
             {
                 utils::trim(value);
                 if (!key.empty() && !std::isspace(*(key.end() - 1)) && !value.empty())
@@ -42,7 +129,7 @@ ParseHeaderResult parseHttpHeaders(std::istringstream &requestTextStream)
             return ParseHeaderResult::Error(BAD_REQUEST);
     }
 
-    if (line.empty() && !headers.empty())
+    if (headerLine.empty() && !headers.empty())
         return ParseHeaderResult::Success(headers);
     else
         return ParseHeaderResult::Error(BAD_REQUEST);
@@ -85,39 +172,36 @@ ParseBodyResult parseHttpBody(std::istringstream &requestTextStream, const Heade
     }
 }
 
-ParseRequestResult parseHttpRequest(HttpRequestText &httpRequestText, const Server &server)
+ParseRequestResult parseHttpRequest(const std::string message)
 {
-    GetTextResult getTextResult = httpRequestText.getText();
-    if (getTextResult.success)
+    const std::vector<std::string> blocks = utils::split(message, CRLF + CRLF);
+    const std::vector<std::string> nonEmptyBlocks = removeEmptyBlocks(blocks);
+    if (nonEmptyBlocks.size() < 2)
+        return ParseRequestResult::Pending();
+    else
     {
-        const std::string httpRequest = getTextResult.value;
-        std::istringstream requestTextStream(httpRequest);
-
+        std::istringstream requestTextStream(nonEmptyBlocks[0]);
         const ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(requestTextStream);
-        if (parseRequestLineResult.success)
+        if (parseRequestLineResult.status == SUCCESS)
         {
-            const ParseHeaderResult headersResult = parseHttpHeaders(requestTextStream);
-            if (headersResult.success)
+            const ParseHeaderResult parseHeaderResult = parseHttpHeaders(requestTextStream);
+            if (parseHeaderResult.status == SUCCESS)
             {
-                const Headers headers = headersResult.value;
-                const ParseBodyResult body =
-                    parseHttpBody(requestTextStream, headers, server, parseRequestLineResult.value.method);
-                if (body.success)
+                const ParseBodyResult parseBodyResult = parseHttpBody(
+                    requestTextStream, parseHeaderResult.value, CONFIG.getServer(parseRequestLineResult.value.host, 0),
+                    parseRequestLineResult.value.method);
+                if (parseBodyResult.status == SUCCESS)
                 {
-                    const RequestLine requestLine = parseRequestLineResult.value;
-                    const HttpRequest result(requestLine.method, requestLine.target, headers, body.value,
-                                             httpRequestText.getHostName().value);
-                    return ParseRequestResult::Success(result);
+                    return ParseRequestResult::Success(
+                        HttpRequest(parseRequestLineResult.value, parseHeaderResult.value, parseBodyResult.value, parseRequestLineResult.value.host));
                 }
                 else
-                    return ParseRequestResult::Error(HttpResponse(body.error));
+                    return ParseRequestResult::Error(parseBodyResult.error);
             }
             else
-                return ParseRequestResult::Error(HttpResponse(headersResult.error));
+                return ParseRequestResult::Error(parseHeaderResult.error);
         }
         else
-            return ParseRequestResult::Error(HttpResponse(parseRequestLineResult.error));
+            return ParseRequestResult::Error(parseRequestLineResult.error);
     }
-    else
-        return ParseRequestResult::Error(HttpResponse(getTextResult.error));
 }
