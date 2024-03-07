@@ -38,12 +38,16 @@ class Socket
         return !(*this == other);
     };
 
-    bool receiveMessage(uintptr_t size)
+    bool receiveMessage(intptr_t sizeData)
     {
-        char *buffer = new char[size];
+        size_t size = sizeData;
+        char *buffer = new char[size + 1];
         const ssize_t receivedLength = recv(descriptor, buffer, size, 0);
         if (receivedLength >= 0)
+        {
+            buffer[receivedLength] = '\0';
             _receivedMessage += buffer;
+        }
         delete[] buffer;
         return receivedLength >= 0;
     };
