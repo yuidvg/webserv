@@ -1,6 +1,5 @@
 #include ".hpp"
-namespace
-{
+
 bool registerEvent(const uintptr_t identifier, const int16_t filter)
 {
     struct kevent change;
@@ -15,7 +14,6 @@ bool registerEvent(const uintptr_t identifier, const int16_t filter)
         return false;
     }
 }
-} // namespace
 
 bool registerReadEvents(const Sockets &sockets)
 {

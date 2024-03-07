@@ -10,6 +10,8 @@ void eventLoop(const Sockets &listenSockets)
         while (true)
         {
             const Sockets allSockets = utils::combined(listenSockets, connectedSockets);
+
+            std::cout << "waiting for events..." << std::endl;
             const int numOfEvents = kevent(KQ, NULL, 0, eventList, EVENT_BATCH_SIZE, NULL);
             if (numOfEvents != -1)
             {
@@ -24,6 +26,7 @@ void eventLoop(const Sockets &listenSockets)
                             Socket eventSocket = eventSocketResult.value;
                             if (event.filter == EVFILT_READ)
                             {
+                                // TODO: 関数分割
                                 if (utils::contains(eventSocket, listenSockets))
                                 {
                                     const NewSocketResult newConnectedSocketResult = newConnectedSocket(eventSocket);
@@ -31,6 +34,11 @@ void eventLoop(const Sockets &listenSockets)
                                     {
                                         std::cout << "new connection socket created." << std::endl;
                                         connectedSockets.push_back(newConnectedSocketResult.value);
+                                        // 読み込みイベントを登録 (newConnectedSocketResult.value.descriptor を使って)
+                                        if (!registerEvent(newConnectedSocketResult.value.descriptor, EVFILT_READ))
+                                        {
+                                            utils::printError("Failed to register read event for new socket");
+                                        }
                                     }
                                     else
                                     {
