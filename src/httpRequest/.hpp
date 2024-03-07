@@ -3,7 +3,7 @@
 #include "../types/HttpRequestText.hpp"
 #include "../webserv.hpp"
 
-ParseRequestResult parseHttpRequest(const std::string message);
+ParseRequestResult parseHttpRequest(const Socket socket);
 
 bool isHttpMessage(const std::string &message);
 bool isLineTooLong(const std::string &line);
