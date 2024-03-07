@@ -69,6 +69,6 @@ const std::string URI_SCHEME_DELIMITER = "://";
 
 const std::string EMPTY_LINE = "\n\n";
 
-const int KQ = kqueue();
+extern const int KQ;
 
-const size_t EVENT_BATCH_SIZE = 1024;
+#define EVENT_BATCH_SIZE 1024
