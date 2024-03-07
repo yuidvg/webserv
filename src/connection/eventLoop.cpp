@@ -3,82 +3,91 @@
 
 void eventLoop(const Sockets &listenSockets)
 {
-    Sockets connectedSockets;
     struct kevent eventList[EVENT_BATCH_SIZE];
-
-    while (true)
+    if (registerReadEvents(listenSockets))
     {
-        const Sockets allSockets = utils::combined(listenSockets, connectedSockets);
-        const int numOfEvents = kevent(KQ, NULL, 0, eventList, EVENT_BATCH_SIZE, NULL);
-        if (numOfEvents != -1)
+        Sockets connectedSockets;
+        while (true)
         {
-            for (int i = 0; i < numOfEvents; ++i)
+            const Sockets allSockets = utils::combined(listenSockets, connectedSockets);
+            const int numOfEvents = kevent(KQ, NULL, 0, eventList, EVENT_BATCH_SIZE, NULL);
+            if (numOfEvents != -1)
             {
-                const struct kevent &event = eventList[i];
-                if (!(event.flags & EV_ERROR))
+                for (int i = 0; i < numOfEvents; ++i)
                 {
-
-                    FindSocketResult eventSocketResult = utils::findSocket(allSockets, event.ident);
-                    if (eventSocketResult.success)
+                    const struct kevent &event = eventList[i];
+                    if (!(event.flags & EV_ERROR))
                     {
-                        Socket  = eventSocketResult.value;
-                        if (event.filter == EVFILT_READ)
+                        FindSocketResult eventSocketResult = utils::findSocket(allSockets, event.ident);
+                        if (eventSocketResult.success)
                         {
-                            if (utils::contains(eventSocket, listenSockets))
+                            Socket eventSocket = eventSocketResult.value;
+                            if (event.filter == EVFILT_READ)
                             {
-                                const NewSocketResult newConnectedSocketResult = newConnectedSocket(eventSocket);
-                                if (newConnectedSocketResult.success)
+                                if (utils::contains(eventSocket, listenSockets))
                                 {
-                                    std::cout << "new connection socket created." << std::endl;
-                                    connectedSockets.push_back(newConnectedSocketResult.value);
-                                }
-                                else
-                                {
-                                    utils::printError(newConnectedSocketResult.error);
-                                }
-                            }
-                            else
-                            {
-                                if (!eventSocket.receiveMessage(event.data))
-                                {
-                                    utils::printError("failed to receive message: invalid socket.");
-                                    close(eventSocket.descriptor);
-                                    connectedSockets = utils::excluded(connectedSockets, eventSocket);
-                                }
-                                else
-                                {
-                                    if (!processMessage(eventSocket.getReceivedMessage()))
+                                    const NewSocketResult newConnectedSocketResult = newConnectedSocket(eventSocket);
+                                    if (newConnectedSocketResult.success)
                                     {
+                                        std::cout << "new connection socket created." << std::endl;
+                                        connectedSockets.push_back(newConnectedSocketResult.value);
+                                    }
+                                    else
+                                    {
+                                        utils::printError(newConnectedSocketResult.error);
+                                    }
+                                }
+                                else
+                                {
+                                    if (!eventSocket.receiveMessage(event.data))
+                                    {
+                                        utils::printError("failed to receive message: invalid socket.");
                                         close(eventSocket.descriptor);
                                         connectedSockets = utils::excluded(connectedSockets, eventSocket);
                                     }
+                                    else
+                                    {
+                                        const ParseStatus status = processMessage(eventSocket);
+                                        if (status == PENDING)
+                                        {
+                                            continue;
+                                        }
+                                        else if (status == PARSED)
+                                        {
+                                            std::cout << "message processed." << std::endl;
+                                        }
+                                        else
+                                        {
+                                            utils::printError("failed to process message.");
+                                        }
+                                    }
+                                }
+                            }
+                            else if (event.filter == EVFILT_WRITE)
+                            {
+                                if (!eventSocket.sendMessage(event.data))
+                                {
+                                    utils::printError("failed to send message: invalid socket.");
+                                    close(eventSocket.descriptor);
+                                    connectedSockets = utils::excluded(connectedSockets, eventSocket);
                                 }
                             }
                         }
-                        else if (event.filter == EVFILT_WRITE)
+                        else
                         {
-                            if (!eventSocket.sendMessage(event.data))
-                            {
-                                utils::printError("failed to send message: invalid socket.");
-                                close(eventSocket.descriptor);
-                                connectedSockets = utils::excluded(connectedSockets, eventSocket);
-                            }
+                            utils::printError(eventSocketResult.error);
                         }
                     }
                     else
                     {
-                        utils::printError(eventSocketResult.error);
+                        utils::printError("kevent error");
                     }
                 }
-                else
-                {
-                    utils::printError("kevent error");
-                }
             }
-        }
-        else
-        {
-            utils::printError("unexpected event");
+            else
+            {
+                utils::printError("unexpected event");
+            }
         }
     }
 }

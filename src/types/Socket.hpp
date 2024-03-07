@@ -38,7 +38,7 @@ class Socket
         return !(*this == other);
     };
 
-    const bool receiveMessage(uintptr_t size)
+    bool receiveMessage(uintptr_t size)
     {
         char *buffer = new char[size];
         const ssize_t receivedLength = recv(descriptor, buffer, size, 0);
@@ -47,15 +47,15 @@ class Socket
         delete[] buffer;
         return receivedLength >= 0;
     };
-    const std::string getReceivedMessage() const
+    std::string getReceivedMessage() const
     {
         return _receivedMessage;
     };
-    const bool appendToBeSentMessage(const std::string &message)
+    void appendToBeSentMessage(const std::string &message)
     {
         _toBeSentMessage += message;
     };
-    const bool sendMessage(uintptr_t size)
+    bool sendMessage(uintptr_t size)
     {
         std::string message = _toBeSentMessage.substr(0, size);
         _toBeSentMessage = _toBeSentMessage.substr(size);

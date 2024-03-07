@@ -52,7 +52,7 @@ HttpResponse responseToValidRequest(const HttpRequest &request, const Socket &so
 HttpResponse response(const ParseRequestResult &requestResult, const Socket &socket)
 {
     const Server server = CONFIG.getServer(requestResult.value.host, socket.port);
-    if (requestResult.success)
+    if (requestResult.status == PARSED)
     {
         const HttpResponse httpResponse =
             responseToValidRequest(requestResult.value, Socket(socket.descriptor, socket.port));

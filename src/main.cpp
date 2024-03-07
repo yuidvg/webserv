@@ -4,20 +4,6 @@
 #include "webserv.hpp"
 
 Config CONFIG;
-namespace
-{
-bool registerReadEvents(const Sockets &sockets)
-{
-    for (Sockets::const_iterator socketIt = sockets.begin(); socketIt != sockets.end(); ++socketIt)
-    {
-        if (!utils::registerEvent(socketIt->descriptor, EVFILT_READ))
-        {
-            return false;
-        }
-    }
-    return true;
-}
-} // namespace
 
 int main(int argc, char **argv)
 {
@@ -35,14 +21,7 @@ int main(int argc, char **argv)
                 GetListenSocketsResult createdSocketsResult = getListenSockets(servers);
                 if (createdSocketsResult.success)
                 {
-                    const Sockets &listenSockets = createdSocketsResult.value;
-                    if (registerReadEvents(listenSockets))
-                        eventLoop(listenSockets);
-                    else
-                    {
-                        utils::printError("failed to register listen sockets to kernel queue.");
-                        return 1;
-                    }
+                    eventLoop(createdSocketsResult.value);
                 }
                 else
                 {

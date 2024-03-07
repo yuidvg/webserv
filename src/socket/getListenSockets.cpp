@@ -21,12 +21,12 @@ NewSocketResult getListenSocket(const Server server)
         return (NewSocketResult::Error("fcntl() failed to set non-blocking"));
     }
 
-    struct sockaddr_in addr;
-    addr.sin_family = PF_INET;
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    addr.sin_port = htons(server.port);
+    struct sockaddr_in sin;
+    sin.sin_family = PF_INET;
+    sin.sin_port = htons(server.port);
+    sin.sin_addr.s_addr = INADDR_ANY;
 
-    if (bind(sd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+    if (bind(sd, (struct sockaddr *)&sin, sizeof(sin)) < 0)
     {
         close(sd);
         // return (NewSocketResult::Error("bind() failed: "));
@@ -34,12 +34,12 @@ NewSocketResult getListenSocket(const Server server)
                                                    std::to_string(server.port))));
     }
 
-    if (listen(sd, 5) < 0)
+    if (listen(sd, SOMAXCONN) < 0)
     {
         close(sd);
         return (NewSocketResult::Error("listen() failed"));
     }
-    return NewSocketResult::Success(Socket(sd, ntohs(addr.sin_port)));
+    return NewSocketResult::Success(Socket(sd, ntohs(sin.sin_port)));
 }
 } // namespace
 

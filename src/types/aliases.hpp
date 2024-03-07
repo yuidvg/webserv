@@ -10,16 +10,17 @@ typedef Result<const Location, const std::string> ParseLocationResult;
 typedef Result<const std::string, const std::string> StringResult;
 
 // http
+
 struct RequestLine
 {
     const std::string method;
     const std::string target;
     const std::string version;
 };
-typedef Result<const RequestLine, const HttpResponse> ParseRequestLineResult;
-typedef Result<const Headers, const HttpResponse> ParseHeaderResult;
-typedef Result<const std::string, const HttpResponse> ParseBodyResult;
-typedef Result<const HttpRequest, const HttpResponse> ParseRequestResult;
+typedef ParseResult<const RequestLine, const HttpResponse> ParseRequestLineResult;
+typedef ParseResult<const Headers, const HttpResponse> ParseHeaderResult;
+typedef ParseResult<const std::string, const HttpResponse> ParseBodyResult;
+typedef ParseResult<const HttpRequest, const HttpResponse> ParseRequestResult;
 typedef Result<const RequestLine, const int> GetRequestLineResult;
 
 // autoindex
@@ -66,12 +67,5 @@ typedef Result<CgiResponse, HttpResponse> ParseCgiResponseResult;
 
 typedef Result<const std::string, const std::string> ReadFileResult;
 
-const enum EVENT_TYPE
-{
-    READ = 1,
-    WRITE = 2
-};
-
-typedef std::vector<Event> Events;
 
 typedef Result<const Socket, const std::string> FindSocketResult;

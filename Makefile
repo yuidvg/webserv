@@ -2,7 +2,7 @@
 DEBUG_FLAGS = -g
 
 CXX = c++
-CXXFLAGS = $(DEBUG_FLAGS) -MMD -Wall -Werror -Wextra -std=c++98 -I src
+CXXFLAGS = $(DEBUG_FLAGS) -MMD -O0 -Wall -Werror -Wextra -std=c++98 -I src
 RM = rm -rf
 AR = ar rcs
 

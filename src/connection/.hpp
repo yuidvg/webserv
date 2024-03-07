@@ -1,5 +1,6 @@
 #pragma once
 #include "../webserv.hpp"
 
+bool registerReadEvents(const Sockets &sockets);
 void eventLoop(const Sockets &listenSockets);
-bool processMessage(const Socket &socket);
+ParseStatus processMessage(const Socket &socket);

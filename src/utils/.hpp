@@ -46,6 +46,6 @@ bool isStatusInRange(const int status);
 void deleteCStrArray(char *const *array);
 
 // kernelEvent
-bool registerEvent(const uintptr_t identifier, const int16_t filter);
+// bool registerEvent(const uintptr_t identifier, const int16_t filter);
 
 } // namespace utils
