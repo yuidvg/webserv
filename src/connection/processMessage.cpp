@@ -6,9 +6,9 @@
 
 ParseStatus processMessage(const Socket socket)
 {
-    Server server = CONFIG.getServer(getHostNameResult.value, socket.port);
+    // Server server = CONFIG.getServer(getHostNameResult.value, socket.port);
 
-    const ParseRequestResult parseHttpRequestResult = parseHttpRequest(socket.getReceivedMessage());
+    const ParseRequestResult parseHttpRequestResult = parseHttpRequest(socket);
     if (parseHttpRequestResult.status == PENDING)
     {
         return PENDING;

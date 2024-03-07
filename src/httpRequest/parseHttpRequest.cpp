@@ -79,6 +79,14 @@ GetRequestLineResult getRequestLine(std::istringstream &requestTextStream)
         return GetRequestLineResult::Error(BAD_REQUEST);
 }
 
+GetHostNameResult getHostName(const Headers &headers)
+{
+    if (headers.find("host") != headers.end())
+        return GetHostNameResult::Success(headers.at("host"));
+    else
+        return GetHostNameResult::Error(BAD_REQUEST);
+}
+
 /* ======== main funcitons ======== */
 ParseRequestLineResult parseHttpRequestLine(std::istringstream &requestTextStream)
 {
@@ -172,8 +180,9 @@ ParseBodyResult parseHttpBody(std::istringstream &requestTextStream, const Heade
     }
 }
 
-ParseRequestResult parseHttpRequest(const std::string message)
+ParseRequestResult parseHttpRequest(const Socket &socket)
 {
+    const std::string message = socket.getReceivedMessage();
     const std::vector<std::string> blocks = utils::split(message, CRLF + CRLF);
     const std::vector<std::string> nonEmptyBlocks = removeEmptyBlocks(blocks);
     if (nonEmptyBlocks.size() < 2)
@@ -187,16 +196,23 @@ ParseRequestResult parseHttpRequest(const std::string message)
             const ParseHeaderResult parseHeaderResult = parseHttpHeaders(requestTextStream);
             if (parseHeaderResult.status == SUCCESS)
             {
-                const ParseBodyResult parseBodyResult = parseHttpBody(
-                    requestTextStream, parseHeaderResult.value, CONFIG.getServer(parseRequestLineResult.value.host, 0),
-                    parseRequestLineResult.value.method);
-                if (parseBodyResult.status == SUCCESS)
+                const GetHostNameResult getHostNameResult = getHostName(parseHeaderResult.value);
+                if (getHostNameResult.success)
                 {
-                    return ParseRequestResult::Success(
-                        HttpRequest(parseRequestLineResult.value, parseHeaderResult.value, parseBodyResult.value, parseRequestLineResult.value.host));
+                    const ParseBodyResult parseBodyResult = parseHttpBody(
+                        requestTextStream, parseHeaderResult.value,
+                        CONFIG.getServer(getHostNameResult.value, socket.port), parseRequestLineResult.value.method);
+                    if (parseBodyResult.status == SUCCESS)
+                    {
+                        return ParseRequestResult::Success(
+                            HttpRequest(parseRequestLineResult.value.method, parseRequestLineResult.value.target,
+                                        parseHeaderResult.value, parseBodyResult.value, getHostNameResult.value));
+                    }
+                    else
+                        return ParseRequestResult::Error(parseBodyResult.error);
                 }
                 else
-                    return ParseRequestResult::Error(parseBodyResult.error);
+                    return ParseRequestResult::Error(getHostNameResult.error);
             }
             else
                 return ParseRequestResult::Error(parseHeaderResult.error);
