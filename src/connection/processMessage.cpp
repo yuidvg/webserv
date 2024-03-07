@@ -1,7 +1,6 @@
 #include "../socket/.hpp"
 #include "../httpRequest/.hpp"
 #include "../httpResponse/.hpp"
-#include "../types/HttpRequestText.hpp"
 #include ".hpp"
 
 ParseStatus processMessage(const Socket &socket)
