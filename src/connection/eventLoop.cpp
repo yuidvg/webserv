@@ -55,18 +55,13 @@ void eventLoop(const Sockets &listenSockets)
                                     }
                                     else
                                     {
-                                        const ParseStatus status = processMessage(eventSocket);
-                                        if (status == PENDING)
+                                        if (!processMessage(eventSocket))
                                         {
                                             continue;
                                         }
-                                        else if (status == PARSED)
-                                        {
-                                            std::cout << "message processed." << std::endl;
-                                        }
                                         else
                                         {
-                                            utils::printError("failed to process message.");
+                                            std::cout << "message processed." << std::endl;
                                         }
                                     }
                                 }

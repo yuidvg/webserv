@@ -4,4 +4,4 @@
 bool registerReadEvents(const Sockets &sockets);
 bool registerEvent(const uintptr_t identifier, const int16_t filter);
 void eventLoop(const Sockets &listenSockets);
-ParseStatus processMessage(Socket &socket);
+bool processMessage(Socket &socket);
