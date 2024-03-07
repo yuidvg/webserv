@@ -6,8 +6,6 @@
 
 bool processMessage(const std::string &message)
 {
-    HttpRequestText httpRequestText(message);
-
     GetHostNameResult getHostNameResult = httpRequestText.getHostName();
     if (getHostNameResult.success)
     {

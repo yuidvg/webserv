@@ -43,6 +43,13 @@ const std::string CLOSE_BRACKET = "}";
 // httpRequest
 const size_t MAX_LEN = 8192;
 
+enum HttpRequestParseStatus
+{
+    SUCCESS,
+    ERROR,
+    PENDING
+};
+
 // httpResponse
 const HttpResponse BAD_REQUEST_RESPONSE =
     HttpResponse(BAD_REQUEST,

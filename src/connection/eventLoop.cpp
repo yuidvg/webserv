@@ -47,8 +47,19 @@ void eventLoop(const Sockets &listenSockets)
                                 }
                                 else
                                 {
-                                    if (isHttpMessage(eventSocket.getReceivedMessage()))
-                                        processMessage(eventSocket);
+                                    HttpRequestParseResult parseResult = processMessage(eventSocket);
+                                    if (parseResult.status == SUCCESS)
+                                    {
+                                        response();
+                                    }
+                                    else if (parseResult.status == PENDING)
+                                    {
+                                        continue;
+                                    }
+                                    else
+                                    {
+                                        utils::printError(parseResult.error);
+                                    }
                                 }
                             }
                         }
