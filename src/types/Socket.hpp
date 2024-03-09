@@ -19,7 +19,8 @@ class Socket
     ~Socket(){};
 
     Socket(const Socket &other)
-        : descriptor(other.descriptor), port(other.port), opponentIp(other.opponentIp), opponentPort(other.opponentPort)
+        : _receivedMessage(other._receivedMessage), _toBeSentMessage(other._toBeSentMessage),
+          descriptor(other.descriptor), port(other.port), opponentIp(other.opponentIp), opponentPort(other.opponentPort)
     {
     }
     Socket &operator=(const Socket &other)
