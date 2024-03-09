@@ -2,8 +2,9 @@
 
 bool updateEvent(const uintptr_t identifier, const short filter, const short flags)
 {
-    if (!registerEvent(identifier, filter, EV_DELETE))
-        return false;
+    // TODO: falseが返ってくるため、一時的にコメントアウト
+    //  if (!registerEvent(identifier, filter, EV_DELETE))
+    //      return false;
     if (!registerEvent(identifier, filter, flags))
         return false;
     return true;
