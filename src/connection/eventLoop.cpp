@@ -57,6 +57,15 @@ void eventLoop(const Sockets &listenSockets)
                                         else
                                         {
                                             std::cout << "message processed." << std::endl;
+                                            for (std::vector<Socket>::iterator it = connectedSockets.begin();
+                                                 it != connectedSockets.end(); ++it)
+                                            {
+                                                if (it->descriptor == eventSocket.descriptor)
+                                                {
+                                                    *it = eventSocket;
+                                                    break;
+                                                }
+                                            }
                                             updateEvent(eventSocket.descriptor, EVFILT_WRITE, EV_ADD);
                                         }
                                     }

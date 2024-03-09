@@ -25,7 +25,11 @@ class Socket
     }
     Socket &operator=(const Socket &other)
     {
-        (void)other;
+        if (this != &other)
+        {
+            _receivedMessage = other._receivedMessage;
+            _toBeSentMessage = other._toBeSentMessage;
+        }
         return *this;
     }
 
@@ -64,8 +68,10 @@ class Socket
     {
         std::string message = _toBeSentMessage.substr(0, size);
         _toBeSentMessage = _toBeSentMessage.substr(size);
+        // TODO:error
         if (send(descriptor, message.c_str(), size, 0) >= 0)
         {
+            std::cerr << std::strerror(errno) << std::endl;
             return true;
         }
         else
