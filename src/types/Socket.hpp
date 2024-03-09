@@ -67,15 +67,10 @@ class Socket
     bool sendMessage(uintptr_t size)
     {
         std::string message = _toBeSentMessage.substr(0, size);
-        // TODO:error
         if (send(descriptor, message.c_str(), message.size(), 0) >= 0)
-        {
             return true;
-        }
         else
-        {
             return false;
-        }
     };
 };
 
