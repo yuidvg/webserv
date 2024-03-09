@@ -66,7 +66,7 @@ void eventLoop(const Sockets &listenSockets)
                                                     break;
                                                 }
                                             }
-                                            updateEvent(eventSocket.descriptor, EVFILT_WRITE, EV_ADD);
+                                            updateEvent(event, EVFILT_WRITE);
                                         }
                                     }
                                     else
@@ -85,7 +85,7 @@ void eventLoop(const Sockets &listenSockets)
                                     close(eventSocket.descriptor);
                                     connectedSockets = utils::excluded(connectedSockets, eventSocket);
                                 }
-                                updateEvent(eventSocket.descriptor, EVFILT_READ, EV_ADD);
+                                updateEvent(event, EVFILT_READ);
                             }
                         }
                         else

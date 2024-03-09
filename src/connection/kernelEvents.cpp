@@ -1,11 +1,10 @@
 #include ".hpp"
 
-bool updateEvent(const uintptr_t identifier, const short filter, const short flags)
+bool updateEvent(const struct kevent &kevent, const short filter)
 {
-    // TODO: falseが返ってくるため、一時的にコメントアウト
-    //  if (!registerEvent(identifier, filter, EV_DELETE))
-    //      return false;
-    if (!registerEvent(identifier, filter, flags))
+    if (!registerEvent(kevent.ident, kevent.filter, EV_DELETE))
+        return false;
+    if (!registerEvent(kevent.ident, filter, EV_ADD))
         return false;
     return true;
 }
