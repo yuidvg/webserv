@@ -35,7 +35,8 @@ void eventLoop(const Sockets &listenSockets)
                                         std::cout << "new connection socket created." << std::endl;
                                         connectedSockets.push_back(newConnectedSocketResult.value);
                                         // 読み込みイベントを登録 (newConnectedSocketResult.value.descriptor を使って)
-                                        if (!registerEvent(newConnectedSocketResult.value.descriptor, EVFILT_READ))
+                                        if (!registerEvent(newConnectedSocketResult.value.descriptor, EVFILT_READ,
+                                                           EV_ADD))
                                         {
                                             utils::printError("Failed to register read event for new socket");
                                         }
@@ -47,13 +48,7 @@ void eventLoop(const Sockets &listenSockets)
                                 }
                                 else
                                 {
-                                    if (!eventSocket.receiveMessage(event.data))
-                                    {
-                                        utils::printError("failed to receive message: invalid socket.");
-                                        close(eventSocket.descriptor);
-                                        connectedSockets = utils::excluded(connectedSockets, eventSocket);
-                                    }
-                                    else
+                                    if (eventSocket.receiveMessage(event.data))
                                     {
                                         if (!processMessage(eventSocket))
                                         {
@@ -62,7 +57,14 @@ void eventLoop(const Sockets &listenSockets)
                                         else
                                         {
                                             std::cout << "message processed." << std::endl;
+                                            updateEvent(eventSocket.descriptor, EVFILT_WRITE, EV_ADD);
                                         }
+                                    }
+                                    else
+                                    {
+                                        utils::printError("failed to receive message: invalid socket.");
+                                        close(eventSocket.descriptor);
+                                        connectedSockets = utils::excluded(connectedSockets, eventSocket);
                                     }
                                 }
                             }
@@ -74,6 +76,7 @@ void eventLoop(const Sockets &listenSockets)
                                     close(eventSocket.descriptor);
                                     connectedSockets = utils::excluded(connectedSockets, eventSocket);
                                 }
+                                updateEvent(eventSocket.descriptor, EVFILT_READ, EV_ADD);
                             }
                         }
                         else
