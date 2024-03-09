@@ -86,6 +86,7 @@ HttpResponse executeCgi(const HttpRequest &request, const Socket &socket, const 
         std::cerr << "execve: " << uri.scriptPath << std::endl;
         execve(uri.scriptPath.c_str(), args, envp);
         std::cerr << "execve failed: " << strerror(errno) << std::endl;
+        utils::deleteCStrArray(envp);
         return (SERVER_ERROR_RESPONSE);
     }
     else // parent process

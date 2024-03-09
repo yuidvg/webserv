@@ -13,7 +13,7 @@ fd_set fdSetFrom(const Sockets sockets)
     return fdSet;
 }
 
-Sockets sdsIn(const fd_set fdSet, const Sockets sockets)
+Sockets socketsIn(const fd_set fdSet, const Sockets sockets)
 {
     Sockets socketsInFdSet;
     for (size_t i = 0; i < sockets.size(); ++i)

@@ -10,17 +10,20 @@ typedef Result<const Location, const std::string> ParseLocationResult;
 typedef Result<const std::string, const std::string> StringResult;
 
 // http
+
 struct RequestLine
 {
     const std::string method;
     const std::string target;
     const std::string version;
 };
-typedef Result<const RequestLine, const HttpResponse> ParseRequestLineResult;
-typedef Result<const Headers, const HttpResponse> ParseHeaderResult;
-typedef Result<const std::string, const HttpResponse> ParseBodyResult;
-typedef Result<const HttpRequest, const HttpResponse> ParseRequestResult;
+typedef ParseResult<const RequestLine, const HttpResponse> ParseRequestLineResult;
+typedef ParseResult<const Headers, const HttpResponse> ParseHeaderResult;
+typedef ParseResult<const std::string, const HttpResponse> ParseBodyResult;
+typedef ParseResult<const HttpRequest, const HttpResponse> ParseRequestResult;
 typedef Result<const RequestLine, const int> GetRequestLineResult;
+typedef Result<const std::string, const int> GetHostNameResult;
+typedef Result<const std::string, const HttpResponse> UnchunkBodyResult;
 
 // autoindex
 typedef Result<const std::string, const HttpResponse> DirectoryListHtmlResult;
@@ -28,9 +31,9 @@ typedef Result<const std::string, const std::string> GetIndexFilePathResult;
 typedef Result<const Server, const HttpResponse> MatchedServerResult;
 
 // socket
-typedef Result<const Socket, const std::string> NewListenSocketResult;
+typedef Result<const Socket, const std::string> NewSocketResult;
 typedef Result<const Sockets, const std::string> GetListenSocketsResult;
-typedef Result<const Sockets, const std::string> ReadableSocketsResult;
+typedef Result<const Sockets, const std::string> ReadableWritableSocketsResult;
 
 typedef Result<const unsigned int, const HttpResponse> PortNumberResult;
 
@@ -53,7 +56,6 @@ typedef Result<const std::string, const std::string> CgiExtensionResult;
 typedef Result<const std::string, const std::string> UploadPathResult;
 typedef Result<const std::string, const std::string> RedirectResult;
 
-
 } // namespace parseConfig
 
 typedef Result<const int, const std::string> StringToIntResult;
@@ -66,3 +68,5 @@ typedef Result<const int, const std::string> StoiResult;
 typedef Result<CgiResponse, HttpResponse> ParseCgiResponseResult;
 
 typedef Result<const std::string, const std::string> ReadFileResult;
+
+typedef Result<const Socket, const std::string> FindSocketResult;

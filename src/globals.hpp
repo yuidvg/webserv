@@ -14,7 +14,7 @@ const unsigned int OUT = 0;
 const std::string CRLF = "\r\n";
 
 // status code classes
-enum STATUS_CODE_CLASSES
+enum StatusCodeClasses
 {
     SUCCESS = 200,
     // 300番は複数のリダイレクト先が存在し、クライアントが選択する必要がある
@@ -41,7 +41,7 @@ const std::string OPEN_BRACKET = "{";
 const std::string CLOSE_BRACKET = "}";
 
 // httpRequest
-#define MAX_LEN 8192
+const size_t MAX_LEN = 8192;
 
 // httpResponse
 const HttpResponse BAD_REQUEST_RESPONSE =
@@ -68,3 +68,7 @@ const std::string BASE_64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrs
 const std::string URI_SCHEME_DELIMITER = "://";
 
 const std::string EMPTY_LINE = "\n\n";
+
+extern const int KQ;
+
+#define EVENT_BATCH_SIZE 1024

@@ -93,16 +93,18 @@ IsDirectoryResult isDirectory(const std::string &path)
     return IsDirectoryResult::Success(S_ISDIR(statbuf.st_mode));
 }
 
-bool createFile(const std::string &fileName)
+
+bool createFile(const std::string &fileName, const std::string &path)
 {
-    std::ofstream file(fileName.c_str()); // ファイルを開く（または作成する）
-    if (!file)
-    {
-        std::cerr << "Failed to create file: " << fileName << std::endl;
+    std::string fullPath = path + fileName;
+    std::ofstream file(fullPath.c_str());
+    if (!file) {
+        std::cerr << "Failed to create file: " << fullPath << std::endl;
         return false;
     }
     file.close();
     return true;
 }
+
 
 } // namespace utils

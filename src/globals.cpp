@@ -7,3 +7,5 @@ const HttpResponse METHOD_NOT_ALLOWED_RESPONSE(const std::string &allowedMethods
                         "Allowed</h1> <p>The method is not allowed for the requested URL.<br /></p> </body> </html>",
                         "text/html", "", allowedMethods);
 }
+
+const int KQ = kqueue();

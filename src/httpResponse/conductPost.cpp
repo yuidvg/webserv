@@ -12,7 +12,7 @@ HttpResponse conductPost(const HttpRequest &request, const Location &location)
     if (!isDirectoryResult.value)
         return BAD_REQUEST_RESPONSE;
     const std::string fileName = std::string(utils::removeCharacter(request.target, '/') + ".txt");
-    if (!utils::createFile(fileName))
+    if (!utils::createFile(fileName, location.uploadPath))
         return BAD_REQUEST_RESPONSE;
     const std::string fullFilePath = resolvePath(location.uploadPath, fileName);
     return utils::writeToFile(fullFilePath, request.body);
