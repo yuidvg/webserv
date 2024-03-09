@@ -222,6 +222,9 @@ ParseRequestResult parseHttpRequest(const Socket &socket)
         return ParseRequestResult::Pending();
     else
     {
+        // TODO: check
+        if (nonEmptyBlocks.size() == 0)
+            return ParseRequestResult::Error(BAD_REQUEST);
         std::istringstream requestTextStream(nonEmptyBlocks[0]);
         const ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(requestTextStream);
         if (parseRequestLineResult.status == PARSED)
