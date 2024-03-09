@@ -34,7 +34,6 @@ void eventLoop(const Sockets &listenSockets)
                                     {
                                         std::cout << "new connection socket created." << std::endl;
                                         connectedSockets.push_back(newConnectedSocketResult.value);
-                                        // 読み込みイベントを登録 (newConnectedSocketResult.value.descriptor を使って)
                                         if (!registerEvent(newConnectedSocketResult.value.descriptor, EVFILT_READ,
                                                            EV_ADD))
                                         {
@@ -79,13 +78,17 @@ void eventLoop(const Sockets &listenSockets)
                             }
                             else if (event.filter == EVFILT_WRITE)
                             {
-                                if (!eventSocket.sendMessage(event.data))
+                                if (eventSocket.sendMessage(event.data))
+                                {
+                                    updateEvent(event, EVFILT_READ);
+                                }
+                                else
                                 {
                                     utils::printError("failed to send message: invalid socket.");
-                                    close(eventSocket.descriptor);
-                                    connectedSockets = utils::excluded(connectedSockets, eventSocket);
                                 }
-                                updateEvent(event, EVFILT_READ);
+                                std::cout << "socket " << eventSocket.descriptor << " is close" << std::endl;
+                                close(eventSocket.descriptor);
+                                connectedSockets = utils::excluded(connectedSockets, eventSocket);
                             }
                         }
                         else
