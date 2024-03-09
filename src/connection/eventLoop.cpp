@@ -55,7 +55,6 @@ void eventLoop(const Sockets &listenSockets)
                                         }
                                         else
                                         {
-                                            std::cout << "message processed." << std::endl;
                                             for (std::vector<Socket>::iterator it = connectedSockets.begin();
                                                  it != connectedSockets.end(); ++it)
                                             {
@@ -86,7 +85,7 @@ void eventLoop(const Sockets &listenSockets)
                                 {
                                     utils::printError("failed to send message: invalid socket.");
                                 }
-                                std::cout << "socket " << eventSocket.descriptor << " is close" << std::endl;
+                                std::cout << "socket " << eventSocket.descriptor << " is close\n" << std::endl;
                                 close(eventSocket.descriptor);
                                 connectedSockets = utils::excluded(connectedSockets, eventSocket);
                             }
