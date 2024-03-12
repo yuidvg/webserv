@@ -3,7 +3,6 @@
 #include "socket/.hpp"
 #include "webserv.hpp"
 
-
 int main(int argc, char **argv)
 {
     if (KQ != -1)

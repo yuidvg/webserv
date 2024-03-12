@@ -64,6 +64,10 @@ class Socket
     {
         _toBeSentMessage += message;
     };
+    bool hasMessageToSend() const
+    {
+        return !_toBeSentMessage.empty();
+    };
     bool sendMessage(uintptr_t size)
     {
         std::string message = _toBeSentMessage.substr(0, size);

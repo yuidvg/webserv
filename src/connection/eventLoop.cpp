@@ -56,9 +56,18 @@ void eventLoop()
                     }
                     else if (event.filter == EVFILT_WRITE)
                     {
-                        if (!eventSocket.sendMessage(event.data))
+                        if (!(event.flags & EV_EOF))
                         {
-                            std::cout << "socket " << eventSocket.descriptor << " is broken\n" << std::endl;
+                            if (eventSocket.hasMessageToSend() && !eventSocket.sendMessage(event.data))
+                            {
+                                std::cout << "socket " << eventSocket.descriptor << " is broken\n" << std::endl;
+                                close(eventSocket.descriptor);
+                                SOCKETS -= eventSocket;
+                            }
+                        }
+                        else
+                        {
+                            std::cout << "client " << eventSocket.descriptor << " has disconnected" << std::endl;
                             close(eventSocket.descriptor);
                             SOCKETS -= eventSocket;
                         }
