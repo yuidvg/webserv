@@ -33,6 +33,7 @@ void eventLoop(const Sockets &listenSockets)
                                     if (newConnectedSocketResult.success)
                                     {
                                         std::cout << "new connection socket created." << std::endl;
+                                        // setNonBlocking(newConnectedSocketResult.value.descriptor);
                                         connectedSockets.push_back(newConnectedSocketResult.value);
                                         if (!registerEvent(newConnectedSocketResult.value.descriptor, EVFILT_READ,
                                                            EV_ADD))

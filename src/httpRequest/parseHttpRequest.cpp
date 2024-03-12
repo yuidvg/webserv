@@ -140,35 +140,32 @@ ParseRequestLineResult parseHttpRequestLine(std::istringstream &requestTextStrea
 
 ParseHeaderResult parseHttpHeaders(std::istringstream &requestTextStream)
 {
-    std::string headerLine;
-    Headers headers;
+    // tellgで現在の位置を取得、その先からstringを取得する
+    const std::streampos currentPos = requestTextStream.tellg();
+    std::string headerText = requestTextStream.str().substr(currentPos);
 
-    while (!(headerLine = utils::getlineCustom(requestTextStream)).empty())
+    std::vector<std::string> header = utils::split(headerText, CRLF);
+    if (header.size() == 0)
+        return ParseHeaderResult::Pending();
+    else
     {
-        if (!isLineTooLong(headerLine) && !isspace(headerLine[0]))
+        Headers headers;
+        for (std::vector<std::string>::iterator it = header.begin(); it != header.end(); ++it)
         {
-            std::string key, value;
-            std::istringstream headerLineStream(headerLine);
-
-            if (std::getline(headerLineStream, key, ':') && std::getline(headerLineStream, value))
+            std::string::size_type pos = it->find(":");
+            if (pos != std::string::npos)
             {
-                utils::trim(value);
-                if (!key.empty() && !std::isspace(*(key.end() - 1)) && !value.empty())
-                    headers[utils::lowerCase(key)] = value;
-                else
-                    return ParseHeaderResult::Error(BAD_REQUEST);
+                std::string key = it->substr(0, pos);
+                std::string value = it->substr(pos + 1);
+                std::transform(key.begin(), key.end(), key.begin(), ::tolower); // headerのkeyは大文字小文字を区別しない
+                value = utils::trim(value); // valueの前後の空白を削除
+                headers[key] = value;
             }
             else
                 return ParseHeaderResult::Error(BAD_REQUEST);
         }
-        else
-            return ParseHeaderResult::Error(BAD_REQUEST);
-    }
-
-    if (headerLine.empty() && !headers.empty())
         return ParseHeaderResult::Success(headers);
-    else
-        return ParseHeaderResult::Error(BAD_REQUEST);
+    }
 }
 
 ParseBodyResult parseHttpBody(const std::string &body, const Headers &headers, const Server &server,
@@ -222,7 +219,6 @@ ParseRequestResult parseHttpRequest(const Socket &socket)
         return ParseRequestResult::Pending();
     else
     {
-        // TODO: check
         if (nonEmptyBlocks.size() == 0)
             return ParseRequestResult::Error(BAD_REQUEST);
         std::istringstream requestTextStream(nonEmptyBlocks[0]);
@@ -251,6 +247,8 @@ ParseRequestResult parseHttpRequest(const Socket &socket)
                 else
                     return ParseRequestResult::Error(getHostNameResult.error);
             }
+            else if (parseHeaderResult.status == PENDING)
+                return ParseRequestResult::Pending();
             else
                 return ParseRequestResult::Error(parseHeaderResult.error);
         }
