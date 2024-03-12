@@ -67,12 +67,19 @@ class Socket
     bool sendMessage(uintptr_t size)
     {
         std::string message = _toBeSentMessage.substr(0, size);
-        if (send(descriptor, message.c_str(), message.size(), 0) >= 0)
+        const int sentLength = send(descriptor, message.c_str(), message.size(), 0);
+        if (sentLength >= 0)
+        {
+            _toBeSentMessage = _toBeSentMessage.substr(sentLength);
             return true;
+        }
         else
             return false;
+    };
+    bool isListenSocket() const
+    {
+        return opponentIp.empty() && opponentPort == 0;
     };
 };
 
 // TODO:compile errorが発生しているため、一時的に復活
-typedef std::vector<Socket> Sockets;

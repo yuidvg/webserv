@@ -69,4 +69,3 @@ typedef Result<CgiResponse, HttpResponse> ParseCgiResponseResult;
 
 typedef Result<const std::string, const std::string> ReadFileResult;
 
-typedef Result<const Socket, const std::string> FindSocketResult;

@@ -39,13 +39,19 @@ NewSocketResult getListenSocket(const Server server)
         close(sd);
         return (NewSocketResult::Error("listen() failed"));
     }
+
+    if (!utils::registerEvent(sd, EVFILT_READ))
+    {
+        close(sd);
+        return (NewSocketResult::Error("failed to register listen socket"));
+    }
+
     return NewSocketResult::Success(Socket(sd, ntohs(sin.sin_port)));
 }
 } // namespace
 
-GetListenSocketsResult getListenSockets(Servers servers)
+bool createListenSockets(Servers servers)
 {
-    Sockets sockets;
     std::set<int> openedPorts;
     for (Servers::iterator serverIt = servers.begin(); serverIt != servers.end(); ++serverIt)
     {
@@ -54,13 +60,13 @@ GetListenSocketsResult getListenSockets(Servers servers)
         NewSocketResult newSocketResult = getListenSocket(*serverIt);
         if (newSocketResult.success)
         {
-            sockets.push_back(newSocketResult.value);
+            SOCKETS += newSocketResult.value;
             openedPorts.insert(serverIt->port);
         }
         else
         {
-            return GetListenSocketsResult::Error(newSocketResult.error);
+            return false;
         }
     }
-    return GetListenSocketsResult::Success(sockets);
+    return true;
 }

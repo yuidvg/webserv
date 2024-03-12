@@ -3,7 +3,6 @@
 #include "socket/.hpp"
 #include "webserv.hpp"
 
-Config CONFIG;
 
 int main(int argc, char **argv)
 {
@@ -18,14 +17,13 @@ int main(int argc, char **argv)
             {
                 const Servers servers = configResult.value;
                 CONFIG.injectServers(servers);
-                GetListenSocketsResult createdSocketsResult = getListenSockets(servers);
-                if (createdSocketsResult.success)
+                if (createListenSockets(servers))
                 {
-                    eventLoop(createdSocketsResult.value);
+                    eventLoop();
                 }
                 else
                 {
-                    utils::printError(createdSocketsResult.error);
+                    utils::printError("failed to create listen sockets");
                     return 1;
                 }
             }

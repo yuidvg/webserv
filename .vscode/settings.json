@@ -64,7 +64,8 @@
 		"version": "cpp",
 		"__memory": "cpp",
 		"cerrno": "cpp",
-		"set": "cpp"
+		"set": "cpp",
+		"execution": "cpp"
 	},
 	"[cpp]": {
 		"editor.wordBasedSuggestions": "off",
