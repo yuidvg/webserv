@@ -56,11 +56,7 @@ void eventLoop()
                     }
                     else if (event.filter == EVFILT_WRITE)
                     {
-                        if (eventSocket.sendMessage(event.data))
-                        {
-                            std::cout << "message sent" << std::endl;
-                        }
-                        else
+                        if (!eventSocket.sendMessage(event.data))
                         {
                             std::cout << "socket " << eventSocket.descriptor << " is broken\n" << std::endl;
                             close(eventSocket.descriptor);

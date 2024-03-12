@@ -70,6 +70,7 @@ class Socket
         const int sentLength = send(descriptor, message.c_str(), message.size(), 0);
         if (sentLength >= 0)
         {
+            std::cout << "message sent: " << sentLength << std::endl;
             _toBeSentMessage = _toBeSentMessage.substr(sentLength);
             return true;
         }
