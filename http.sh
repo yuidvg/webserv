@@ -9,6 +9,7 @@ commands=(
     "curl -X GET http://localhost:8080/"
     "curl -X POST -d \"nickname=test\" http://localhost:8080/upload"
     "curl -X DELETE http://localhost:8080/uploadPath/upload.txt"
+    "curl -X GET http://localhost:8080/autoindex"
 )
 
 function run_and_check_command() {
