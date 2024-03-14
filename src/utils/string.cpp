@@ -125,4 +125,14 @@ std::string itoa(const int &num)
     return ss.str();
 }
 
+bool isHex(const std::string &str)
+{
+    for (int i = 0; str[i]; i++)
+    {
+        if (!std::isxdigit(str[i]))
+            return (false);
+    }
+    return (true);
+}
+
 } // namespace utils
