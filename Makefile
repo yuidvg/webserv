@@ -13,11 +13,6 @@ OBJS_DIR = obj/
 OBJS = $(patsubst $(SRCS_DIR)%,$(OBJS_DIR)%,$(SRCS:.cpp=.o))
 DEPS = $(SRCS:.cpp=.d)
 
-#CLIENT
-CLIENT_NAME = client_app
-CLIENT_SRCS = client/client.cpp
-CLIENT_OBJS = $(CLIENT_SRCS:.cpp=.o)
-
 all: $(NAME)
 
 $(NAME): $(OBJS)
@@ -38,11 +33,11 @@ fclean: clean
 
 re: fclean all
 
-client: $(CLIENT_NAME)
+test:
+	@echo "テストを開始します..."
+	@./tester/tester.sh
+	@echo "テストが完了しました。"
 
-$(CLIENT_NAME): $(CLIENT_OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $^
-
-.PHONY: all clean fclean re debug
+.PHONY: all clean fclean re test
 
 -include $(DEPS)

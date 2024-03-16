@@ -19,6 +19,7 @@ std::string removeCharacter(const std::string str, const char charToRemove);
 StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal);
 ReadFileResult readFile(const int fd);
 std::string itoa(const int &num);
+bool isHex(const std::string &str);
 
 // uri
 bool isAbsolutePath(const std::string &path);
