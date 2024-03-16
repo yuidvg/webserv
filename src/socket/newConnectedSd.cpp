@@ -9,16 +9,17 @@ NewConnectionResult newConnectedSocket(const Connection &listenSocket)
     {
         if (utils::registerEvent(newSd, EVFILT_READ) && utils::registerEvent(newSd, EVFILT_WRITE))
         {
-            return NewSocketResult::Success(Socket(
+            return NewConnectionResult::Success(Socket(
                 newSd, listenSocket.port, std::string(inet_ntoa(clientAddr.sin_addr)), ntohs(clientAddr.sin_port)));
         }
         else
         {
-            return NewSocketResult::Error("Failed to register new conected socket: " + std::string(strerror(errno)));
+            return NewConnectionResult::Error("Failed to register new conected socket: " +
+                                              std::string(strerror(errno)));
         }
     }
     else
     {
-        return NewSocketResult::Error("accept() failed: " + std::string(strerror(errno)));
+        return NewConnectionResult::Error("accept() failed: " + std::string(strerror(errno)));
     }
 }
