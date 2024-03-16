@@ -2,5 +2,5 @@
 #include "../webserv.hpp"
 
 bool createListenSockets(const Servers servers);
-NewConnectionResult newConnectedSocket(const Connection &listenSocket);
+NewConnectionResult newConnection(const Connection &listenSocket);
 PortNumberResult portNumber(const Connection sd);
