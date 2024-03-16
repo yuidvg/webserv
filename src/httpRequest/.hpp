@@ -2,4 +2,4 @@
 #include "../httpRequestAndConfig/.hpp"
 #include "../webserv.hpp"
 
-ParseRequestResult parseHttpRequest(const Socket &socket);
+ParseRequestResult parseHttpRequest(const Connection &socket);

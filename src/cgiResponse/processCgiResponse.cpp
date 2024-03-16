@@ -19,7 +19,7 @@ bool isLocalRedirectResponse(const CgiResponse &cgiResponse)
     return cgiResponse.location.size() > 0 && utils::isAbsolutePath(cgiResponse.location);
 }
 HttpResponse processLocalRedirectResponse(const CgiResponse &cgiResponse, const HttpRequest &request,
-                                          const Socket &socket)
+                                          const Connection &socket)
 {
     const HttpRequest redirectRequest(request.method, cgiResponse.location, request.headers, request.body,
                                       request.host);
@@ -48,7 +48,7 @@ HttpResponse processClientRedirectWithDocumentResponse(const CgiResponse &cgiRes
 }
 } // namespace
 
-HttpResponse processCgiResponse(const CgiResponse &cgiResponse, const HttpRequest &request, const Socket &socket)
+HttpResponse processCgiResponse(const CgiResponse &cgiResponse, const HttpRequest &request, const Connection &socket)
 {
     if (isClientRedirectWithDocumentResponse(cgiResponse))
     {

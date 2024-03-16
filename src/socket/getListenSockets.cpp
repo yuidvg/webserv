@@ -1,7 +1,7 @@
 #include ".hpp"
 namespace
 {
-NewSocketResult getListenSocket(const Server server)
+NewConnectionResult getListenSocket(const Server server)
 {
     const int sd = socket(PF_INET, SOCK_STREAM, 0);
     if (sd < 0)
@@ -57,7 +57,7 @@ bool createListenSockets(Servers servers)
     {
         if (openedPorts.find(serverIt->port) != openedPorts.end())
             continue;
-        NewSocketResult newSocketResult = getListenSocket(*serverIt);
+        NewConnectionResult newSocketResult = getListenSocket(*serverIt);
         if (newSocketResult.success)
         {
             SOCKETS += newSocketResult.value;

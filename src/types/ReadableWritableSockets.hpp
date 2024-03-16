@@ -3,6 +3,6 @@
 
 struct ReadableWritableSockets
 {
-    const Sockets::ReadableSocket& readable;
-    const Sockets::WritableSocket& writable;
+    const Connections::ReadableSocket &readable;
+    const Connections::WritableSocket &writable;
 };

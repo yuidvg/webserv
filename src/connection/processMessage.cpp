@@ -3,20 +3,19 @@
 #include "../httpResponse/.hpp"
 #include ".hpp"
 
-bool processMessage(Socket &socket)
+std::string processedMessage(Connection &connection)
 {
-    // Server server = CONFIG.getServer(getHostNameResult.value, socket.port);
+    // Server server = CONFIG.getServer(getHostNameResult.value, connection.port);
 
-    const ParseRequestResult parseHttpRequestResult = parseHttpRequest(socket);
+    const ParseRequestResult parseHttpRequestResult = parseHttpRequest(connection);
     if (parseHttpRequestResult.status == PENDING)
     {
         return false;
     }
     else
     {
-        const HttpResponse httpResponse = response(parseHttpRequestResult, socket);
+        const HttpResponse httpResponse = response(parseHttpRequestResult, connection);
         const std::string httpResponseText = responseText(httpResponse);
-        socket.appendToBeSentMessage(httpResponseText);
-        return true;
+        return connection.appendToBeSentMessage(httpResponseText);
     }
 }

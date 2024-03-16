@@ -27,7 +27,7 @@ std::string authType(const HttpRequest &request)
     return tokens.size() > 0 ? tokens[0] : "";
 }
 
-char *const *enviromentVariables(const HttpRequest &request, const Socket &socket, const Uri &uri)
+char *const *enviromentVariables(const HttpRequest &request, const Connection &socket, const Uri &uri)
 {
     std::map<std::string, std::string> env;
 
@@ -52,7 +52,7 @@ char *const *enviromentVariables(const HttpRequest &request, const Socket &socke
 }
 } // namespace
 
-HttpResponse executeCgi(const HttpRequest &request, const Socket &socket, const Uri &uri)
+HttpResponse executeCgi(const HttpRequest &request, const Connection &socket, const Uri &uri)
 {
     int requestPipe[2];
     int responsePipe[2];
@@ -97,7 +97,7 @@ HttpResponse executeCgi(const HttpRequest &request, const Socket &socket, const 
         {
             close(requestPipe[IN]);
             int status;
-            waitpid(pid, &status, 0);
+            waitpid(pid, &status, WNOHANG);
             ReadFileResult readFileResult = utils::readFile(responsePipe[OUT]);
             if (readFileResult.success)
             {

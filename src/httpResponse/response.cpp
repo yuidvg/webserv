@@ -14,7 +14,7 @@ bool isMethodAllowed(const HttpRequest &request, const Location &location)
 }
 } // namespace
 
-HttpResponse responseToValidRequest(const HttpRequest &request, const Socket &socket)
+HttpResponse responseToValidRequest(const HttpRequest &request, const Connection &socket)
 {
     const Server server = CONFIG.getServer(request.host, socket.port);
     const Location location = server.getLocation(request.target);
@@ -49,13 +49,13 @@ HttpResponse responseToValidRequest(const HttpRequest &request, const Socket &so
     }
 }
 
-HttpResponse response(const ParseRequestResult &requestResult, const Socket &socket)
+HttpResponse response(const ParseRequestResult &requestResult, const Connection &socket)
 {
     const Server server = CONFIG.getServer(requestResult.value.host, socket.port);
     if (requestResult.status == PARSED)
     {
         const HttpResponse httpResponse =
-            responseToValidRequest(requestResult.value, Socket(socket.descriptor, socket.port));
+            responseToValidRequest(requestResult.value, Connection(socket.sd, socket.port));
         if (httpResponse.statusCode == BAD_REQUEST || httpResponse.statusCode == SERVER_ERROR)
         {
             return provideErrorResponse(httpResponse, server);

@@ -31,9 +31,9 @@ typedef Result<const std::string, const std::string> GetIndexFilePathResult;
 typedef Result<const Server, const HttpResponse> MatchedServerResult;
 
 // socket
-typedef Result<const Socket, const std::string> NewSocketResult;
-typedef Result<const Sockets, const std::string> GetListenSocketsResult;
-typedef Result<const Sockets, const std::string> ReadableWritableSocketsResult;
+typedef Result<const Connection, const std::string> NewConnectionResult;
+typedef Result<const Connections, const std::string> GetListenSocketsResult;
+typedef Result<const Connections, const std::string> ReadableWritableSocketsResult;
 
 typedef Result<const unsigned int, const HttpResponse> PortNumberResult;
 
@@ -68,4 +68,3 @@ typedef Result<const int, const std::string> StoiResult;
 typedef Result<CgiResponse, HttpResponse> ParseCgiResponseResult;
 
 typedef Result<const std::string, const std::string> ReadFileResult;
-

@@ -1,6 +1,22 @@
 #include "../socket/.hpp"
 #include ".hpp"
 
+namespace
+{
+respondToReadEvent(Connection &eventSocket)
+{
+    if (eventSocket.receiveMessage(event.data) && processedMessage(eventSocket))
+    {
+    }
+    else
+    {
+        utils::printError("failed to receive message: invalid socket.");
+        close(eventSocket.sd);
+        SOCKETS -= eventSocket;
+    }
+}
+} // namespace
+
 void eventLoop()
 {
     struct kevent eventList[EVENT_BATCH_SIZE];
@@ -16,14 +32,14 @@ void eventLoop()
                 const struct kevent &event = eventList[i];
                 if (!(event.flags & EV_ERROR))
                 {
-                    Socket &eventSocket = SOCKETS[event.ident];
+                    Connection &eventSocket = SOCKETS[event.ident];
                     if (event.filter == EVFILT_READ)
                     {
                         if (!(event.flags & EV_EOF))
                         {
                             if (eventSocket.isListenSocket())
                             {
-                                const NewSocketResult newConnectedSocketResult = newConnectedSocket(eventSocket);
+                                const NewConnectionResult newConnectedSocketResult = newConnectedSocket(eventSocket);
                                 if (newConnectedSocketResult.success)
                                 {
                                     SOCKETS += newConnectedSocketResult.value;
@@ -35,40 +51,28 @@ void eventLoop()
                             }
                             else
                             {
-                                if (eventSocket.receiveMessage(event.data))
-                                {
-                                    processMessage(eventSocket);
-                                }
-                                else
-                                {
-                                    utils::printError("failed to receive message: invalid socket.");
-                                    close(eventSocket.descriptor);
-                                    SOCKETS -= eventSocket;
-                                }
                             }
                         }
                         else
                         {
-                            std::cout << "socket " << eventSocket.descriptor << " is close\n" << std::endl;
-                            close(eventSocket.descriptor);
-                            SOCKETS -= eventSocket;
+                            std::cout << "socket " << eventSocket.sd << " is close\n" << std::endl;
                         }
                     }
                     else if (event.filter == EVFILT_WRITE)
                     {
                         if (!(event.flags & EV_EOF))
                         {
-                            if (eventSocket.hasMessageToSend() && !eventSocket.sendMessage(event.data))
+                            if (!eventSocket.sendMessage(event.data))
                             {
-                                std::cout << "socket " << eventSocket.descriptor << " is broken\n" << std::endl;
-                                close(eventSocket.descriptor);
+                                std::cout << "socket " << eventSocket.sd << " is broken\n" << std::endl;
+                                close(eventSocket.sd);
                                 SOCKETS -= eventSocket;
                             }
                         }
                         else
                         {
-                            std::cout << "client " << eventSocket.descriptor << " has disconnected" << std::endl;
-                            close(eventSocket.descriptor);
+                            std::cout << "client " << eventSocket.sd << " has disconnected" << std::endl;
+                            close(eventSocket.sd);
                             SOCKETS -= eventSocket;
                         }
                     }

@@ -2,4 +2,4 @@
 #include "../webserv.hpp"
 
 void eventLoop();
-bool processMessage(Socket &socket);
+std::string processedMessage(Connection &socket);
