@@ -115,12 +115,12 @@ UnchunkBodyResult unchunkBody(const std::string &body, const size_t maxBodySize)
                     if (chunks[i].length() == chunkSize)
                     {
                         if (i == chunks.size() - 1 || unchunkedBody.length() + chunkSize > maxBodySize)
+                        {
                             return UnchunkBodyResult::Error(BAD_REQUEST);
+                        }
                         else
                         {
                             unchunkedBody += chunks[i];
-                            if (chunks[i + 1] != "0")
-                                return UnchunkBodyResult::Error(BAD_REQUEST);
                         }
                     }
                     else
