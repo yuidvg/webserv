@@ -1,6 +1,6 @@
 #include ".hpp"
 
-NewConnectionResult newConnectedSocket(const Connection &listenSocket)
+NewConnectionResult newConnection(const Connection &listenSocket)
 {
     struct sockaddr_in clientAddr;
     socklen_t clientAddrLen = sizeof(clientAddr);
@@ -9,7 +9,7 @@ NewConnectionResult newConnectedSocket(const Connection &listenSocket)
     {
         if (utils::registerEvent(newSd, EVFILT_READ) && utils::registerEvent(newSd, EVFILT_WRITE))
         {
-            return NewConnectionResult::Success(Socket(
+            return NewConnectionResult::Success(Connection(
                 newSd, listenSocket.port, std::string(inet_ntoa(clientAddr.sin_addr)), ntohs(clientAddr.sin_port)));
         }
         else

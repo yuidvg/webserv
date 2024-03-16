@@ -3,7 +3,7 @@
 
 namespace
 {
-respondToReadEvent(Connection &eventSocket)
+bool respondToReadEvent(Connection &eventSocket)
 {
     if (eventSocket.receiveMessage(event.data) && processedMessage(eventSocket))
     {
@@ -39,7 +39,7 @@ void eventLoop()
                         {
                             if (eventSocket.isListenSocket())
                             {
-                                const NewConnectionResult newConnectedSocketResult = newConnectedSocket(eventSocket);
+                                const NewConnectionResult newConnectedSocketResult = newConnection(eventSocket);
                                 if (newConnectedSocketResult.success)
                                 {
                                     CONNECTIONS += newConnectedSocketResult.value;
