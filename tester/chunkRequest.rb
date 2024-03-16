@@ -15,7 +15,7 @@ class ChunkTest
           body = "hogehoge#{i}\nfugafuga#{i}"
           size = body.size
           head = \
-            "POST /upload/ HTTP/1.1\r\nUser-Agent: curl/7.28.0\r\nHost: #{@host}:#{@port}\r\nContent-type: text/plain\r\nTransfer-Encoding: chunked\r\nConnection: Keep-Alive\r\nExpect: 100-continue\r\n\r\n"
+            "POST /upload HTTP/1.1\r\nUser-Agent: curl/7.28.0\r\nHost: #{@host}:#{@port}\r\nContent-type: text/plain\r\nTransfer-Encoding: chunked\r\nConnection: Keep-Alive\r\nExpect: 100-continue\r\n\r\n"
           if i == 0
             stdin << head
           elsif i > 10
@@ -24,11 +24,15 @@ class ChunkTest
           else
             chunk = "#{size.to_s(16)}\r\n#{body}\r\n"
             stdin << chunk
+            sleep 1
           end
           i += 1
         end
+
       ensure
-        stdin.close
+        # 明示的にプロセスを終了させる
+        Process.kill("TERM", wait_thr.pid)
+        wait_thr.value # プロセスの終了を待つ
       end
     end
   end
