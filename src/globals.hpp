@@ -71,6 +71,6 @@ const std::string EMPTY_LINE = "\n\n";
 
 extern const int KQ;
 
-extern Sockets SOCKETS;
+extern Connections CONNECTIONS;
 
 #define EVENT_BATCH_SIZE 1024

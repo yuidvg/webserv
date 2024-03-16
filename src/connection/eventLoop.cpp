@@ -12,7 +12,7 @@ respondToReadEvent(Connection &eventSocket)
     {
         utils::printError("failed to receive message: invalid socket.");
         close(eventSocket.sd);
-        SOCKETS -= eventSocket;
+        CONNECTIONS -= eventSocket;
     }
 }
 } // namespace
@@ -32,7 +32,7 @@ void eventLoop()
                 const struct kevent &event = eventList[i];
                 if (!(event.flags & EV_ERROR))
                 {
-                    Connection &eventSocket = SOCKETS[event.ident];
+                    Connection &eventSocket = CONNECTIONS[event.ident];
                     if (event.filter == EVFILT_READ)
                     {
                         if (!(event.flags & EV_EOF))
@@ -42,7 +42,7 @@ void eventLoop()
                                 const NewConnectionResult newConnectedSocketResult = newConnectedSocket(eventSocket);
                                 if (newConnectedSocketResult.success)
                                 {
-                                    SOCKETS += newConnectedSocketResult.value;
+                                    CONNECTIONS += newConnectedSocketResult.value;
                                 }
                                 else
                                 {
@@ -66,14 +66,14 @@ void eventLoop()
                             {
                                 std::cout << "socket " << eventSocket.sd << " is broken\n" << std::endl;
                                 close(eventSocket.sd);
-                                SOCKETS -= eventSocket;
+                                CONNECTIONS -= eventSocket;
                             }
                         }
                         else
                         {
                             std::cout << "client " << eventSocket.sd << " has disconnected" << std::endl;
                             close(eventSocket.sd);
-                            SOCKETS -= eventSocket;
+                            CONNECTIONS -= eventSocket;
                         }
                     }
                 }

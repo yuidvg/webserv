@@ -60,7 +60,7 @@ bool createListenSockets(Servers servers)
         NewConnectionResult newSocketResult = getListenSocket(*serverIt);
         if (newSocketResult.success)
         {
-            SOCKETS += newSocketResult.value;
+            CONNECTIONS += newSocketResult.value;
             openedPorts.insert(serverIt->port);
         }
         else

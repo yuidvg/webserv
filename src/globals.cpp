@@ -10,6 +10,6 @@ const HttpResponse METHOD_NOT_ALLOWED_RESPONSE(const std::string &allowedMethods
 
 const int KQ = kqueue();
 
-Connections SOCKETS;
+Connections CONNECTIONS;
 
 Config CONFIG;
