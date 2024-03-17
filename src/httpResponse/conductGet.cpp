@@ -17,6 +17,14 @@ HttpResponse conductGet(const Uri &uri, const Location &location)
                            ? HttpResponse(SUCCESS, directoryListHtmlResult.value, "text/html")
                            : BAD_REQUEST_RESPONSE;
             }
+            else if (location.index.size() > 0)
+            {
+                const std::string indexPath = uri.extraPath + location.index;
+                const FileContentResult fileContentResult = utils::fileContent(indexPath);
+                return fileContentResult.success
+                           ? HttpResponse(SUCCESS, fileContentResult.value, utils::contentType(indexPath))
+                           : BAD_REQUEST_RESPONSE;
+            }
             else
             {
                 return BAD_REQUEST_RESPONSE;
