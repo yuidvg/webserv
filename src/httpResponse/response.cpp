@@ -14,9 +14,9 @@ bool isMethodAllowed(const HttpRequest &request, const Location &location)
 }
 } // namespace
 
-HttpResponse responseToValidRequest(const HttpRequest &request, const Connection &socket)
+ImmidiateResponse retrieveImmidiateResponse(const HttpRequest &request, const Connection &connection)
 {
-    const Server server = CONFIG.getServer(request.host, socket.port);
+    const Server server = CONFIG.getServer(request.host, connection.port);
     const Location location = server.getLocation(request.target);
 
     if (isMethodAllowed(request, location))
@@ -25,46 +25,27 @@ HttpResponse responseToValidRequest(const HttpRequest &request, const Connection
         const Uri uri = segmentUri(resolvedPath, location.cgiExtension);
         if (uri.scriptPath.size() > 0)
         {
-            return executeCgi(request, socket, uri);
+            return ImmidiateResponse::Left(retrieveCgiRequest(request, connection, uri));
         }
         else
         {
             if (!location.redirect.empty())
             {
-                return redirectResponse(location.redirect);
+                return ImmidiateResponse::Right(redirectResponse(location.redirect));
             }
             if (request.method == "GET")
-                return conductGet(uri, location);
+                return ImmidiateResponse::Right(conductGet(uri, location));
             else if (request.method == "POST")
-                return conductPost(request, location);
+                return ImmidiateResponse::Right(conductPost(request, location));
             else if (request.method == "DELETE")
-                return conductDelete(request.target);
+                return ImmidiateResponse::Right(conductDelete(request.target));
             else
-                return METHOD_NOT_ALLOWED_RESPONSE("GET, POST, DELETE");
+                return ImmidiateResponse::Right(METHOD_NOT_ALLOWED_RESPONSE("GET, POST, DELETE"));
         }
     }
     else
     {
-        return METHOD_NOT_ALLOWED_RESPONSE(utils::join(location.allowMethods, ", "));
-    }
-}
-
-HttpResponse response(const ParseRequestResult &requestResult, const Connection &socket)
-{
-    const Server server = CONFIG.getServer(requestResult.value.host, socket.port);
-    if (requestResult.status == PARSED)
-    {
-        const HttpResponse httpResponse =
-            responseToValidRequest(requestResult.value, Connection(socket.sd, socket.port));
-        if (httpResponse.statusCode == BAD_REQUEST || httpResponse.statusCode == SERVER_ERROR)
-        {
-            return provideErrorResponse(httpResponse, server);
-        }
-        return (httpResponse);
-    }
-    else
-    {
-        return provideErrorResponse(requestResult.error, server);
+        return ImmidiateResponse::Right(METHOD_NOT_ALLOWED_RESPONSE(utils::join(location.allowMethods, ", ")));
     }
 }
 

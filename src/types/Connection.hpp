@@ -44,9 +44,16 @@ class Connection
         return !(*this == other);
     };
 
-    bool receiveMessage(intptr_t sizeData)
+    void clearReceivedMessage()
     {
-        size_t size = sizeData;
+        _receivedMessage = "";
+    };
+    std::string getReceivedMessage() const
+    {
+        return _receivedMessage;
+    };
+    bool receiveMessage(size_t size)
+    {
         char *buffer = new char[size + 1];
         const ssize_t receivedLength = recv(sd, buffer, size, 0);
         if (receivedLength >= 0)
@@ -57,19 +64,11 @@ class Connection
         delete[] buffer;
         return receivedLength >= 0;
     };
-    std::string getReceivedMessage() const
-    {
-        return _receivedMessage;
-    };
-    bool appendToBeSentMessage(const std::string &message)
+    void appendToBeSentMessage(const std::string &message)
     {
         _toBeSentMessage += message;
         if (!utils::setEventFlags(sd, EVFILT_WRITE, EV_ENABLE))
-        {
             std::cerr << "failed to set event flags" << std::endl;
-            return false;
-        }
-        return true;
     };
     bool hasMessageToSend() const
     {

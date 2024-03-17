@@ -16,9 +16,10 @@ int main(int argc, char **argv)
             {
                 const Servers servers = configResult.value;
                 CONFIG.injectServers(servers);
-                if (createListenSockets(servers))
+                const SocketsResult listenSocketsResult = createListenSockets(servers);
+                if (listenSocketsResult.success)
                 {
-                    eventLoop();
+                    eventLoop(listenSocketsResult.value);
                 }
                 else
                 {

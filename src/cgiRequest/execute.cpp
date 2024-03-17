@@ -52,6 +52,30 @@ char *const *enviromentVariables(const HttpRequest &request, const Connection &s
 }
 } // namespace
 
+CgiRequest retrieveCgiRequest(const HttpRequest &request, const Connection &connection, const Uri &uri)
+{
+    std::map<std::string, std::string> env;
+    env["AUTH_TYPE"] = authType(request);
+    env["CONTENT_LENGTH"] = utils::itoa(request.body.size());
+    env["CONTENT_TYPE"] = utils::value(request.headers, std::string("content-type"));
+    env["GATEWAY_INTERFACE"] = GATEWAY_INTERFACE;
+    env["PATH_INFO"] = uri.extraPath;
+    env["PATH_TRANSLATED"] =
+        uri.extraPath.size() > 0
+            ? resolvePath(uri.extraPath, CONFIG.getServer(request.host, connection.port).getLocation(request.target))
+            : "";
+    env["QUERY_STRING"] = uri.queryString;
+    env["REMOTE_ADDR"] = connection.opponentIp;
+    env["REQUEST_METHOD"] = request.method;
+    env["SCRIPT_NAME"] = uri.scriptPath;
+    env["SERVER_NAME"] = request.host;
+    env["SERVER_PORT"] = connection.port;
+    env["SERVER_PROTOCOL"] = SERVER_PROTOCOL;
+    env["SERVER_SOFTWARE"] = SERVER_SOFTWARE;
+
+    return CgiRequest(env, request.target, request.body);
+}
+
 HttpResponse executeCgi(const HttpRequest &request, const Connection &socket, const Uri &uri)
 {
     int requestPipe[2];

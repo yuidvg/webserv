@@ -1,23 +1,10 @@
 #include "../socket/.hpp"
+#include "../httpRequest/.hpp"
+#include "../httpResponse/.hpp"
+
 #include ".hpp"
 
-namespace
-{
-bool respondToReadEvent(Connection &eventSocket)
-{
-    if (eventSocket.receiveMessage(event.data) && processedMessage(eventSocket))
-    {
-    }
-    else
-    {
-        utils::printError("failed to receive message: invalid socket.");
-        close(eventSocket.sd);
-        CONNECTIONS -= eventSocket;
-    }
-}
-} // namespace
-
-void eventLoop()
+void eventLoop(Sockets listenSockets)
 {
     struct kevent eventList[EVENT_BATCH_SIZE];
 
@@ -30,56 +17,85 @@ void eventLoop()
             for (int i = 0; i < numOfEvents; ++i)
             {
                 const struct kevent &event = eventList[i];
-                if (!(event.flags & EV_ERROR))
+                const Sockets::const_iterator eventListenSocketIt = listenSockets.find(Socket(event.ident));
+                if (eventListenSocketIt != listenSockets.end())
                 {
-                    Connection &eventSocket = CONNECTIONS[event.ident];
-                    if (event.filter == EVFILT_READ)
+                    const NewConnectionResult newConnectedSocketResult = newConnection(*eventListenSocketIt);
+                    if (newConnectedSocketResult.success)
+                        CONNECTIONS += newConnectedSocketResult.value;
+                    else
+                        utils::printError(newConnectedSocketResult.error);
+                }
+                else
+                {
+                    if (!(event.flags & EV_ERROR))
                     {
-                        if (!(event.flags & EV_EOF))
+                        Connection &eventConnection = CONNECTIONS[event.ident];
+                        if (event.filter == EVFILT_READ)
                         {
-                            if (eventSocket.isListenSocket())
+                            if (!(event.flags & EV_EOF))
                             {
-                                const NewConnectionResult newConnectedSocketResult = newConnection(eventSocket);
-                                if (newConnectedSocketResult.success)
+                                if (eventConnection.receiveMessage(event.data))
                                 {
-                                    CONNECTIONS += newConnectedSocketResult.value;
+                                    const ParseRequestResult parseMessageResult =
+                                        parseHttpRequest(eventConnection.getReceivedMessage(), eventConnection.port);
+                                    if (parseMessageResult.status == PARSED || parseMessageResult.status == ERROR)
+                                    {
+                                        eventConnection.clearReceivedMessage();
+                                        if (parseMessageResult.status == PARSED)
+                                        {
+                                            ImmidiateResponse immidiateResponse =
+                                                retrieveImmidiateResponse(parseMessageResult.value, eventConnection);
+                                            if (immidiateResponse.tag == RIGHT)
+                                                eventConnection.appendToBeSentMessage(
+                                                    responseText(immidiateResponse.rightValue));
+                                            else if (immidiateResponse.tag == LEFT)
+                                            {
+                                                const CgiRequest &cgiRequest = immidiateResponse.leftValue;
+                                                const HttpResponse cgiResponse =
+                                                    executeCgi(cgiRequest, eventConnection, cgiRequest.uri);
+                                                eventConnection.appendToBeSentMessage(responseText(cgiResponse));
+                                            }
+                                        }
+                                        else if (parseMessageResult.status == ERROR)
+                                            eventConnection.appendToBeSentMessage(responseText(BAD_REQUEST_RESPONSE));
+                                    }
                                 }
                                 else
                                 {
-                                    utils::printError(newConnectedSocketResult.error);
+                                    utils::printError("failed to receive message: invalid socket.");
+                                    close(eventConnection.sd);
+                                    CONNECTIONS -= eventConnection;
                                 }
                             }
                             else
                             {
+                                std::cout << "socket " << eventConnection.sd << " is close\n" << std::endl;
                             }
                         }
-                        else
+                        else if (event.filter == EVFILT_WRITE)
                         {
-                            std::cout << "socket " << eventSocket.sd << " is close\n" << std::endl;
-                        }
-                    }
-                    else if (event.filter == EVFILT_WRITE)
-                    {
-                        if (!(event.flags & EV_EOF))
-                        {
-                            if (!eventSocket.sendMessage(event.data))
+                            if (!(event.flags & EV_EOF))
                             {
-                                std::cout << "socket " << eventSocket.sd << " is broken\n" << std::endl;
-                                close(eventSocket.sd);
-                                CONNECTIONS -= eventSocket;
+                                if (!eventConnection.sendMessage(event.data))
+                                {
+                                    std::cerr << "socket " << eventConnection.sd << " is broken\n" << std::endl;
+                                    close(eventConnection.sd);
+                                    CONNECTIONS -= eventConnection;
+                                }
+                            }
+                            else
+                            {
+                                std::cout << "client " << eventConnection.sd << " has disconnected" << std::endl;
+                                close(eventConnection.sd);
+                                CONNECTIONS -= eventConnection;
                             }
                         }
-                        else
-                        {
-                            std::cout << "client " << eventSocket.sd << " has disconnected" << std::endl;
-                            close(eventSocket.sd);
-                            CONNECTIONS -= eventSocket;
-                        }
                     }
-                }
-                else
-                {
-                    utils::printError("kernel event error");
+                    else
+                    {
+                        utils::printError("kernel event error");
+                    }
                 }
             }
         }

@@ -37,7 +37,7 @@ typedef Result<const Connections, const std::string> ReadableWritableSocketsResu
 
 typedef Result<const unsigned int, const HttpResponse> PortNumberResult;
 
-typedef Result<const HttpResponse, const HttpResponse> ResponseResult;
+typedef Result<const HttpResponse, const HttpResponse> ImmidiateResponse;
 
 namespace parseConfig
 {
@@ -68,3 +68,10 @@ typedef Result<const int, const std::string> StoiResult;
 typedef Result<CgiResponse, HttpResponse> ParseCgiResponseResult;
 
 typedef Result<const std::string, const std::string> ReadFileResult;
+
+typedef Result<const Socket, const std::string> NewSocketResult;
+
+typedef std::set<const Socket> Sockets;
+typedef Result<const Sockets, const std::string> SocketsResult;
+
+typedef Either<CgiRequest, HttpResponse> ImmidiateResponse;

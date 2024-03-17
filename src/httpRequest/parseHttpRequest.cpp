@@ -231,9 +231,8 @@ ParseBodyResult parseHttpBody(const std::string &body, const Headers &headers, c
     }
 }
 
-ParseRequestResult parseHttpRequest(const Socket &socket)
+ParseRequestResult parseHttpRequest(const std::string message, const int port)
 {
-    const std::string message = socket.getReceivedMessage();
     const std::vector<std::string> blocks = utils::split(message, CRLF + CRLF);
     const std::vector<std::string> nonEmptyBlocks = removeEmptyBlocks(blocks);
     if (nonEmptyBlocks.size() < 2 && message.find("POST") != std::string::npos)
@@ -253,8 +252,8 @@ ParseRequestResult parseHttpRequest(const Socket &socket)
                 if (getHostNameResult.success)
                 {
                     const ParseBodyResult parseBodyResult = parseHttpBody(
-                        nonEmptyBlocks[1], parseHeaderResult.value,
-                        CONFIG.getServer(getHostNameResult.value, socket.port), parseRequestLineResult.value.method);
+                        nonEmptyBlocks[1], parseHeaderResult.value, CONFIG.getServer(getHostNameResult.value, port),
+                        parseRequestLineResult.value.method);
                     if (parseBodyResult.status == PARSED)
                     {
                         return ParseRequestResult::Success(

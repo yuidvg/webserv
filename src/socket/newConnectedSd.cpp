@@ -1,10 +1,10 @@
 #include ".hpp"
 
-NewConnectionResult newConnection(const Connection &listenSocket)
+NewConnectionResult newConnection(const Socket &listenSocket)
 {
     struct sockaddr_in clientAddr;
     socklen_t clientAddrLen = sizeof(clientAddr);
-    const int newSd = accept(listenSocket.sd, (struct sockaddr *)&clientAddr, &clientAddrLen);
+    const int newSd = accept(listenSocket.descriptor, (struct sockaddr *)&clientAddr, &clientAddrLen);
     if (newSd >= 0)
     {
         if (utils::registerEvent(newSd, EVFILT_READ) && utils::registerEvent(newSd, EVFILT_WRITE))
