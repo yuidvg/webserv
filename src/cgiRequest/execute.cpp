@@ -80,10 +80,11 @@ HttpResponse executeCgi(const HttpRequest &request, const Connection &socket, co
 {
     int requestPipe[2];
     int responsePipe[2];
+    const Server &server = CONFIG.getServer(request.host, socket.port);
     if (pipe(requestPipe) == -1 || pipe(responsePipe) == -1)
     {
         std::cerr << "pipe failed" << std::endl;
-        return (SERVER_ERROR_RESPONSE);
+        return utils::generateErrorResponse(SERVER_ERROR, server);
     }
     char *const *envp = enviromentVariables(request, socket, uri);
     char *args[2];
@@ -96,7 +97,7 @@ HttpResponse executeCgi(const HttpRequest &request, const Connection &socket, co
         close(requestPipe[IN]);
         close(responsePipe[OUT]);
         close(responsePipe[IN]);
-        return (SERVER_ERROR_RESPONSE);
+        return utils::generateErrorResponse(SERVER_ERROR, server);
     }
     else if (pid == 0) // child process
     {
@@ -111,7 +112,7 @@ HttpResponse executeCgi(const HttpRequest &request, const Connection &socket, co
         execve(uri.scriptPath.c_str(), args, envp);
         std::cerr << "execve failed: " << strerror(errno) << std::endl;
         utils::deleteCStrArray(envp);
-        return (SERVER_ERROR_RESPONSE);
+        return utils::generateErrorResponse(SERVER_ERROR, server);
     }
     else // parent process
     {
@@ -128,7 +129,7 @@ HttpResponse executeCgi(const HttpRequest &request, const Connection &socket, co
                 close(responsePipe[OUT]);
                 std::string response = readFileResult.value;
 
-                const ParseCgiResponseResult parseCgiResponseResult = parseCgiResponse(response);
+                const ParseCgiResponseResult parseCgiResponseResult = parseCgiResponse(response, server);
                 if (parseCgiResponseResult.success)
                 {
                     CgiResponse cgiResponse = parseCgiResponseResult.value;
@@ -142,13 +143,13 @@ HttpResponse executeCgi(const HttpRequest &request, const Connection &socket, co
             else
             {
                 std::cerr << "read failed" << std::endl;
-                return (SERVER_ERROR_RESPONSE);
+                return utils::generateErrorResponse(SERVER_ERROR, server);
             }
         }
         else
         {
             std::cerr << "write failed" << std::endl;
-            return (SERVER_ERROR_RESPONSE);
+            return utils::generateErrorResponse(SERVER_ERROR, server);
         }
     }
 }

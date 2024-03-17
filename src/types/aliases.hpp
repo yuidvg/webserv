@@ -59,7 +59,7 @@ typedef Result<const std::string, const std::string> RedirectResult;
 } // namespace parseConfig
 
 typedef Result<const int, const std::string> StringToIntResult;
-typedef Result<const bool, const HttpResponse> IsDirectoryResult;
+typedef Result<const bool, const int> IsDirectoryResult;
 typedef Result<const std::string, const HttpResponse> FileContentResult;
 
 typedef std::vector<std::string> Strings;

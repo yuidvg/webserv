@@ -15,6 +15,9 @@ curl_commands=(
     "curl -X GET http://localhost:8080/cgi-bin/submit.cgi"
     "curl -X GET http://localhost:8080/cgi-bin/redirect.cgi"
     "curl -X GET http://localhost:8080/cgi-bin/localRedirect.cgi"
+    "curl -X GET http://localhost:8080/nothing"
+    "curl -X DELETE http://localhost:8080/uploadPath/nothing"
+    "curl -X POST -d \"nickname=test\" http://localhost:8080/nothing"
 )
 
 other_commands=(
@@ -31,9 +34,9 @@ function run_and_check_curl_command() {
     elif [[ $http_code -ge 300 && $http_code -le 399 ]]; then
         echo -en "${GREEN}OK (${http_code})"
     elif [[ $http_code -ge 400 && $http_code -le 499 ]]; then
-        echo -en "${RED}Client Error (${http_code})"
+        echo -en "${RED}Error (${http_code})"
     elif [[ $http_code -ge 500 && $http_code -le 599 ]]; then
-        echo -en "${RED}Server Error (${http_code})"
+        echo -en "${RED}Error (${http_code})"
     else
         echo -en "${RED}Unknown code: ${http_code}"
     fi
@@ -63,4 +66,4 @@ echo "Running other commands..."
 for cmd in "${other_commands[@]}"; do
     run_other_command "$cmd"
 done
-siege -c 10 -r 10 http://localhost:8080 -b
+# siege -c 10 -r 10 http://localhost:8080 -b

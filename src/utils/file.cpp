@@ -20,20 +20,6 @@ FileContentResult fileContent(const std::string &path)
     return (FileContentResult::Success(fileContent));
 }
 
-HttpResponse writeToFile(const std::string &path, const std::string &fileContent)
-{
-    std::ofstream ofs(path);
-    if (ofs.is_open())
-    {
-        ofs << fileContent;
-        return (HttpResponse(SUCCESS, fileContent, "text/html"));
-    }
-    else
-    {
-        return (BAD_REQUEST_RESPONSE);
-    }
-}
-
 std::string contentType(const std::string &path)
 {
     const std::string extension = path.substr(path.find_last_of(".") + 1);
@@ -88,23 +74,22 @@ IsDirectoryResult isDirectory(const std::string &path)
     struct stat statbuf;
     if (stat(path.c_str(), &statbuf) != 0)
     {
-        return IsDirectoryResult::Error(BAD_REQUEST_RESPONSE);
+        return IsDirectoryResult::Error(BAD_REQUEST);
     }
     return IsDirectoryResult::Success(S_ISDIR(statbuf.st_mode));
 }
-
 
 bool createFile(const std::string &fileName, const std::string &path)
 {
     std::string fullPath = path + fileName;
     std::ofstream file(fullPath.c_str());
-    if (!file) {
+    if (!file)
+    {
         std::cerr << "Failed to create file: " << fullPath << std::endl;
         return false;
     }
     file.close();
     return true;
 }
-
 
 } // namespace utils
