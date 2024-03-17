@@ -34,11 +34,11 @@ HttpResponse responseToValidRequest(const HttpRequest &request, const Connection
                 return redirectResponse(location.redirect);
             }
             if (request.method == "GET")
-                return conductGet(uri, location);
+                return conductGet(uri, location, server);
             else if (request.method == "POST")
-                return conductPost(request, location);
+                return conductPost(request, location, server);
             else if (request.method == "DELETE")
-                return conductDelete(request.target);
+                return conductDelete(request.target, server);
             else
                 return METHOD_NOT_ALLOWED_RESPONSE("GET, POST, DELETE");
         }
@@ -58,13 +58,13 @@ HttpResponse response(const ParseRequestResult &requestResult, const Connection 
             responseToValidRequest(requestResult.value, Connection(socket.sd, socket.port));
         if (httpResponse.statusCode == BAD_REQUEST || httpResponse.statusCode == SERVER_ERROR)
         {
-            return provideErrorResponse(httpResponse, server);
+            return utils::generateErrorResponse(httpResponse.statusCode, server);
         }
         return (httpResponse);
     }
     else
     {
-        return provideErrorResponse(requestResult.error, server);
+        return utils::generateErrorResponse(requestResult.error.statusCode, server);
     }
 }
 

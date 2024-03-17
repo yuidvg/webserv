@@ -68,6 +68,6 @@ HttpResponse processCgiResponse(const CgiResponse &cgiResponse, const HttpReques
     }
     else
     {
-        return SERVER_ERROR_RESPONSE;
+        return utils::generateErrorResponse(SERVER_ERROR, CONFIG.getServer(request.host, socket.port));
     }
 }

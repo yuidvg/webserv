@@ -2,7 +2,21 @@
 #include "../httpRequestAndConfig/.hpp"
 #include ".hpp"
 
-HttpResponse conductPost(const HttpRequest &request, const Location &location)
+static HttpResponse writeToFile(const std::string &path, const std::string &fileContent, const Server &server)
+{
+    std::ofstream ofs(path);
+    if (ofs.is_open())
+    {
+        ofs << fileContent;
+        return (HttpResponse(SUCCESS, fileContent, "text/html"));
+    }
+    else
+    {
+        return (utils::generateErrorResponse(BAD_REQUEST, server));
+    }
+}
+
+HttpResponse conductPost(const HttpRequest &request, const Location &location, const Server &server)
 {
     const std::string targetFilePath = resolvePath(location.uploadPath, request.target);
 
@@ -10,10 +24,10 @@ HttpResponse conductPost(const HttpRequest &request, const Location &location)
     if (!isDirectoryResult.success)
         return isDirectoryResult.error;
     if (!isDirectoryResult.value)
-        return BAD_REQUEST_RESPONSE;
+        return utils::generateErrorResponse(isDirectoryResult.error, server);
     const std::string fileName = std::string(utils::removeCharacter(request.target, '/') + ".txt");
     if (!utils::createFile(fileName, location.uploadPath))
-        return BAD_REQUEST_RESPONSE;
+        return utils::generateErrorResponse(BAD_REQUEST, server);
     const std::string fullFilePath = resolvePath(location.uploadPath, fileName);
-    return utils::writeToFile(fullFilePath, request.body);
+    return writeToFile(fullFilePath, request.body, server);
 }

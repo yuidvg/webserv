@@ -8,6 +8,7 @@ namespace utils
 {
 unsigned int lengthOfPrefixMatch(const std::string string, const std::string pattern);
 
+HttpResponse generateErrorResponse(const int statusCode, const Server &server);
 // string
 std::string &trim(std::string &str);
 std::string lowerCase(const std::string str);
@@ -27,7 +28,6 @@ bool isAbsoluteUri(const std::string &uri);
 
 // file
 FileContentResult fileContent(const std::string &path);
-HttpResponse writeToFile(const std::string &path, const std::string &fileContent);
 std::string contentType(const std::string &path);
 IsDirectoryResult isDirectory(const std::string &path);
 bool createFile(const std::string &fileName, const std::string &path);

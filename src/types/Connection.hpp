@@ -96,5 +96,3 @@ class Connection
         return opponentIp.empty() && opponentPort == 0;
     };
 };
-
-// TODO:compile errorが発生しているため、一時的に復活
