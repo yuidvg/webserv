@@ -19,7 +19,7 @@ HttpResponse conductGet(const Uri &uri, const Location &location)
             }
             else if (location.index.size() > 0)
             {
-                const std::string indexPath = uri.extraPath + location.index;
+                const std::string indexPath = uri.extraPath + "/" + location.index;
                 const FileContentResult fileContentResult = utils::fileContent(indexPath);
                 return fileContentResult.success
                            ? HttpResponse(SUCCESS, fileContentResult.value, utils::contentType(indexPath))
