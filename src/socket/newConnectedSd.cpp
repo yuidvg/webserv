@@ -1,6 +1,6 @@
 #include ".hpp"
 
-NewConnectionResult newConnection(const Socket &listenSocket)
+NewClientResult newConnection(const Socket &listenSocket)
 {
     struct sockaddr_in clientAddr;
     socklen_t clientAddrLen = sizeof(clientAddr);
@@ -9,17 +9,16 @@ NewConnectionResult newConnection(const Socket &listenSocket)
     {
         if (utils::registerEvent(newSd, EVFILT_READ) && utils::registerEvent(newSd, EVFILT_WRITE))
         {
-            return NewConnectionResult::Success(Connection(
+            return NewClientResult::Success(Client(
                 newSd, listenSocket.port, std::string(inet_ntoa(clientAddr.sin_addr)), ntohs(clientAddr.sin_port)));
         }
         else
         {
-            return NewConnectionResult::Error("Failed to register new conected socket: " +
-                                              std::string(strerror(errno)));
+            return NewClientResult::Error("Failed to register new conected socket: " + std::string(strerror(errno)));
         }
     }
     else
     {
-        return NewConnectionResult::Error("accept() failed: " + std::string(strerror(errno)));
+        return NewClientResult::Error("accept() failed: " + std::string(strerror(errno)));
     }
 }

@@ -1,9 +1,12 @@
 #pragma once
 
+#include "Cgi.hpp"
+#include "CgiRequest.hpp"
 #include "CgiResponse.hpp"
+#include "Cgis.hpp"
+#include "Client.hpp"
+#include "Clients.hpp"
 #include "Config.hpp"
-#include "Connection.hpp"
-#include "Connections.hpp"
 #include "Either.hpp"
 #include "Headers.hpp"
 #include "HttpRequest.hpp"
@@ -14,4 +17,3 @@
 #include "ScriptUri.hpp"
 #include "Server.hpp"
 #include "Socket.hpp"
-#include "CgiRequest.hpp"

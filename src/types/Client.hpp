@@ -1,8 +1,13 @@
 #pragma once
-#include "../utils/.hpp"
 #include "external.hpp"
 
-class Connection
+namespace utils
+{
+bool setEventFlags(const uintptr_t identifier, const int16_t filter, const uint16_t flags);
+
+} // namespace utils
+
+class Client
 {
   private:
     std::string _receivedMessage;
@@ -10,21 +15,22 @@ class Connection
 
   public:
     const int sd;
-    const unsigned int port;
+    const unsigned int serverPort;
     const std::string opponentIp;
     const unsigned int opponentPort;
 
-    Connection() : sd(0), port(0), opponentIp(""), opponentPort(0){};
-    Connection(const int sd, const unsigned int port, const std::string &opponentIp = "",
-               const unsigned int opponentPort = 0)
-        : sd(sd), port(port), opponentIp(opponentIp), opponentPort(opponentPort){};
-    ~Connection(){};
-    Connection(const Connection &other)
+    Client() : _receivedMessage(""), _toBeSentMessage(""), sd(0), serverPort(0), opponentIp(""), opponentPort(0){};
+    Client(const int sd, const unsigned int serverPort, const std::string &opponentIp = "",
+           const unsigned int opponentPort = 0)
+        : _receivedMessage(""), _toBeSentMessage(""), sd(sd), serverPort(serverPort), opponentIp(opponentIp),
+          opponentPort(opponentPort){};
+    ~Client(){};
+    Client(const Client &other)
         : _receivedMessage(other._receivedMessage), _toBeSentMessage(other._toBeSentMessage), sd(other.sd),
-          port(other.port), opponentIp(other.opponentIp), opponentPort(other.opponentPort)
+          serverPort(other.serverPort), opponentIp(other.opponentIp), opponentPort(other.opponentPort)
     {
     }
-    Connection &operator=(const Connection &other)
+    Client &operator=(const Client &other)
     {
         if (this != &other)
         {
@@ -34,12 +40,12 @@ class Connection
         return *this;
     }
 
-    bool operator==(const Connection &other) const
+    bool operator==(const Client &other) const
     {
-        return sd == other.sd && port == other.port && opponentIp == other.opponentIp &&
+        return sd == other.sd && serverPort == other.serverPort && opponentIp == other.opponentIp &&
                opponentPort == other.opponentPort;
     };
-    bool operator!=(const Connection &other) const
+    bool operator!=(const Client &other) const
     {
         return !(*this == other);
     };
@@ -89,9 +95,5 @@ class Connection
         }
         else
             return false;
-    };
-    bool isListenSocket() const
-    {
-        return opponentIp.empty() && opponentPort == 0;
     };
 };

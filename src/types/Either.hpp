@@ -21,6 +21,6 @@ template <typename L, typename R> struct Either
     };
     static Either<L, R> Left(const L leftValue)
     {
-        return (Either<L, R>(rightValue, R(), LEFT));
+        return (Either<L, R>(leftValue, R(), LEFT));
     };
 };

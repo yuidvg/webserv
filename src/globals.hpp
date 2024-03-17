@@ -6,9 +6,9 @@ const std::string SERVER_PROTOCOL = "HTTP/1.1";
 const std::string GATEWAY_INTERFACE = "CGI/1.1";
 const std::string SERVER_SOFTWARE = "webserv/1.0";
 
-// pipes
-const unsigned int IN = 1;
-const unsigned int OUT = 0;
+// domain sockets
+const unsigned int SERVER_END = 0;
+const unsigned int CGI = 1;
 
 // charsets
 const std::string CRLF = "\r\n";
@@ -57,6 +57,7 @@ const HttpResponse SERVER_ERROR_RESPONSE =
                  "complete your request.<br /></p> </body> </html>",
                  "text/html");
 
+
 const HttpResponse SUCCESS_RESPONSE = HttpResponse(SUCCESS);
 
 const HttpResponse METHOD_NOT_ALLOWED_RESPONSE(const std::string &allowedMethods);
@@ -71,6 +72,9 @@ const std::string EMPTY_LINE = "\n\n";
 
 extern const int KQ;
 
-extern Connections CONNECTIONS;
+extern Clients CLIENTS;
+
+extern Cgis CGIS;
 
 #define EVENT_BATCH_SIZE 1024
+

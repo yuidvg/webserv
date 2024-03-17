@@ -93,7 +93,7 @@ ParseServerResult parseServerContext(std::vector<std::string> &tokens)
     Server server;
     std::string name = server.name;
     size_t port = server.port;
-    std::map<int, std::string> errorPages;
+    ErrorPages errorPages;
     size_t clientMaxBodySize = server.clientMaxBodySize;
     Locations locations;
 
@@ -127,14 +127,10 @@ ParseServerResult parseServerContext(std::vector<std::string> &tokens)
         }
         else if (directiveTokens[0] == ERROR_PAGE)
         {
-            ErrorPagesResult errorPageRes = parseErrorPage(directiveTokens);
-            if (!errorPageRes.success)
-                return ParseServerResult::Error(errorPageRes.error);
-            std::map<int, std::string> newErrorPages = errorPageRes.value;
-            for (std::map<int, std::string>::iterator it = newErrorPages.begin(); it != newErrorPages.end(); ++it)
-            {
-                errorPages.insert(*it);
-            }
+            ErrorPageResult errorPageResult = parseErrorPage(directiveTokens);
+            if (!errorPageResult.success)
+                return ParseServerResult::Error(errorPageResult.error);
+            errorPages.insert(errorPageResult.value);
         }
         else if (directiveTokens[0] == CLIENT_MAX_BODY_SIZE)
         {

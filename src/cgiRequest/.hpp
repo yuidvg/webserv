@@ -1,7 +1,8 @@
 #pragma once
 #include "../webserv.hpp"
 
-HttpResponse executeCgi(const HttpRequest &request, const Connection &socket, const Uri &scriptUri);
+CgiRequest retrieveCgiRequest(const HttpRequest &request, const Client &socket, const Uri &uri);
+CreateCgiResult createCgi(const CgiRequest &request, const ErrorPages &errorPages, const Client &client,
+                          const HttpRequest &httpRequest);
 bool findCgiExtension(const std::string &target, const std::string &extension);
-CgiRequest retrieveCgiRequest(const HttpRequest &request, const Connection &socket, const Uri &uri);
 Uri segmentUri(const std::string &target, const std::string &cgiExtension);

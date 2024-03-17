@@ -18,12 +18,12 @@ bool isLocalRedirectResponse(const CgiResponse &cgiResponse)
 {
     return cgiResponse.location.size() > 0 && utils::isAbsolutePath(cgiResponse.location);
 }
-HttpResponse processLocalRedirectResponse(const CgiResponse &cgiResponse, const HttpRequest &request,
-                                          const Connection &socket)
+ImmidiateResponse processLocalRedirectResponse(const CgiResponse &cgiResponse, const HttpRequest &request,
+                                               const Client &client, const ErrorPages &errorPages)
 {
     const HttpRequest redirectRequest(request.method, cgiResponse.location, request.headers, request.body,
                                       request.host);
-    return responseToValidRequest(redirectRequest, socket);
+    return retrieveImmidiateResponse(redirectRequest, client, errorPages);
 }
 
 bool isClientRedirectResponse(const CgiResponse &cgiResponse)
@@ -48,26 +48,27 @@ HttpResponse processClientRedirectWithDocumentResponse(const CgiResponse &cgiRes
 }
 } // namespace
 
-HttpResponse processCgiResponse(const CgiResponse &cgiResponse, const HttpRequest &request, const Connection &socket)
+ImmidiateResponse processCgiResponse(const CgiResponse &cgiResponse, const HttpRequest &request, Client &client,
+                                     const ErrorPages &errorPages)
 {
     if (isClientRedirectWithDocumentResponse(cgiResponse))
     {
-        return processClientRedirectWithDocumentResponse(cgiResponse);
+        return ImmidiateResponse::Right(processClientRedirectWithDocumentResponse(cgiResponse));
     }
     else if (isClientRedirectResponse(cgiResponse))
     {
-        return processClientRedirectResponse(cgiResponse);
+        return ImmidiateResponse::Right(processClientRedirectResponse(cgiResponse));
     }
     else if (isLocalRedirectResponse(cgiResponse))
     {
-        return processLocalRedirectResponse(cgiResponse, request, socket);
+        return processLocalRedirectResponse(cgiResponse, request, client, errorPages);
     }
     else if (isDocumentResponse(cgiResponse))
     {
-        return processDocumentResponse(cgiResponse);
+        return ImmidiateResponse::Right(processDocumentResponse(cgiResponse));
     }
     else
     {
-        return utils::generateErrorResponse(SERVER_ERROR, CONFIG.getServer(request.host, socket.port));
+        return ImmidiateResponse::Right(errorPages.at(SERVER_ERROR));
     }
 }

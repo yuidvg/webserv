@@ -2,7 +2,7 @@
 #include "../autoindex/.hpp"
 #include "../httpRequestAndConfig/.hpp"
 
-HttpResponse conductGet(const Uri &uri, const Location &location, const Server &server)
+HttpResponse conductGet(const Uri &uri, const Location &location, const ErrorPages &errorPages)
 {
     const IsDirectoryResult isDirectoryResult = utils::isDirectory(uri.extraPath);
     if (isDirectoryResult.success)
@@ -15,7 +15,7 @@ HttpResponse conductGet(const Uri &uri, const Location &location, const Server &
                 const DirectoryListHtmlResult directoryListHtmlResult = directoryListHtml(uri.extraPath);
                 return directoryListHtmlResult.success
                            ? HttpResponse(SUCCESS, directoryListHtmlResult.value, "text/html")
-                           : utils::generateErrorResponse(BAD_REQUEST, server);
+                           : BAD_REQUEST_RESPONSE;
             }
             else if (location.index.size() > 0)
             {
@@ -27,7 +27,7 @@ HttpResponse conductGet(const Uri &uri, const Location &location, const Server &
             }
             else
             {
-                return utils::generateErrorResponse(BAD_REQUEST, server);
+                return errorPages.at(BAD_REQUEST);
             }
         }
         else // when uri.extraPath is assumed to be a file.
@@ -35,11 +35,11 @@ HttpResponse conductGet(const Uri &uri, const Location &location, const Server &
             const FileContentResult fileContentResult = utils::fileContent(uri.extraPath);
             return fileContentResult.success
                        ? HttpResponse(SUCCESS, fileContentResult.value, utils::contentType(uri.extraPath))
-                       : utils::generateErrorResponse(BAD_REQUEST, server);
+                       : errorPages.at(BAD_REQUEST);
         }
     }
     else
     {
-        return utils::generateErrorResponse(isDirectoryResult.error, server);
+        return errorPages.at(isDirectoryResult.error);
     }
 }

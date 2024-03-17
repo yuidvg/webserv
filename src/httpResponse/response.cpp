@@ -14,10 +14,10 @@ bool isMethodAllowed(const HttpRequest &request, const Location &location)
 }
 } // namespace
 
-ImmidiateResponse retrieveImmidiateResponse(const HttpRequest &request, const Connection &connection)
+ImmidiateResponse retrieveImmidiateResponse(const HttpRequest &request, const Client &client,
+                                            const ErrorPages &errorPages)
 {
-    const Server server = CONFIG.getServer(request.host, connection.port);
-    const Location location = server.getLocation(request.target);
+    const Location location = CONFIG.getServer(request.host, client.serverPort).getLocation(request.target);
 
     if (isMethodAllowed(request, location))
     {
@@ -25,7 +25,7 @@ ImmidiateResponse retrieveImmidiateResponse(const HttpRequest &request, const Co
         const Uri uri = segmentUri(resolvedPath, location.cgiExtension);
         if (uri.scriptPath.size() > 0)
         {
-            return ImmidiateResponse::Left(retrieveCgiRequest(request, connection, uri));
+            return ImmidiateResponse::Left(retrieveCgiRequest(request, client, uri));
         }
         else
         {
@@ -34,11 +34,11 @@ ImmidiateResponse retrieveImmidiateResponse(const HttpRequest &request, const Co
                 return ImmidiateResponse::Right(redirectResponse(location.redirect));
             }
             if (request.method == "GET")
-                return ImmidiateResponse::Right(conductGet(uri, location));
+                return ImmidiateResponse::Right(conductGet(uri, location, errorPages));
             else if (request.method == "POST")
-                return ImmidiateResponse::Right(conductPost(request, location));
+                return ImmidiateResponse::Right(conductPost(request, location, errorPages));
             else if (request.method == "DELETE")
-                return ImmidiateResponse::Right(conductDelete(request.target));
+                return ImmidiateResponse::Right(conductDelete(request.target, errorPages));
             else
                 return ImmidiateResponse::Right(METHOD_NOT_ALLOWED_RESPONSE("GET, POST, DELETE"));
         }

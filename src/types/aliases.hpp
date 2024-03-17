@@ -31,21 +31,21 @@ typedef Result<const std::string, const std::string> GetIndexFilePathResult;
 typedef Result<const Server, const HttpResponse> MatchedServerResult;
 
 // socket
-typedef Result<const Connection, const std::string> NewConnectionResult;
-typedef Result<const Connections, const std::string> GetListenSocketsResult;
-typedef Result<const Connections, const std::string> ReadableWritableSocketsResult;
+typedef Result<const Client, const std::string> NewClientResult;
+typedef Result<const Clients, const std::string> GetListenSocketsResult;
+typedef Result<const Clients, const std::string> ReadableWritableSocketsResult;
 
 typedef Result<const unsigned int, const HttpResponse> PortNumberResult;
 
-typedef Result<const HttpResponse, const HttpResponse> ImmidiateResponse;
-
+typedef std::pair<int, HttpResponse> ErrorPage;
+typedef std::map<int, HttpResponse> ErrorPages;
 namespace parseConfig
 {
 typedef Result<const Server, const std::string> ServerResult;
 typedef Result<const std::string, const std::string> NameResult;
 typedef Result<const int, const std::string> PortResult;
 typedef Result<const Location, const std::string> LocationResult;
-typedef Result<const std::map<int, std::string>, const std::string> ErrorPagesResult;
+typedef Result<const ErrorPage, const std::string> ErrorPageResult;
 typedef Result<const size_t, const std::string> ClientMaxBodySizeResult;
 typedef Result<const std::string, const std::string> PathResult;
 typedef Result<const std::string, const std::string> RootResult;
@@ -75,3 +75,5 @@ typedef std::set<const Socket> Sockets;
 typedef Result<const Sockets, const std::string> SocketsResult;
 
 typedef Either<CgiRequest, HttpResponse> ImmidiateResponse;
+
+typedef Result<const Cgi, const HttpResponse> CreateCgiResult;

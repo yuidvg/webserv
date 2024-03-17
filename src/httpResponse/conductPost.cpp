@@ -2,7 +2,7 @@
 #include "../httpRequestAndConfig/.hpp"
 #include ".hpp"
 
-static HttpResponse writeToFile(const std::string &path, const std::string &fileContent, const Server &server)
+static HttpResponse writeToFile(const std::string &path, const std::string &fileContent, const ErrorPages &errorPages)
 {
     std::ofstream ofs(path);
     if (ofs.is_open())
@@ -12,11 +12,11 @@ static HttpResponse writeToFile(const std::string &path, const std::string &file
     }
     else
     {
-        return (utils::generateErrorResponse(BAD_REQUEST, server));
+        return (errorPages.at(BAD_REQUEST));
     }
 }
 
-HttpResponse conductPost(const HttpRequest &request, const Location &location, const Server &server)
+HttpResponse conductPost(const HttpRequest &request, const Location &location, const ErrorPages &errorPages)
 {
     const std::string targetFilePath = resolvePath(location.uploadPath, request.target);
 
@@ -24,10 +24,10 @@ HttpResponse conductPost(const HttpRequest &request, const Location &location, c
     if (!isDirectoryResult.success)
         return isDirectoryResult.error;
     if (!isDirectoryResult.value)
-        return utils::generateErrorResponse(isDirectoryResult.error, server);
+        return errorPages.at(isDirectoryResult.error);
     const std::string fileName = std::string(utils::removeCharacter(request.target, '/') + ".txt");
     if (!utils::createFile(fileName, location.uploadPath))
-        return utils::generateErrorResponse(BAD_REQUEST, server);
+        return errorPages.at(BAD_REQUEST);
     const std::string fullFilePath = resolvePath(location.uploadPath, fileName);
-    return writeToFile(fullFilePath, request.body, server);
+    return writeToFile(fullFilePath, request.body, errorPages);
 }

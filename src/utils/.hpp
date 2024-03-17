@@ -8,7 +8,7 @@ namespace utils
 {
 unsigned int lengthOfPrefixMatch(const std::string string, const std::string pattern);
 
-HttpResponse generateErrorResponse(const int statusCode, const Server &server);
+HttpResponse generateErrorResponse(const int statusCode, const std::string &path);
 // string
 std::string &trim(std::string &str);
 std::string lowerCase(const std::string str);
