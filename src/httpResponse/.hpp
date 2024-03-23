@@ -1,8 +1,8 @@
 #pragma once
 #include "../webserv.hpp"
 
-ImmidiateResponse retrieveImmidiateResponse(const HttpRequest &request, const Client &client,
-                                            const ErrorPages &errorPages);
+CgiRequestOrHttpResponse getCgiRequestOrHttpResponse(const HttpRequest &request, const Client &client,
+                                                     const ErrorPages &errorPages);
 std::string responseText(const HttpResponse &response);
 // methods
 HttpResponse conductGet(const Uri &uri, const Location &location, const ErrorPages &errorPages);

@@ -44,6 +44,6 @@ ParseCgiResponseResult parseCgiResponse(std::string const &response)
     }
     else
     {
-        return ParseCgiResponseResult::Error();
+        return ParseCgiResponseResult::Error("parseCgiResponse: no header in response");
     }
 }

@@ -17,7 +17,7 @@ struct Socket
     ~Socket()
     {
     }
-    bool operator==(const Socket & x) const
+    bool operator==(const Socket &x) const
     {
         return descriptor == x.descriptor;
     }

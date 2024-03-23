@@ -13,16 +13,6 @@ const unsigned int CGI = 1;
 // charsets
 const std::string CRLF = "\r\n";
 
-// status code classes
-enum StatusCodeClasses
-{
-    SUCCESS = 200,
-    // 300番は複数のリダイレクト先が存在し、クライアントが選択する必要がある
-    REDIRECTION = 301,
-    BAD_REQUEST = 400,
-    SERVER_ERROR = 500
-};
-
 // tokens
 const std::string SERVER = "server";
 const std::string SERVER_NAME = "server_name";
@@ -57,7 +47,6 @@ const HttpResponse SERVER_ERROR_RESPONSE =
                  "complete your request.<br /></p> </body> </html>",
                  "text/html");
 
-
 const HttpResponse SUCCESS_RESPONSE = HttpResponse(SUCCESS);
 
 const HttpResponse METHOD_NOT_ALLOWED_RESPONSE(const std::string &allowedMethods);
@@ -72,9 +61,10 @@ const std::string EMPTY_LINE = "\n\n";
 
 extern const int KQ;
 
-extern Clients CLIENTS;
+extern HttpRequests HTTP_REQUESTS;
 
-extern Cgis CGIS;
+extern Ints CLIENT_SDS;
+
+extern Ints CGI_SDS;
 
 #define EVENT_BATCH_SIZE 1024
-

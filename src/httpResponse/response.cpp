@@ -12,12 +12,41 @@ bool isMethodAllowed(const HttpRequest &request, const Location &location)
             return true;
     return false;
 }
+std::string authType(const HttpRequest &request)
+{
+    const std::string authorization = utils::value(request.headers, std::string("authorization"));
+    const std::vector<std::string> tokens = utils::split(authorization, " ");
+    return tokens.size() > 0 ? tokens[0] : "";
+}
+CgiRequest getCgiRequest(const HttpRequest &request, const Uri &uri)
+{
+    std::map<std::string, std::string> env;
+    env["AUTH_TYPE"] = authType(request);
+    env["CONTENT_LENGTH"] = utils::itoa(request.body.size());
+    env["CONTENT_TYPE"] = utils::value(request.headers, std::string("content-type"));
+    env["GATEWAY_INTERFACE"] = GATEWAY_INTERFACE;
+    env["PATH_INFO"] = uri.extraPath;
+    env["PATH_TRANSLATED"] =
+        uri.extraPath.size() > 0
+            ? resolvePath(uri.extraPath, CONFIG.getServer(request.host, request.serverPort).getLocation(request.target))
+            : "";
+    env["QUERY_STRING"] = uri.queryString;
+    env["REMOTE_ADDR"] = request.clientIp;
+    env["REQUEST_METHOD"] = request.method;
+    env["SCRIPT_NAME"] = uri.scriptPath;
+    env["SERVER_NAME"] = request.host;
+    env["SERVER_PORT"] = request.serverPort;
+    env["SERVER_PROTOCOL"] = SERVER_PROTOCOL;
+    env["SERVER_SOFTWARE"] = SERVER_SOFTWARE;
+
+    return CgiRequest(env, uri.scriptPath, request.body);
+}
+
 } // namespace
 
-ImmidiateResponse retrieveImmidiateResponse(const HttpRequest &request, const Client &client,
-                                            const ErrorPages &errorPages)
+CgiRequestOrHttpResponse getCgiRequestOrHttpResponse(const HttpRequest &request)
 {
-    const Location location = CONFIG.getServer(request.host, client.serverPort).getLocation(request.target);
+    const Location location = CONFIG.getServer(request.host, request.serverPort).getLocation(request.target);
 
     if (isMethodAllowed(request, location))
     {
@@ -25,27 +54,27 @@ ImmidiateResponse retrieveImmidiateResponse(const HttpRequest &request, const Cl
         const Uri uri = segmentUri(resolvedPath, location.cgiExtension);
         if (uri.scriptPath.size() > 0)
         {
-            return ImmidiateResponse::Left(retrieveCgiRequest(request, client, uri));
+            return CgiRequestOrHttpResponse::Left(getCgiRequest(request, uri));
         }
         else
         {
             if (!location.redirect.empty())
             {
-                return ImmidiateResponse::Right(redirectResponse(location.redirect));
+                return CgiRequestOrHttpResponse::Right(redirectResponse(location.redirect));
             }
             if (request.method == "GET")
-                return ImmidiateResponse::Right(conductGet(uri, location, errorPages));
+                return CgiRequestOrHttpResponse::Right(conductGet(uri, location));
             else if (request.method == "POST")
-                return ImmidiateResponse::Right(conductPost(request, location, errorPages));
+                return CgiRequestOrHttpResponse::Right(conductPost(request, location));
             else if (request.method == "DELETE")
-                return ImmidiateResponse::Right(conductDelete(request.target, errorPages));
+                return CgiRequestOrHttpResponse::Right(conductDelete(request.target));
             else
-                return ImmidiateResponse::Right(METHOD_NOT_ALLOWED_RESPONSE("GET, POST, DELETE"));
+                return CgiRequestOrHttpResponse::Right(METHOD_NOT_ALLOWED_RESPONSE("GET, POST, DELETE"));
         }
     }
     else
     {
-        return ImmidiateResponse::Right(METHOD_NOT_ALLOWED_RESPONSE(utils::join(location.allowMethods, ", ")));
+        return CgiRequestOrHttpResponse::Right(METHOD_NOT_ALLOWED_RESPONSE(utils::join(location.allowMethods, ", ")));
     }
 }
 

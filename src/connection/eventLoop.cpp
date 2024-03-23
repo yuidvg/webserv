@@ -3,14 +3,13 @@
 #include "../cgiResponse/.hpp"
 #include "../httpRequest/.hpp"
 #include "../httpResponse/.hpp"
-
 #include ".hpp"
 
 namespace
 {
 void handleListenSocketEvent(const Socket &listenSocket)
 {
-    const NewClientResult newConnectedSocketResult = newConnection(listenSocket);
+    const ConnectedInternetSocketResult newConnectedSocketResult = newConnectedInternetSocket(listenSocket);
     if (newConnectedSocketResult.success)
         CLIENTS += newConnectedSocketResult.value;
     else
@@ -21,36 +20,6 @@ void handleMessageFromClient(Client &client, size_t messageSize)
 {
     if (client.receiveMessage(messageSize))
     {
-        const ParseRequestResult parseMessageResult = parseHttpRequest(client.getReceivedMessage(), client.serverPort);
-        if (parseMessageResult.status == PARSED || parseMessageResult.status == ERROR)
-        {
-            client.clearReceivedMessage();
-            if (parseMessageResult.status == PARSED)
-            {
-                const HttpRequest &httpRequest = parseMessageResult.value;
-                const ErrorPages &errorPages = CONFIG.getServer(httpRequest.host, client.serverPort).errorPages;
-                ImmidiateResponse immidiateResponse =
-                    retrieveImmidiateResponse(parseMessageResult.value, client, errorPages);
-                if (immidiateResponse.tag == RIGHT)
-                    client.appendToBeSentMessage(responseText(immidiateResponse.rightValue));
-                else if (immidiateResponse.tag == LEFT)
-                {
-                    const CgiRequest &cgiRequest = immidiateResponse.leftValue;
-                    const CreateCgiResult newCgiResult = createCgi(cgiRequest, errorPages, client, httpRequest);
-                    if (newCgiResult.success)
-                    {
-                        CGIS += newCgiResult.value;
-                        CGIS[newCgiResult.value.sd].appendToBeSentMessage(cgiRequest.body);
-                    }
-                    else
-                    {
-                        client.appendToBeSentMessage(responseText(newCgiResult.error));
-                    }
-                }
-            }
-            else if (parseMessageResult.status == ERROR)
-                client.appendToBeSentMessage(responseText(BAD_REQUEST_RESPONSE));
-        }
     }
     else
     {
@@ -84,7 +53,7 @@ void handleClientEvent(const struct kevent event, Client &client)
             }
             else
             {
-                std::cout << "client " << client.sd << " has disconnected" << std::endl;
+                std::cout << "client " << client.sd << " findEventObject disconnected" << std::endl;
                 close(client.sd);
                 CLIENTS -= client;
             }
@@ -129,7 +98,7 @@ void handleCgiEvent(struct kevent event, Cgi &eventCgi)
                 }
                 else
                 {
-                    eventCgi.getClient()->appendToBeSentMessage(responseText(parseCgiResponseResult.error));
+                    eventCgi.getClient()->appendToBeSentMessage(responseText());
                 }
             }
         }
@@ -147,17 +116,13 @@ void handleCgiEvent(struct kevent event, Cgi &eventCgi)
         }
         else
         {
-            std::cout << "cgi " << eventCgi.sd << " has disconnected" << std::endl;
+            std::cout << "cgi " << eventCgi.sd << " findEventObject disconnected" << std::endl;
             close(eventCgi.sd);
             CGIS -= eventCgi;
         }
     }
 }
-else
-{
-    utils::printError("kernel event error");
-}
-}
+
 } // namespace
 
 void eventLoop(Sockets listenSockets)
@@ -175,20 +140,21 @@ void eventLoop(Sockets listenSockets)
                 const struct kevent &event = eventList[i];
                 const Sockets::const_iterator eventListenSocketIt = listenSockets.find(Socket(event.ident));
                 if (eventListenSocketIt != listenSockets.end())
-                {
                     handleListenSocketEvent(*eventListenSocketIt);
-                }
-                else if (CLIENTS.has(event.ident))
-                {
-                    handleClientEvent(event, CLIENTS[event.ident]);
-                }
-                else if (CGIS.has(event.ident))
-                {
-                    handleCgiEvent(event, CGIS[event.ident]);
-                }
                 else
                 {
-                    utils::printError("unexpected event");
+                    const Clients::const_iterator eventClientIt = CLIENT_SDS.find(Client(event.ident));
+                    if (eventClientIt != CLIENTS.end())
+                        handleClientEvent(event, *eventClientIt);
+                    else
+                    {
+                        const Cgis::const_iterator eventCgiIt = CGI_SDS.find(Cgi(event.ident));
+                        if (eventCgiIt != CGIS.end())
+                            handleCgiEvent(event, *eventCgiIt);
+                        else
+                            utils::printError("unexpected event");
+                    }
+
                 }
             }
         }

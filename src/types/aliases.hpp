@@ -1,6 +1,14 @@
 #pragma once
 #include "external.hpp"
 #include "structs.hpp"
+enum StatusCode
+{
+    SUCCESS = 200,
+    // 300番は複数のリダイレクト先が存在し、クライアントが選択する必要がある
+    REDIRECTION = 301,
+    BAD_REQUEST = 400,
+    SERVER_ERROR = 500
+};
 
 // CONFIG
 typedef Result<const std::vector<std::string>, const std::string> TokensResult;
@@ -30,11 +38,6 @@ typedef Result<const std::string, const HttpResponse> DirectoryListHtmlResult;
 typedef Result<const std::string, const std::string> GetIndexFilePathResult;
 typedef Result<const Server, const HttpResponse> MatchedServerResult;
 
-// socket
-typedef Result<const Client, const std::string> NewClientResult;
-typedef Result<const Clients, const std::string> GetListenSocketsResult;
-typedef Result<const Clients, const std::string> ReadableWritableSocketsResult;
-
 typedef Result<const unsigned int, const HttpResponse> PortNumberResult;
 
 typedef std::pair<int, HttpResponse> ErrorPage;
@@ -45,8 +48,8 @@ typedef Result<const Server, const std::string> ServerResult;
 typedef Result<const std::string, const std::string> NameResult;
 typedef Result<const int, const std::string> PortResult;
 typedef Result<const Location, const std::string> LocationResult;
-typedef Result<const ErrorPage, const std::string> ErrorPageResult;
 typedef Result<const size_t, const std::string> ClientMaxBodySizeResult;
+typedef Result<const ErrorPage, const std::string> ErrorPageResult;
 typedef Result<const std::string, const std::string> PathResult;
 typedef Result<const std::string, const std::string> RootResult;
 typedef Result<const bool, const std::string> AutoindexResult;
@@ -58,22 +61,29 @@ typedef Result<const std::string, const std::string> RedirectResult;
 
 } // namespace parseConfig
 
+typedef Result<const Socket, const std::string> SocketResult;
 typedef Result<const int, const std::string> StringToIntResult;
 typedef Result<const bool, const int> IsDirectoryResult;
-typedef Result<const std::string, const HttpResponse> FileContentResult;
+typedef Result<const std::string, const StatusCode> FileContentResult;
 
 typedef std::vector<std::string> Strings;
 
 typedef Result<const int, const std::string> StoiResult;
-typedef Result<CgiResponse, HttpResponse> ParseCgiResponseResult;
+typedef Result<CgiResponse, std::string> ParseCgiResponseResult;
 
 typedef Result<const std::string, const std::string> ReadFileResult;
 
-typedef Result<const Socket, const std::string> NewSocketResult;
+typedef Result<const ConnectedInternetSocket, const std::string> ConnectedInternetSocketResult;
 
 typedef std::set<const Socket> Sockets;
 typedef Result<const Sockets, const std::string> SocketsResult;
 
-typedef Either<CgiRequest, HttpResponse> ImmidiateResponse;
+typedef Either<CgiRequest, HttpResponse> CgiRequestOrHttpResponse;
 
-typedef Result<const Cgi, const HttpResponse> CreateCgiResult;
+typedef Option<const HttpRequest> HttpRequestQ;
+
+typedef std::vector<const HttpRequest> HttpRequests;
+
+typedef std::vector<const int> Ints;
+
+typedef Result<const ConnectedUnixSocket, const std::string> ConnectedUnixSocketResult;

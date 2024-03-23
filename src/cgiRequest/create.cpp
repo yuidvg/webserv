@@ -20,42 +20,10 @@ char *const *mapStringStringToCStringArray(const std::map<std::string, std::stri
     return envArray;
 }
 
-std::string authType(const HttpRequest &request)
-{
-    const std::string authorization = utils::value(request.headers, std::string("authorization"));
-    const std::vector<std::string> tokens = utils::split(authorization, " ");
-    return tokens.size() > 0 ? tokens[0] : "";
-}
-
 } // namespace
 
-CgiRequest retrieveCgiRequest(const HttpRequest &request, const Client &connection, const Uri &uri)
-{
-    std::map<std::string, std::string> env;
-    env["AUTH_TYPE"] = authType(request);
-    env["CONTENT_LENGTH"] = utils::itoa(request.body.size());
-    env["CONTENT_TYPE"] = utils::value(request.headers, std::string("content-type"));
-    env["GATEWAY_INTERFACE"] = GATEWAY_INTERFACE;
-    env["PATH_INFO"] = uri.extraPath;
-    env["PATH_TRANSLATED"] =
-        uri.extraPath.size() > 0
-            ? resolvePath(uri.extraPath,
-                          CONFIG.getServer(request.host, connection.serverPort).getLocation(request.target))
-            : "";
-    env["QUERY_STRING"] = uri.queryString;
-    env["REMOTE_ADDR"] = connection.opponentIp;
-    env["REQUEST_METHOD"] = request.method;
-    env["SCRIPT_NAME"] = uri.scriptPath;
-    env["SERVER_NAME"] = request.host;
-    env["SERVER_PORT"] = connection.serverPort;
-    env["SERVER_PROTOCOL"] = SERVER_PROTOCOL;
-    env["SERVER_SOFTWARE"] = SERVER_SOFTWARE;
 
-    return CgiRequest(env, uri.scriptPath, request.body);
-}
-
-CreateCgiResult createCgi(const CgiRequest &request, const ErrorPages &errorPages, Client &client,
-                          const HttpRequest &httpRequest)
+ConnectedInternetSocketResult createCgi(const CgiRequest &request, const HttpRequest &httpRequest)
 {
     int socketPair[2];
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, socketPair) == 0)
@@ -66,7 +34,7 @@ CreateCgiResult createCgi(const CgiRequest &request, const ErrorPages &errorPage
         {
             close(socketPair[SERVER_END]);
             close(socketPair[CGI]);
-            return CreateCgiResult::Error(errorPages.at(SERVER_ERROR));
+            return ConnectedInternetSocketResult::Error(SERVER_ERROR);
         }
         else if (pid == 0) // cgi process
         {
@@ -90,12 +58,12 @@ CreateCgiResult createCgi(const CgiRequest &request, const ErrorPages &errorPage
         else // server process
         {
             close(socketPair[CGI]);
-            return CreateCgiResult::Success(Cgi(socketPair[SERVER_END], httpRequest, client));
+            return ConnectedInternetSocketResult::Success(Cgi(socketPair[SERVER_END], httpRequest, client));
         }
     }
     else
     {
         std::cerr << "socketpair failed" << std::endl;
-        return CreateCgiResult::Error(errorPages.at(SERVER_ERROR));
+        return ConnectedInternetSocketResult::Error((SERVER_ERROR);
     }
 }

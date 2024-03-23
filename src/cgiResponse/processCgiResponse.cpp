@@ -18,12 +18,12 @@ bool isLocalRedirectResponse(const CgiResponse &cgiResponse)
 {
     return cgiResponse.location.size() > 0 && utils::isAbsolutePath(cgiResponse.location);
 }
-ImmidiateResponse processLocalRedirectResponse(const CgiResponse &cgiResponse, const HttpRequest &request,
-                                               const Client &client, const ErrorPages &errorPages)
+CgiRequestOrHttpResponse processLocalRedirectResponse(const CgiResponse &cgiResponse, const HttpRequest &request,
+                                                      const Client &client, const ErrorPages &errorPages)
 {
     const HttpRequest redirectRequest(request.method, cgiResponse.location, request.headers, request.body,
                                       request.host);
-    return retrieveImmidiateResponse(redirectRequest, client, errorPages);
+    return getCgiRequestOrHttpResponse(redirectRequest, client, errorPages);
 }
 
 bool isClientRedirectResponse(const CgiResponse &cgiResponse)
@@ -48,16 +48,16 @@ HttpResponse processClientRedirectWithDocumentResponse(const CgiResponse &cgiRes
 }
 } // namespace
 
-ImmidiateResponse processCgiResponse(const CgiResponse &cgiResponse, const HttpRequest &request, Client &client,
-                                     const ErrorPages &errorPages)
+CgiRequestOrHttpResponse processCgiResponse(const CgiResponse &cgiResponse, const HttpRequest &request, Client &client,
+                                            const ErrorPages &errorPages)
 {
     if (isClientRedirectWithDocumentResponse(cgiResponse))
     {
-        return ImmidiateResponse::Right(processClientRedirectWithDocumentResponse(cgiResponse));
+        return CgiRequestOrHttpResponse::Right(processClientRedirectWithDocumentResponse(cgiResponse));
     }
     else if (isClientRedirectResponse(cgiResponse))
     {
-        return ImmidiateResponse::Right(processClientRedirectResponse(cgiResponse));
+        return CgiRequestOrHttpResponse::Right(processClientRedirectResponse(cgiResponse));
     }
     else if (isLocalRedirectResponse(cgiResponse))
     {
@@ -65,10 +65,10 @@ ImmidiateResponse processCgiResponse(const CgiResponse &cgiResponse, const HttpR
     }
     else if (isDocumentResponse(cgiResponse))
     {
-        return ImmidiateResponse::Right(processDocumentResponse(cgiResponse));
+        return CgiRequestOrHttpResponse::Right(processDocumentResponse(cgiResponse));
     }
     else
     {
-        return ImmidiateResponse::Right(errorPages.at(SERVER_ERROR));
+        return CgiRequestOrHttpResponse::Right(errorPages.at(SERVER_ERROR));
     }
 }

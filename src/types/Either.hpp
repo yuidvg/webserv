@@ -8,8 +8,8 @@ enum EitherTag
 
 template <typename L, typename R> struct Either
 {
-    const L leftValue;
-    const R rightValue;
+    L leftValue;
+    R rightValue;
     const EitherTag tag;
 
     Either(const L leftValue, const R rightValue, const EitherTag tag)

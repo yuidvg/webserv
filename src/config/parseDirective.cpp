@@ -53,7 +53,7 @@ ErrorPageResult parseErrorPage(const Strings directiveTokens)
     int errorCode = errorCodeResult.value;
 
     ErrorPages errorPages;
-    return ErrorPageResult::Success(utils::generateErrorResponse(errorCode, directiveTokens[2]));
+    return ErrorPageResult::Success(utils::generateErrorPage(errorCode, directiveTokens[2]));
 }
 
 ClientMaxBodySizeResult parseClientMaxBodySize(const std::vector<std::string> directiveTokens)

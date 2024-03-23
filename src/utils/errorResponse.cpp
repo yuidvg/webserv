@@ -2,15 +2,15 @@
 
 namespace utils
 {
-HttpResponse generateErrorResponse(const int statusCode, const std::string &path)
+ErrorPage generateErrorPage(const int statusCode, const std::string &path)
 {
     const FileContentResult fileContentResult = utils::fileContent(path);
     if (fileContentResult.success)
     {
-        return HttpResponse(statusCode, fileContentResult.value, utils::contentType(path));
+        return ErrorPage(statusCode, HttpResponse(statusCode, fileContentResult.value, utils::contentType(path)));
     }
     if (statusCode == SERVER_ERROR)
-        return SERVER_ERROR_RESPONSE;
-    return BAD_REQUEST_RESPONSE;
+        return ErrorPage(statusCode, SERVER_ERROR_RESPONSE);
+    return ErrorPage(BAD_REQUEST, BAD_REQUEST_RESPONSE);
 }
 } // namespace utils

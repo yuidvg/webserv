@@ -10,8 +10,9 @@ const HttpResponse METHOD_NOT_ALLOWED_RESPONSE(const std::string &allowedMethods
 
 const int KQ = kqueue();
 
-Clients CLIENTS;
+HttpRequests HTTP_REQUESTS;
 
-Cgis CGIS;
+Ints CLIENT_SDS;
+Ints CGI_SDS;
 
 Config CONFIG;
