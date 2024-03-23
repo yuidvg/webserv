@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>記事の編集</title>
+    <script>
+        async function submitForm(event) { // ここにasyncを追加
+            event.preventDefault(); // フォームの標準の送信を防ぐ
+
+            // フォームデータを取得
+            const formData = new FormData(event.target);
+
+            // CGIへデータを送信。CGIが直ったら確認する
+            const response = await fetch('https://localhost:4242/cgi-bin/submit.py', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                // CGIからの応答を処理する（必要に応じて）
+                console.log(response);
+            })
+            .catch(error => {
+                console.log('Error:', error);
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>記事の編集</h1>
+    <form onsubmit="submitForm(event)">
+        <h2 for="title">タイトル:</h2>
+        <div>
+            <input type="text" id="title" name="title" required>
+        </div>
+        <h2 for="content">内容:</h2>
+        <div>
+            <textarea id="content" name="content" rows="10" required></textarea>
+        </div>
+        <div>
+            <button type="submit">保存</button>
+        </div>
+    </form>
+</body>
+</html>

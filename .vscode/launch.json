@@ -16,7 +16,7 @@
 			"targetArchitecture": "arm64",
 			"program": "${workspaceFolder}/webserv",
 			"args": [
-				"config/default.conf"
+				"config/cms.conf"
 			],
 			"stopAtEntry": false,
 			"cwd": "${workspaceFolder}",
