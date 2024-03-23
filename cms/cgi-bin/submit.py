@@ -18,8 +18,8 @@ if os.environ["REQUEST_METHOD"] == "POST":
     content = form.get("content", [""])[0]
 
     # /contentディレクトリにファイルを保存
-    os.makedirs("/content", exist_ok=True)
-    file_path = os.path.join("/content", f"{title}.txt")
+    os.makedirs("./cms/content", exist_ok=True)
+    file_path = os.path.join("./cms/content", f"{title}.txt")
     with open(file_path, "w") as file:
         file.write(content)
 
