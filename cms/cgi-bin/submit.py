@@ -1,21 +1,27 @@
 #!/usr/bin/env python3
 
-import cgi
+import cgitb
 import sys
 import os
+from urllib.parse import parse_qs
+
+cgitb.enable()
 
 # POSTリクエストかどうかを確認
 if os.environ["REQUEST_METHOD"] == "POST":
     # POSTデータを取得
-    form = cgi.FieldStorage()
+    form_data = sys.stdin.read()
+    form = parse_qs(form_data)
 
     # フォームデータを取得
-    title = form.getvalue("title", "")
-    content = form.getvalue("content", "")
+    title = form.get("title", [""])[0]
+    content = form.get("content", [""])[0]
 
-    # TODO: 入力バリデーションを行う
-
-    # TODO: データベースに記事を保存または更新
+    # /contentディレクトリにファイルを保存
+    os.makedirs("/content", exist_ok=True)
+    file_path = os.path.join("/content", f"{title}.txt")
+    with open(file_path, "w") as file:
+        file.write(content)
 
     # 成功した場合のリダイレクト
     print("Status: 303 See Other")
