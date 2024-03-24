@@ -13,8 +13,7 @@ std::string root(const std::string &path, const Location &location)
 
 std::string index(const std::string &path, const Location &location)
 {
-    const IsDirectoryResult isDirectoryResult = utils::isDirectory(path);
-    if (isDirectoryResult.success && isDirectoryResult.value)
+    if (utils::isDirectory(path))
         return concatPath(path, location.index);
     else
         return path;

@@ -287,7 +287,7 @@ ParseRequestResult parseHttpRequest(const std::string &request, const int port)
     }
 }
 
-CompleteOrPending parseHttpRequests(const SocketBuffer &socketBuffer, const int port)
+void parseHttpRequests(const SocketBuffer &socketBuffer, const int port)
 {
     const std::vector<std::string> blocks = utils::split(socketBuffer.getInbound(), CRLF + CRLF);
     const std::vector<std::string> nonEmptyBlocks = removeEmptyBlocks(blocks);
@@ -338,5 +338,5 @@ CompleteOrPending parseHttpRequests(const SocketBuffer &socketBuffer, const int 
             }
         }
     }
-    return parseHttpRequests;
+    return;
 }

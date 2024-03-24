@@ -1,7 +1,6 @@
 #pragma once
 
 #include "autoindex.hpp"
-#include "buffer.hpp"
 #include "cgiRequest.hpp"
 #include "cgiResponse.hpp"
 #include "config.hpp"
