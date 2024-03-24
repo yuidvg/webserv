@@ -52,20 +52,19 @@ PortResult parseListen(const std::vector<std::string> directiveTokens)
     return PortResult::Success(result.value);
 }
 
-ErrorPageResult parseErrorPage(const Strings directiveTokens)
+ErrorPagePathsResult parseErrorPage(const Strings directiveTokens)
 {
     if (directiveTokens.size() != 3)
-        return ErrorPageResult::Error("Config: error_pageの引数が多いです");
+        return ErrorPagePathsResult::Error("Config: error_pageの引数が多いです");
 
     StringToIntResult errorCodeResult = utils::stringToInt(directiveTokens[1], 100, 599);
     if (!errorCodeResult.success)
     {
-        return ErrorPageResult::Error("Config: error_pageのエラーコードが不正です");
+        return ErrorPagePathsResult::Error("Config: error_pageのエラーコードが不正です");
     }
-    int errorCode = errorCodeResult.value;
-
-    ErrorPages errorPages;
-    return ErrorPageResult::Success(generateErrorPage(errorCode, directiveTokens[2]));
+    std::map<int, std::string> errorPages;
+    errorPages[errorCodeResult.value] = directiveTokens[2];
+    return ErrorPagePathsResult::Success(errorPages);
 }
 
 ClientMaxBodySizeResult parseClientMaxBodySize(const std::vector<std::string> directiveTokens)
