@@ -19,8 +19,7 @@ bool isLocalRedirectResponse(const CgiResponse &cgiResponse)
     return cgiResponse.location.size() > 0 && utils::isAbsolutePath(cgiResponse.location);
 }
 
-HttpRequest processLocalRedirectResponse(const CgiResponse &cgiResponse, const HttpRequest &httpRequest,
-                                         const ErrorPages &errorPages)
+HttpRequest processLocalRedirectResponse(const CgiResponse &cgiResponse, const HttpRequest &httpRequest)
 {
     return HttpRequest(httpRequest.sd, httpRequest.serverPort, httpRequest.clientIp, httpRequest.host,
                        httpRequest.method, cgiResponse.location, httpRequest.headers, httpRequest.body);

@@ -4,3 +4,5 @@
 
 FindSocketBufferResult findSocketBuffer(const int sd);
 bool setOutbound(int sd, std::string content);
+
+bool depositCgiRequest(const CgiRequest &cgiRequest);

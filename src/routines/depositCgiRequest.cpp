@@ -1,9 +1,14 @@
 #include "../all.hpp"
 
-void depositCgiRequest(const CgiRequest &cgiRequest)
+bool depositCgiRequest(const CgiRequest &cgiRequest)
 {
-    if (!setOutbound(cgiRequest.destinationSd, cgiRequest.scriptPath.c_str()))
+    if (setOutbound(cgiRequest.destinationSd, cgiRequest.body))
+    {
+        return true;
+    }
+    else
     {
         std::cerr << "Failed to deposit CGI request" << std::endl;
+        return false;
     }
 }

@@ -38,7 +38,7 @@ HttpResponse conductGet(const HttpRequest &httpRequest)
             const DirectoryListHtmlResult directoryListHtmlResult = directoryListHtml(uri.extraPath);
             return directoryListHtmlResult.success
                        ? HttpResponse(httpRequest.sd, SUCCESS, directoryListHtmlResult.value, "text/html")
-                       : BAD_REQUEST_RESPONSE;
+                       : getErrorResponse(httpRequest, BAD_REQUEST);
         }
         else if (location.index.size() > 0)
         {
@@ -46,7 +46,7 @@ HttpResponse conductGet(const HttpRequest &httpRequest)
             const FileContentResult fileContentResult = utils::fileContent(indexPath);
             return fileContentResult.success
                        ? HttpResponse(httpRequest.sd, SUCCESS, fileContentResult.value, utils::contentType(indexPath))
-                       : BAD_REQUEST_RESPONSE;
+                       : getErrorResponse(httpRequest, BAD_REQUEST);
         }
         else
         {
