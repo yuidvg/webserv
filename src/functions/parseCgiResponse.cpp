@@ -19,7 +19,7 @@ bool isStatusLine(std::string const &line)
 }
 } // namespace
 
-ParseCgiResponseResult parseCgiResponse(std::string const &response)
+ParseCgiResponseResult parseCgiResponse(std::string const &response, const int cgiSd)
 {
     const std::vector<std::string> headerAndBody = utils::split(response, EMPTY_LINE);
     if (headerAndBody.size() > 0)
@@ -40,7 +40,7 @@ ParseCgiResponseResult parseCgiResponse(std::string const &response)
         const std::string body =
             headerAndBody.size() > 1 ? response.substr(headerAndBody[0].length() + EMPTY_LINE.length()) : "";
 
-        return ParseCgiResponseResult::Success(CgiResponse(contentType, location, status, Headers(), body));
+        return ParseCgiResponseResult::Success(CgiResponse(cgiSd, contentType, location, status, Headers(), body));
     }
     else
     {

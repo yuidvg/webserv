@@ -49,7 +49,9 @@ void handleInbound(SocketBuffer &socketIO)
         else
         {
             const ConnectedUnixSocket &cgiSocket = connectedSocket.rightValue;
+            
             handleCgiMessage(cgiSocket, socketIO.getInbound());
+            socketIO.substringInbound(socketIO.getInbound().size());
         }
     }
     else

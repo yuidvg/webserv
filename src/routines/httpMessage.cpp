@@ -9,7 +9,7 @@ void processHttpMessageFromCgi(const HttpMessage &httpMessage)
     else
     {
         const HttpResponse httpResponse = httpMessage.rightValue;
-        if (!setOutbound(httpResponse.destinationSd, stringify(httpResponse)))
+        if (!appendOutbound(httpResponse.destinationSd, stringify(httpResponse)))
         {
             std::cerr << "Failed to set outbound for socket " << httpResponse.destinationSd << std::endl;
         }

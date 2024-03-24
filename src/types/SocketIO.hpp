@@ -25,8 +25,8 @@ class SocketBuffer
 
     ReceiveResult receiveInbound(size_t);
     std::string getInbound();
-    void clearInbound();
-    void setOutbound(std::string);
+    void substringInbound(size_t);
+    void appendOutbound(std::string);
     SendResult sendOutbound(size_t);
 };
 
@@ -93,14 +93,14 @@ std::string SocketBuffer::getInbound()
     return _inbound;
 }
 
-void SocketBuffer::clearInbound()
+void SocketBuffer::substringInbound(size_t size)
 {
-    _inbound = "";
+    _inbound = _inbound.substr(size);
 }
 
-void SocketBuffer::setOutbound(std::string message)
+void SocketBuffer::appendOutbound(std::string message)
 {
-    _outbound = message;
+    _outbound += message;
 }
 
 SendResult SocketBuffer::sendOutbound(size_t size)

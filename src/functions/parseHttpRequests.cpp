@@ -287,7 +287,7 @@ ParseRequestResult parseHttpRequest(const std::string &request, const ConnectedI
     }
 }
 
-HttpRequests parseHttpRequests(const SocketBuffer &socketBuffer, const ConnectedInternetSocket &socket)
+HttpRequests parseHttpRequests(SocketBuffer &socketBuffer, const ConnectedInternetSocket &socket)
 {
     const std::vector<std::string> blocks = utils::split(socketBuffer.getInbound(), CRLF + CRLF);
     const std::vector<std::string> nonEmptyBlocks = removeEmptyBlocks(blocks);

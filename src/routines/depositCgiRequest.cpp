@@ -2,7 +2,7 @@
 
 bool depositCgiRequest(const CgiRequest &cgiRequest)
 {
-    if (setOutbound(cgiRequest.destinationSd, cgiRequest.body))
+    if (appendOutbound(cgiRequest.destinationSd, cgiRequest.body))
     {
         return true;
     }
