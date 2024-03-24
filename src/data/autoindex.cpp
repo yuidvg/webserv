@@ -1,4 +1,4 @@
-#include ".hpp"
+#include "../all.hpp"
 
 namespace
 {
@@ -38,7 +38,7 @@ DirectoryListHtmlResult directoryListHtml(const std::string &path)
     if (files.empty())
     {
         std::string body = "<html><body><p>Directory not found.</p></body></html>";
-        return DirectoryListHtmlResult::Error(HttpResponse(400, body));
+        return DirectoryListHtmlResult::Error(BAD_REQUEST);
     }
 
     return DirectoryListHtmlResult::Success(createHtmlList(files, path));

@@ -1,7 +1,4 @@
-#include "event/.hpp"
-#include "config/parseConfig.hpp"
-#include "socket/.hpp"
-#include "types/.hpp"
+#include "all.hpp"
 
 int main(int argc, char **argv)
 {
@@ -16,7 +13,7 @@ int main(int argc, char **argv)
             {
                 const Servers servers = configResult.value;
                 CONFIG.injectServers(servers);
-                const SocketsResult listenSocketsResult = createListenSockets(servers);
+                const SocketsResult listenSocketsResult = utils::createListenSockets(servers);
                 if (listenSocketsResult.success)
                 {
                     eventLoop(listenSocketsResult.value);

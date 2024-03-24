@@ -6,7 +6,7 @@ struct HttpRequest
     const int sd;
     const size_t serverPort;
     const std::string clientIp;
-    const const std::string host;
+    const std::string host;
     const std::string method;
     const std::string target;
     const Headers headers;

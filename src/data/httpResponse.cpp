@@ -1,9 +1,16 @@
-#include ".hpp"
-#include "../cgiRequest/.hpp"
-#include "../httpRequestAndConfig/.hpp"
+#include "../all.hpp"
 
+HttpResponse getRedirectResponse(const HttpRequest &httpRequest, const std::string &redirectUrl)
+{
+    return HttpResponse(httpRequest.sd, REDIRECTION, "", "", redirectUrl);
+}
 
-std::string responseText(const HttpResponse &response)
+HttpResponse getErrorResponse(const HttpRequest &httpRequest, const int statusCode)
+{
+    return getServer(httpRequest).errorPages.at(statusCode);
+}
+
+std::string stringify(const HttpResponse &response)
 {
     std::vector<std::string> headers;
     const std::string statusLine = SERVER_PROTOCOL + " " + std::to_string(response.statusCode);

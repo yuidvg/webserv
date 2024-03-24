@@ -1,4 +1,4 @@
-#include ".hpp"
+#include "../all.hpp"
 
 namespace utils
 {
@@ -69,14 +69,14 @@ std::string contentType(const std::string &path)
         return "text/plain";
 }
 
-IsDirectoryResult isDirectory(const std::string &path)
+bool isDirectory(const std::string &path)
 {
     struct stat statbuf;
     if (stat(path.c_str(), &statbuf) != 0)
     {
-        return IsDirectoryResult::Error(BAD_REQUEST);
+        return false;
     }
-    return IsDirectoryResult::Success(S_ISDIR(statbuf.st_mode));
+    return S_ISDIR(statbuf.st_mode);
 }
 
 bool createFile(const std::string &fileName, const std::string &path)
@@ -92,4 +92,17 @@ bool createFile(const std::string &fileName, const std::string &path)
     return true;
 }
 
+bool writeToFile(const std::string &path, const std::string &content)
+{
+    std::ofstream ofs(path);
+    if (ofs.is_open())
+    {
+        ofs << content;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
 } // namespace utils

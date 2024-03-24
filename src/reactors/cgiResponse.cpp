@@ -1,5 +1,5 @@
-#include ".hpp"
-#include "../httpResponse/.hpp"
+#include "../all.hpp"
+
 namespace
 {
 bool isDocumentResponse(const CgiResponse &cgiResponse)
@@ -70,24 +70,5 @@ CgiRequestOrHttpResponse processCgiResponse(const CgiResponse &cgiResponse, cons
     else
     {
         return CgiRequestOrHttpResponse::Right(errorPages.at(SERVER_ERROR));
-    }
-}
-
-void processHttpMessageFromCgi(const HttpMessage &httpMessage)
-{
-    if (httpMessage.tag == LEFT)
-    {
-        const HttpRequest httpRequest = httpMessage.leftValue;
-        // httpRequestのキューに格納
-    }
-    else
-    {
-        const HttpResponse httpResponse = httpMessage.rightValue;
-        FindSocketBufferResult findSocketBufferResult = findSocketBuffer(httpResponse);
-        if (findSocketBufferResult.Success())
-        {
-            SocketBuffer &socketBuffer = findSocketBufferResult.success;
-            socketBuffer.setOutbound(httpResponse.c_str());
-        }
     }
 }

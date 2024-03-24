@@ -231,54 +231,63 @@ ParseBodyResult parseHttpBody(const std::string &body, const Headers &headers, c
     }
 }
 
-ParseRequestResult parseHttpRequest(const std::string message, const int port)
+ParseRequestResult parseHttpRequest(const std::string &request, const int port)
 {
-    const std::vector<std::string> blocks = utils::split(message, CRLF + CRLF);
+    const std::vector<std::string> blocks = utils::split(request, CRLF + CRLF);
     const std::vector<std::string> nonEmptyBlocks = removeEmptyBlocks(blocks);
-    if (nonEmptyBlocks.size() < 2 && message.find("POST") != std::string::npos)
-        return ParseRequestResult::Pending();
-    else
+    if (nonEmptyBlocks.empty())
+        return ParseRequestResult::Error(BAD_REQUEST);
+
+    std::istringstream requestTextStream(nonEmptyBlocks[0]);
+    const ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(requestTextStream);
+    if (parseRequestLineResult.status == PARSED)
     {
-        if (nonEmptyBlocks.size() == 0)
-            return ParseRequestResult::Error(BAD_REQUEST);
-        std::istringstream requestTextStream(nonEmptyBlocks[0]);
-        const ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(requestTextStream);
-        if (parseRequestLineResult.status == PARSED)
+        const ParseHeaderResult parseHeaderResult = parseHttpHeaders(requestTextStream);
+        if (parseHeaderResult.status == PARSED)
         {
-            const ParseHeaderResult parseHeaderResult = parseHttpHeaders(requestTextStream);
-            if (parseHeaderResult.status == PARSED)
+            const GetHostNameResult getHostNameResult = getHostName(parseHeaderResult.value);
+            if (getHostNameResult.success)
             {
-                const GetHostNameResult getHostNameResult = getHostName(parseHeaderResult.value);
-                if (getHostNameResult.success)
+                const ParseBodyResult parseBodyResult = parseHttpBody(
+                    nonEmptyBlocks.size() > 1 ? nonEmptyBlocks[1] : "",
+                    parseHeaderResult.value, CONFIG.getServer(getHostNameResult.value, port),
+                    parseRequestLineResult.value.method);
+                if (parseBodyResult.status == PARSED)
                 {
-                    const ParseBodyResult parseBodyResult = parseHttpBody(
-                        nonEmptyBlocks[1], parseHeaderResult.value, CONFIG.getServer(getHostNameResult.value, port),
-                        parseRequestLineResult.value.method);
-                    if (parseBodyResult.status == PARSED)
-                    {
-                        return ParseRequestResult::Success(
-                            HttpRequest(parseRequestLineResult.value.method, parseRequestLineResult.value.target,
-                                        parseHeaderResult.value, parseBodyResult.value, getHostNameResult.value));
-                    }
-                    else if (parseBodyResult.status == PENDING)
-                        return ParseRequestResult::Pending();
-                    else
-                        return ParseRequestResult::Error(parseBodyResult.error);
+                    return ParseRequestResult::Success(
+                        HttpRequest(parseRequestLineResult.value.method, parseRequestLineResult.value.target,
+                                    parseHeaderResult.value, parseBodyResult.value, getHostNameResult.value));
+                }
+                else if (parseBodyResult.status == PENDING)
+                {
+                    return ParseRequestResult::Pending();
                 }
                 else
-                    return ParseRequestResult::Error(getHostNameResult.error);
+                {
+                    return ParseRequestResult::Error(parseBodyResult.error);
+                }
             }
-            else if (parseHeaderResult.status == PENDING)
-                return ParseRequestResult::Pending();
             else
-                return ParseRequestResult::Error(parseHeaderResult.error);
+            {
+                return ParseRequestResult::Error(getHostNameResult.error);
+            }
+        }
+        else if (parseHeaderResult.status == PENDING)
+        {
+            return ParseRequestResult::Pending();
         }
         else
-            return ParseRequestResult::Error(parseRequestLineResult.error);
+        {
+            return ParseRequestResult::Error(parseHeaderResult.error);
+        }
+    }
+    else
+    {
+        return ParseRequestResult::Error(parseRequestLineResult.error);
     }
 }
 
-ParseHttpRequests parseHttpRequests(const SocketBuffer &socketBuffer, const int port)
+CompleteOrPending parseHttpRequests(const SocketBuffer &socketBuffer, const int port)
 {
     const std::vector<std::string> blocks = utils::split(socketBuffer.getInbound(), CRLF + CRLF);
     const std::vector<std::string> nonEmptyBlocks = removeEmptyBlocks(blocks);
@@ -293,14 +302,23 @@ ParseHttpRequests parseHttpRequests(const SocketBuffer &socketBuffer, const int 
                 {
                     HTTP_REQUESTS.push(parseRequestResult.value);
                 }
+                else if (parseRequestResult.status == PENDING)
+                {
+                    //bufferをクリアして、このブロックを次のリクエストの先頭にする
+                    socketBuffer.clearInbound();
+                    socketBuffer.appendInbound(*it + CRLF + CRLF + *(it + 1));
+                    break;
+                }
                 else
                 {
-                    ; //pending
+                    HTTP_REQUESTS.push(parseRequestResult.error); // 無効なリクエスト(後ろにbodyがないなど)の場合もある
+                    continue;
                 }
+                ++it;
             }
             else
             {
-                // pending
+                break; // POSTのbodyがない場合は次のリクエストを待つ
             }
         }
         else // POST以外のリクエスト
@@ -312,7 +330,7 @@ ParseHttpRequests parseHttpRequests(const SocketBuffer &socketBuffer, const int 
             }
             else if (parseRequestResult.status == PENDING)
             {
-                ; // pending
+                break;
             }
             else
             {

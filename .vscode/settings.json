@@ -94,7 +94,11 @@
 		"strstream": "cpp",
 		"typeindex": "cpp",
 		"unordered_set": "cpp",
-		"valarray": "cpp"
+		"valarray": "cpp",
+		"*.defs": "cpp",
+		"hash_map": "cpp",
+		"hash_set": "cpp",
+		"osmemory": "cpp"
 	},
 	"[cpp]": {
 		"editor.wordBasedSuggestions": "off",

@@ -1,5 +1,4 @@
-#include ".hpp"
-#include "webserv.hpp"
+#include "../all.hpp"
 
 namespace
 {
@@ -17,28 +16,30 @@ std::string authType(const HttpRequest &request)
     const std::vector<std::string> tokens = utils::split(authorization, " ");
     return tokens.size() > 0 ? tokens[0] : "";
 }
-CgiRequest getCgiRequest(const HttpRequest &request, const Uri &uri)
+CgiRequest getCgiRequest(const HttpRequest &httpRequest)
 {
+    const Uri uri = segmentize(httpRequest);
     std::map<std::string, std::string> env;
-    env["AUTH_TYPE"] = authType(request);
-    env["CONTENT_LENGTH"] = utils::itoa(request.body.size());
-    env["CONTENT_TYPE"] = utils::value(request.headers, std::string("content-type"));
+    env["AUTH_TYPE"] = authType(httpRequest);
+    env["CONTENT_LENGTH"] = utils::itoa(httpRequest.body.size());
+    env["CONTENT_TYPE"] = utils::value(httpRequest.headers, std::string("content-type"));
     env["GATEWAY_INTERFACE"] = GATEWAY_INTERFACE;
     env["PATH_INFO"] = uri.extraPath;
     env["PATH_TRANSLATED"] =
         uri.extraPath.size() > 0
-            ? resolvePath(uri.extraPath, CONFIG.getServer(request.host, request.serverPort).getLocation(request.target))
+            ? resolvePath(uri.extraPath,
+                          CONFIG.getServer(httpRequest.host, httpRequest.serverPort).getLocation(httpRequest.target))
             : "";
     env["QUERY_STRING"] = uri.queryString;
-    env["REMOTE_ADDR"] = request.clientIp;
-    env["REQUEST_METHOD"] = request.method;
+    env["REMOTE_ADDR"] = httpRequest.clientIp;
+    env["REQUEST_METHOD"] = httpRequest.method;
     env["SCRIPT_NAME"] = uri.scriptPath;
-    env["SERVER_NAME"] = request.host;
-    env["SERVER_PORT"] = request.serverPort;
+    env["SERVER_NAME"] = httpRequest.host;
+    env["SERVER_PORT"] = httpRequest.serverPort;
     env["SERVER_PROTOCOL"] = SERVER_PROTOCOL;
     env["SERVER_SOFTWARE"] = SERVER_SOFTWARE;
 
-    return CgiRequest(env, uri.scriptPath, request.body);
+    return CgiRequest(env, uri.scriptPath, httpRequest.body);
 }
 } // namespace
 
@@ -50,23 +51,22 @@ CgiRequestOrHttpResponse processHttpRequest(const HttpRequest &httpRequest)
     if (isMethodAllowed(httpRequest, location))
     {
         const std::string resolvedPath = resolvePath(httpRequest.target, location);
-        const Uri uri = segmentUri(resolvedPath, location.cgiExtension);
-        if (uri.scriptPath.size() > 0)
+        if (segmentize(httpRequest).scriptPath.size() > 0)
         {
-            return CgiRequestOrHttpResponse::Left(getCgiRequest(httpRequest, uri));
+            return CgiRequestOrHttpResponse::Left(getCgiRequest(httpRequest));
         }
         else
         {
             if (!location.redirect.empty())
             {
-                return CgiRequestOrHttpResponse::Right(redirectResponse(location.redirect));
+                return CgiRequestOrHttpResponse::Right(getRedirectResponse(httpRequest, location.redirect));
             }
             if (httpRequest.method == "GET")
-                return CgiRequestOrHttpResponse::Right(conductGet(uri, location));
+                return CgiRequestOrHttpResponse::Right(conductGet(httpRequest));
             else if (httpRequest.method == "POST")
-                return CgiRequestOrHttpResponse::Right(conductPost(httpRequest, location));
+                return CgiRequestOrHttpResponse::Right(conductPost(httpRequest));
             else if (httpRequest.method == "DELETE")
-                return CgiRequestOrHttpResponse::Right(conductDelete(httpRequest.target));
+                return CgiRequestOrHttpResponse::Right(conductDelete(httpRequest));
             else
                 return CgiRequestOrHttpResponse::Right(METHOD_NOT_ALLOWED_RESPONSE("GET, POST, DELETE"));
         }

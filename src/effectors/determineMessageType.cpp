@@ -1,4 +1,4 @@
-#include ".hpp"
+#include "../all.hpp"
 
 namespace
 {
@@ -13,14 +13,14 @@ void handleClientMessages(const ConnectedInternetSocket &socket, const SocketBuf
 {
     // messageをパースして、httpRequestsに変換
     ParseHttpRequests parseHttpRequests(socketBuffer, socket.serverPort);
-    if (parseHttpRequests.tag ==)
+    if (parseHttpRequests.tag == RIGHT)
     {
         // httpRequestsを処理
         ;
     }
     else
     {
-        // エラー処理
-        ;
+        // pending
+        return;
     }
 }

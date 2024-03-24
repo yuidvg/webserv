@@ -1,4 +1,4 @@
 #pragma once
-#include ".hpp"
+#include "top.hpp"
 
-ParseRequestResult parseHttpRequest(const std::string message, const int port);
+ParseRequestResult parseHttpRequest(const std::string &request, const int port);

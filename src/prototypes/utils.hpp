@@ -1,8 +1,7 @@
 #pragma once
 
-#include "../globals.hpp"
-#include "../types/.hpp"
-#include "template.tpp"
+#include "../types/bottom.hpp"
+#include "utilTemplates.tpp"
 
 namespace utils
 {
@@ -29,8 +28,9 @@ bool isAbsoluteUri(const std::string &uri);
 // file
 FileContentResult fileContent(const std::string &path);
 std::string contentType(const std::string &path);
-IsDirectoryResult isDirectory(const std::string &path);
+bool isDirectory(const std::string &path);
 bool createFile(const std::string &fileName, const std::string &path);
+bool writeToFile(const std::string &path, const std::string &content);
 
 // vector
 std::string join(const std::vector<std::string> &list, const std::string &delimiter);
@@ -44,4 +44,9 @@ void deleteCStrArray(char *const *array);
 // kernelEvent
 bool registerEvent(const uintptr_t identifier, const int16_t filter);
 bool setEventFlags(const uintptr_t identifier, const int16_t filter, const uint16_t flags);
+
+// socket
+SocketsResult utils::createListenSockets(const Servers servers);
+ConnectedInternetSocketResult newConnectedInternetSocket(const Socket &listenSocket);
+
 } // namespace utils

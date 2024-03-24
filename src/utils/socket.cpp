@@ -1,6 +1,6 @@
-#include ".hpp"
+#include "../all.hpp"
 
-#include ".hpp"
+#include "../all.hpp"
 namespace
 {
 SocketResult getListenSocket(const Server server)
@@ -52,7 +52,10 @@ SocketResult getListenSocket(const Server server)
 }
 } // namespace
 
-SocketsResult createListenSockets(Servers servers)
+namespace utils
+{
+
+SocketsResult utils::createListenSockets(Servers servers)
 {
     std::set<const int> openedPorts;
     Sockets listenSockets;
@@ -98,3 +101,4 @@ ConnectedInternetSocketResult newConnectedInternetSocket(const Socket &listenSoc
         return ConnectedInternetSocketResult::Error("accept() failed: " + std::string(strerror(errno)));
     }
 }
+} // namespace utils

@@ -1,10 +1,11 @@
 #pragma once
-#include ".hpp"
+#include "top.hpp"
 
-std::string responseText(const HttpResponse &response);
+std::string stringify(const HttpResponse &);
+
 // methods
-HttpResponse conductGet(const Uri &uri, const Location &location, const ErrorPages &errorPages);
-HttpResponse conductDelete(const std::string &path, const ErrorPages &errorPages);
-HttpResponse conductPost(const HttpRequest &request, const Location &location, const ErrorPages &errorPages);
+HttpResponse conductGet(const HttpRequest &);
+HttpResponse conductDelete(const HttpRequest &);
+HttpResponse conductPost(const HttpRequest &);
 
-HttpResponse redirectResponse(const std::string &redirectUrl);
+HttpResponse getRedirectResponse(const HttpRequest &, const std::string &redirectUrl);

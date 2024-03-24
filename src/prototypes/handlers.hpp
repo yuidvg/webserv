@@ -1,5 +1,5 @@
 #pragma once
 
-#include ".hpp"
+#include "top.hpp"
 
 CgiRequestOrHttpResponse processHttpRequest(const HttpRequest &);

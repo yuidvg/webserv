@@ -1,4 +1,4 @@
-#include ".hpp"
+#include "../all.hpp"
 
 FindSocketBufferResult findSocketBuffer(const int sd)
 {
@@ -8,4 +8,19 @@ FindSocketBufferResult findSocketBuffer(const int sd)
             return FindSocketBufferResult::Success(*it);
     }
     return FindSocketBufferResult::Error("Failed to find socket buffer with descriptor " + std::to_string(sd));
+}
+
+
+bool setOutbound(int sd, std::string content)
+{
+    FindSocketBufferResult findSocketBufferResult = findSocketBuffer(sd);
+    if (findSocketBufferResult.success)
+    {
+        SocketBuffer &socketBuffer = findSocketBufferResult.value;
+        socketBuffer.setOutbound(content);
+    }
+    else
+    {
+        return false;
+    }
 }

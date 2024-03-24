@@ -34,7 +34,7 @@ typedef Result<const std::string, const int> GetHostNameResult;
 typedef ParseResult<const std::string, const HttpResponse> UnchunkBodyResult;
 
 // autoindex
-typedef Result<const std::string, const HttpResponse> DirectoryListHtmlResult;
+typedef Result<const std::string, const StatusCode> DirectoryListHtmlResult;
 typedef Result<const std::string, const std::string> GetIndexFilePathResult;
 typedef Result<const Server, const HttpResponse> MatchedServerResult;
 
@@ -63,7 +63,7 @@ typedef Result<const std::string, const std::string> RedirectResult;
 
 typedef Result<const Socket, const std::string> SocketResult;
 typedef Result<const int, const std::string> StringToIntResult;
-typedef Result<const bool, const int> IsDirectoryResult;
+typedef Result<const bool, HttpResponse> IsDirectoryResult;
 typedef Result<const std::string, const StatusCode> FileContentResult;
 
 typedef std::vector<std::string> Strings;
@@ -79,8 +79,6 @@ typedef std::set<const Socket> Sockets;
 typedef Result<const Sockets, const std::string> SocketsResult;
 
 typedef Either<CgiRequest, HttpResponse> CgiRequestOrHttpResponse;
-
-typedef Option<const HttpRequest> HttpRequestQ;
 
 typedef std::queue<const HttpRequest> HttpRequests;
 

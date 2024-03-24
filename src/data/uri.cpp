@@ -1,5 +1,4 @@
-#include "../httpRequestAndConfig/.hpp"
-#include ".hpp"
+#include "../all.hpp"
 
 namespace
 {
@@ -18,11 +17,13 @@ std::string::size_type findScriptExtensionPos(const std::string &target, const s
 }
 } // namespace
 
-Uri segmentUri(const std::string &target, const std::string &cgiExtension)
+Uri segmentize(const HttpRequest &httpRequest)
 {
-    const std::string::size_type scriptExtensionPos = findScriptExtensionPos(target, cgiExtension);
-    const std::string scriptPath = target.substr(0, scriptExtensionPos + cgiExtension.size());
-    const std::string rest = target.substr(scriptExtensionPos + cgiExtension.size());
+    const Location location =
+        CONFIG.getServer(httpRequest.host, httpRequest.serverPort).getLocation(httpRequest.target);
+    const std::string::size_type scriptExtensionPos = findScriptExtensionPos(httpRequest.target, location.cgiExtension);
+    const std::string scriptPath = httpRequest.target.substr(0, scriptExtensionPos + location.cgiExtension.size());
+    const std::string rest = httpRequest.target.substr(scriptExtensionPos + location.cgiExtension.size());
     const std::string::size_type questionPos = rest.find('?');
     const std::string extraPath = rest.substr(0, questionPos);
     const std::string queryString = questionPos <= rest.size() ? rest.substr(questionPos + 1) : "";

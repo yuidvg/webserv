@@ -1,15 +1,15 @@
 #include "../socket/.hpp"
+#include "../all.hpp"
 #include "../cgiRequest/.hpp"
 #include "../cgiResponse/.hpp"
 #include "../httpRequest/.hpp"
 #include "../httpResponse/.hpp"
-#include ".hpp"
 
 namespace
 {
 void handleListenSocketEvent(const Socket &listenSocket)
 {
-    const ConnectedInternetSocketResult newConnectedSocketResult = newConnectedInternetSocket(listenSocket);
+    const ConnectedInternetSocketResult newConnectedSocketResult = utils::newConnectedInternetSocket(listenSocket);
     if (newConnectedSocketResult.success)
     {
         CLIENT_SOCKETS.push_back(newConnectedSocketResult.value);
@@ -89,10 +89,6 @@ void handleEvent(const struct kevent &event, const Sockets &listenSockets)
             }
         }
     }
-}
-else
-{
-    utils::printError("unexpected event");
 }
 } // namespace
 

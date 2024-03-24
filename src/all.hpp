@@ -1,3 +1,5 @@
 #pragma once
 
-#include "prototypes/httpResponse.hpp"
+#include "globals.hpp"
+#include "prototypes/bottom.hpp"
+#include "types/bottom.hpp"

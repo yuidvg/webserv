@@ -1,6 +1,4 @@
-#include ".hpp"
-#include "../cgiResponse/.hpp"
-#include "../httpRequestAndConfig/.hpp"
+#include "../all.hpp"
 
 namespace
 {
