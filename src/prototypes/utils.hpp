@@ -46,7 +46,7 @@ bool registerEvent(const uintptr_t identifier, const int16_t filter);
 bool setEventFlags(const uintptr_t identifier, const int16_t filter, const uint16_t flags);
 
 // socket
-SocketsResult utils::createListenSockets(const Servers servers);
+SocketsResult createListenSockets(const Servers servers);
 ConnectedInternetSocketResult newConnectedInternetSocket(const Socket &listenSocket);
 
 } // namespace utils

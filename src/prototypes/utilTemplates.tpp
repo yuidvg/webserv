@@ -85,4 +85,13 @@ template <typename T, typename Predicate> std::vector<T> filter(const std::vecto
     return result;
 }
 
+template <typename T> void appendQueue(const std::queue<T> &source, std::queue<T> &destination)
+{
+    // Push all elements from the source queue to the destination queue
+    while (!source.empty())
+    {
+        destination.push(source.front());
+    }
+}
+
 } // namespace utils

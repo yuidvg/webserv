@@ -18,7 +18,7 @@ struct CgiResponse
           body(body)
     {
     }
-    CgiResponse() : cgiSd(cgiSd), contentType(""), location(""), status(0), otherHeaders(""), body("")
+    CgiResponse() : cgiSd(-1), contentType(""), location(""), status(0), otherHeaders(""), body("")
     {
     }
 };

@@ -17,3 +17,4 @@
 #include "Server.hpp"
 #include "Socket.hpp"
 #include "SocketIO.hpp"
+#include "ParsedHttpRequests.hpp"

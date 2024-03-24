@@ -44,14 +44,14 @@ void handleInbound(SocketBuffer &socketIO)
         if (connectedSocket.tag == LEFT)
         {
             const ConnectedInternetSocket &clientSocket = connectedSocket.leftValue;
-            handleClientMessages(clientSocket, socketIO);
+            processClientMessages(clientSocket, socketIO);
         }
         else
         {
             const ConnectedUnixSocket &cgiSocket = connectedSocket.rightValue;
-            
-            handleCgiMessage(cgiSocket, socketIO.getInbound());
-            socketIO.substringInbound(socketIO.getInbound().size());
+            const std::string message = socketIO.getInbound();
+            wipeCgi(cgiSocket.opponentPid, cgiSocket.descriptor);
+            processCgiMessage(cgiSocket, message);
         }
     }
     else
