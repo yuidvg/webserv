@@ -7,17 +7,30 @@ HttpResponse getRedirectResponse(const HttpRequest &httpRequest, const std::stri
 
 HttpResponse getErrorResponse(const HttpRequest &httpRequest, const int statusCode)
 {
-    const std::string path = getServer(httpRequest).errorPagePaths.at(statusCode);
+    const std::string path = getServer(httpRequest).errorPages.at(statusCode);
     const FileContentResult fileContentResult = utils::fileContent(path);
     if (fileContentResult.success)
     {
+        // custom error page
         return HttpResponse(httpRequest.sd, statusCode, fileContentResult.value, utils::contentType(path));
     }
     else
     {
-        return HttpResponse(httpRequest.sd, SERVER_ERROR, );
+        // default error page
+        if (statusCode == SERVER_ERROR)
+            return HttpResponse(
+                httpRequest.sd, SERVER_ERROR,
+                " <html> <head> <title>500 Internal Server Error</title> </head> <body> <h1>500 Internal Server "
+                "Error</h1> <p>The server encountered an internal error or misconfiguration and was unable to "
+                "complete your request.<br /></p> </body> </html>",
+                "text/html");
+        else if (statusCode == BAD_REQUEST)
+            return HttpResponse(
+                httpRequest.sd, BAD_REQUEST,
+                " <html> <head> <title>400 Bad Request</title> </head> <body> <h1>400 Bad Request</h1> <p>Your "
+                "browser sent a request that this server could not understand.<br /></p> </body> </html>",
+                "text/html");
     }
-
 }
 
 std::string stringify(const HttpResponse &response)
