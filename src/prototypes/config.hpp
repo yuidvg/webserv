@@ -6,4 +6,4 @@
 
 Server getServer(const HttpRequest &httpRequest);
 Location getLocation(const HttpRequest &httpRequest);
-HttpResponse getErrorResponse(const HttpRequest &httpRequest, const int statusCode);
+HttpResponse getErrorHttpResponse(const HttpRequest &httpRequest, const int statusCode);

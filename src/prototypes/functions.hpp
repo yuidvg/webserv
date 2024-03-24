@@ -8,7 +8,7 @@ bool findCgiExtension(const std::string &target, const std::string &extension);
 Uri segment(const HttpRequest &);
 ConnectedUnixSocketResult createCgiProcess(const StringMap &envs, const std::string &scriptPath);
 ParseCgiResponseResult parseCgiResponse(std::string const &response);
-CgiRequestOrHttpResponse processCgiResponse(const CgiResponse &cgiResponse);
+HttpMessage processCgiResponse(const CgiResponse &cgiResponse);
 CgiRequestOrHttpResponse processHttpRequest(const HttpRequest &);
 
 std::string stringify(const HttpResponse &);
@@ -18,7 +18,7 @@ HttpResponse conductGet(const HttpRequest &);
 HttpResponse conductDelete(const HttpRequest &);
 HttpResponse conductPost(const HttpRequest &);
 
-HttpResponse getRedirectResponse(const HttpRequest &, const std::string &redirectUrl);
+HttpResponse getRedirectHttpResponse(const HttpRequest &, const std::string &redirectUrl);
 
 
 FindSocketBufferResult findSocketBuffer(const int sd);

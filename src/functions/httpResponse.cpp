@@ -1,11 +1,11 @@
 #include "../all.hpp"
 
-HttpResponse getRedirectResponse(const HttpRequest &httpRequest, const std::string &redirectUrl)
+HttpResponse getRedirectHttpResponse(const HttpRequest &httpRequest, const std::string &redirectUrl)
 {
     return HttpResponse(httpRequest.sd, REDIRECTION, "", "", redirectUrl);
 }
 
-HttpResponse getErrorResponse(const HttpRequest &httpRequest, const int statusCode)
+HttpResponse getErrorHttpResponse(const HttpRequest &httpRequest, const int statusCode)
 {
     const std::string path = getServer(httpRequest).errorPages.at(statusCode);
     const FileContentResult fileContentResult = utils::fileContent(path);

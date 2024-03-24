@@ -1,18 +1,15 @@
 #include "../all.hpp"
 
-void eraseSocketBuffer(const int sd)
+bool depositCgiRequest(const CgiRequest &cgiRequest)
 {
-    for (SocketBuffers::iterator it = SOCKET_BUFFERS.begin(); it != SOCKET_BUFFERS.end();)
+    if (appendOutbound(cgiRequest.destinationSd, cgiRequest.body))
     {
-        if (it->sd == sd)
-        {
-            SOCKET_BUFFERS.erase(it);
-            break;
-        }
-        else
-        {
-            ++it;
-        }
+        return true;
+    }
+    else
+    {
+        std::cerr << "Failed to deposit CGI request" << std::endl;
+        return false;
     }
 }
 

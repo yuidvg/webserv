@@ -70,6 +70,6 @@ HttpMessage processCgiResponse(const CgiResponse &cgiResponse)
     }
     else
     {
-        return HttpMessage::Right(getErrorResponse(getHttpRequest(cgiResponse.cgiSd), SERVER_ERROR));
+        return HttpMessage::Right(getErrorHttpResponse(getHttpRequest(cgiResponse.cgiSd), SERVER_ERROR));
     }
 }
