@@ -9,9 +9,8 @@ bool isDocumentResponse(const CgiResponse &cgiResponse)
 
 HttpResponse processDocumentResponse(const CgiResponse &cgiResponse)
 {
-    const HttpResponse response(utils::isStatusInRange(cgiResponse.status) ? cgiResponse.status : 200,
-                                cgiResponse.body);
-    return response;
+    return HttpResponse(getHttpRequest(cgiResponse.cgiSd).sd,
+                        utils::isStatusInRange(cgiResponse.status) ? cgiResponse.status : SUCCESS, cgiResponse.body);
 }
 
 bool isLocalRedirectResponse(const CgiResponse &cgiResponse)
@@ -19,8 +18,9 @@ bool isLocalRedirectResponse(const CgiResponse &cgiResponse)
     return cgiResponse.location.size() > 0 && utils::isAbsolutePath(cgiResponse.location);
 }
 
-HttpRequest processLocalRedirectResponse(const CgiResponse &cgiResponse, const HttpRequest &httpRequest)
+HttpRequest processLocalRedirectResponse(const CgiResponse &cgiResponse)
 {
+    const HttpRequest &httpRequest = getHttpRequest(cgiResponse.cgiSd);
     return HttpRequest(httpRequest.sd, httpRequest.serverPort, httpRequest.clientIp, httpRequest.host,
                        httpRequest.method, cgiResponse.location, httpRequest.headers, httpRequest.body);
 }
@@ -33,7 +33,8 @@ bool isClientRedirectResponse(const CgiResponse &cgiResponse)
 }
 HttpResponse processClientRedirectResponse(const CgiResponse &cgiResponse)
 {
-    return HttpResponse(, 302, "", "", cgiResponse.location);
+    const HttpRequest &httpRequest = getHttpRequest(cgiResponse.cgiSd);
+    return HttpResponse(httpRequest.sd, 302, "", "", cgiResponse.location);
 }
 
 bool isClientRedirectWithDocumentResponse(const CgiResponse &cgiResponse)
@@ -43,11 +44,13 @@ bool isClientRedirectWithDocumentResponse(const CgiResponse &cgiResponse)
 }
 HttpResponse processClientRedirectWithDocumentResponse(const CgiResponse &cgiResponse)
 {
-    return HttpResponse(cgiResponse.status, cgiResponse.body, cgiResponse.contentType, cgiResponse.location);
+    const HttpRequest &httpRequest = getHttpRequest(cgiResponse.cgiSd);
+    return HttpResponse(httpRequest.sd, cgiResponse.status, cgiResponse.body, cgiResponse.contentType,
+                        cgiResponse.location);
 }
 } // namespace
 
-HttpMessage processCgiResponse(const CgiResponse &cgiResponse, const HttpRequest &httpRequest)
+HttpMessage processCgiResponse(const CgiResponse &cgiResponse)
 {
     if (isClientRedirectWithDocumentResponse(cgiResponse))
     {
@@ -59,7 +62,7 @@ HttpMessage processCgiResponse(const CgiResponse &cgiResponse, const HttpRequest
     }
     else if (isLocalRedirectResponse(cgiResponse))
     {
-        return processLocalRedirectResponse(cgiResponse, httpRequest);
+        return HttpMessage::Left(processLocalRedirectResponse(cgiResponse));
     }
     else if (isDocumentResponse(cgiResponse))
     {
@@ -67,6 +70,6 @@ HttpMessage processCgiResponse(const CgiResponse &cgiResponse, const HttpRequest
     }
     else
     {
-        return HttpMessage::Right(getErrorResponse(httpRequest, SERVER_ERROR));
+        return HttpMessage::Right(getErrorResponse(getHttpRequest(cgiResponse.cgiSd), SERVER_ERROR));
     }
 }
