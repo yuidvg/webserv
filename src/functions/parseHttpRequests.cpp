@@ -1,4 +1,4 @@
-#include ".hpp"
+#include "../all.hpp"
 
 /* ========  helper functions ======== */
 std::vector<std::string> removeEmptyBlocks(const std::vector<std::string> &blocks)
@@ -248,10 +248,9 @@ ParseRequestResult parseHttpRequest(const std::string &request, const int port)
             const GetHostNameResult getHostNameResult = getHostName(parseHeaderResult.value);
             if (getHostNameResult.success)
             {
-                const ParseBodyResult parseBodyResult = parseHttpBody(
-                    nonEmptyBlocks.size() > 1 ? nonEmptyBlocks[1] : "",
-                    parseHeaderResult.value, CONFIG.getServer(getHostNameResult.value, port),
-                    parseRequestLineResult.value.method);
+                const ParseBodyResult parseBodyResult =
+                    parseHttpBody(nonEmptyBlocks.size() > 1 ? nonEmptyBlocks[1] : "", parseHeaderResult.value,
+                                  CONFIG.getServer(getHostNameResult.value, port), parseRequestLineResult.value.method);
                 if (parseBodyResult.status == PARSED)
                 {
                     return ParseRequestResult::Success(
@@ -287,7 +286,7 @@ ParseRequestResult parseHttpRequest(const std::string &request, const int port)
     }
 }
 
-void parseHttpRequests(const SocketBuffer &socketBuffer, const int port)
+HttpRequests parseHttpRequests(const SocketBuffer &socketBuffer, const int port)
 {
     const std::vector<std::string> blocks = utils::split(socketBuffer.getInbound(), CRLF + CRLF);
     const std::vector<std::string> nonEmptyBlocks = removeEmptyBlocks(blocks);
@@ -304,7 +303,7 @@ void parseHttpRequests(const SocketBuffer &socketBuffer, const int port)
                 }
                 else if (parseRequestResult.status == PENDING)
                 {
-                    //bufferをクリアして、このブロックを次のリクエストの先頭にする
+                    // bufferをクリアして、このブロックを次のリクエストの先頭にする
                     socketBuffer.clearInbound();
                     socketBuffer.appendInbound(*it + CRLF + CRLF + *(it + 1));
                     break;
