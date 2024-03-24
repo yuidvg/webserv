@@ -20,7 +20,7 @@ char *const *mapStringStringToCStringArray(const std::map<std::string, std::stri
 
 } // namespace
 
-ConnectedInternetSocketResult createCgiProcess(const CgiRequest &request, const HttpRequest &httpRequest)
+ConnectedUnixSocketResult createCgiProcess(const CgiRequest &cgiRequest)
 {
     int socketPair[2];
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, socketPair) == 0)
@@ -31,7 +31,7 @@ ConnectedInternetSocketResult createCgiProcess(const CgiRequest &request, const 
         {
             close(socketPair[SERVER_END]);
             close(socketPair[CGI]);
-            return ConnectedInternetSocketResult::Error(SERVER_ERROR);
+            return ConnectedUnixSocketResult::Error("fork failed");
         }
         else if (pid == 0) // cgi process
         {
@@ -40,11 +40,11 @@ ConnectedInternetSocketResult createCgiProcess(const CgiRequest &request, const 
             dup2(socketPair[CGI], STDIN_FILENO);
 
             errno = 0;
-            char *const *envp = mapStringStringToCStringArray(request.envs);
+            char *const *envp = mapStringStringToCStringArray(cgiRequest.envs);
             char *args[2];
-            args[0] = const_cast<char *>(request.scriptPath.c_str());
+            args[0] = const_cast<char *>(cgiRequest.scriptPath.c_str());
             args[1] = NULL;
-            execve(request.scriptPath.c_str(), args, envp);
+            execve(cgiRequest.scriptPath.c_str(), args, envp);
             std::cerr << "execve failed: " << strerror(errno) << std::endl;
             utils::deleteCStrArray(envp);
             while (true)
@@ -55,12 +55,12 @@ ConnectedInternetSocketResult createCgiProcess(const CgiRequest &request, const 
         else // server process
         {
             close(socketPair[CGI]);
-            return ConnectedInternetSocketResult::Success(Cgi(socketPair[SERVER_END], httpRequest, client));
+            return ConnectedUnixSocketResult::Success(ConnectedUnixSocket(socketPair[SERVER_END], pid));
         }
     }
     else
     {
         std::cerr << "socketpair failed" << std::endl;
-        return ConnectedInternetSocketResult::Error(SERVER_ERROR);
+        return ConnectedUnixSocketResult::Error("socketpair failed");
     }
 }

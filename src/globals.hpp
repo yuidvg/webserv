@@ -33,23 +33,7 @@ const std::string CLOSE_BRACKET = "}";
 // httpRequest
 const size_t MAX_LEN = 8192;
 
-// httpResponse
-const HttpResponse BAD_REQUEST_RESPONSE =
-    HttpResponse(BAD_REQUEST,
-                 " <html> <head> <title>400 Bad Request</title> </head> <body> <h1>400 Bad Request</h1> <p>Your "
-                 "browser sent a request that this server could not understand.<br /></p> </body> </html>",
-                 "text/html");
-
-const HttpResponse SERVER_ERROR_RESPONSE =
-    HttpResponse(SERVER_ERROR,
-                 " <html> <head> <title>500 Internal Server Error</title> </head> <body> <h1>500 Internal Server "
-                 "Error</h1> <p>The server encountered an internal error or misconfiguration and was unable to "
-                 "complete your request.<br /></p> </body> </html>",
-                 "text/html");
-
-const HttpResponse SUCCESS_RESPONSE = HttpResponse(SUCCESS);
-
-const HttpResponse METHOD_NOT_ALLOWED_RESPONSE(const std::string &allowedMethods);
+const HttpResponse getMethodNotAllowedResponse(const HttpRequest &httpRequest, const std::string &allowedMethods);
 
 extern Config CONFIG;
 
@@ -68,5 +52,7 @@ extern ConnectedInternetSockets CLIENT_SOCKETS;
 extern ConnectedUnixSockets CGI_SOCKETS;
 
 extern SocketBuffers SOCKET_BUFFERS;
+
+extern CgiHttpRequests CGI_HTTP_REQUESTS;
 
 #define EVENT_BATCH_SIZE 1024

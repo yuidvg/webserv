@@ -45,34 +45,40 @@ CgiRequest getCgiRequest(const HttpRequest &httpRequest)
 
 CgiRequestOrHttpResponse processHttpRequest(const HttpRequest &httpRequest)
 {
-    const Location location =
-        CONFIG.getServer(httpRequest.host, httpRequest.serverPort).getLocation(httpRequest.target);
+    const Location location = getLocation(httpRequest);
 
     if (isMethodAllowed(httpRequest, location))
     {
         const std::string resolvedPath = resolvePath(httpRequest.target, location);
         if (segmentize(httpRequest).scriptPath.size() > 0)
         {
-            return CgiRequestOrHttpResponse::Left(getCgiRequest(httpRequest));
+            CgiRequest cgiRequest = getCgiRequest(httpRequest);
+            ConnectedUnixSocketResult cgiProcessResult = createCgiProcess(cgiRequest);
+            if (cgiProcessResult.success)
+            {
+                CGI_HTTP_REQUESTS.insert(std::make_pair(cgiProcessResult.value.descriptor, httpRequest));
+                return CgiRequestOrHttpResponse::Left(cgiRequest);
+            }
+            else
+                return CgiRequestOrHttpResponse::Right(getErrorResponse(httpRequest, SERVER_ERROR));
         }
         else
         {
             if (!location.redirect.empty())
-            {
                 return CgiRequestOrHttpResponse::Right(getRedirectResponse(httpRequest, location.redirect));
-            }
-            if (httpRequest.method == "GET")
+            else if (httpRequest.method == "GET")
                 return CgiRequestOrHttpResponse::Right(conductGet(httpRequest));
             else if (httpRequest.method == "POST")
                 return CgiRequestOrHttpResponse::Right(conductPost(httpRequest));
             else if (httpRequest.method == "DELETE")
                 return CgiRequestOrHttpResponse::Right(conductDelete(httpRequest));
             else
-                return CgiRequestOrHttpResponse::Right(METHOD_NOT_ALLOWED_RESPONSE("GET, POST, DELETE"));
+                return CgiRequestOrHttpResponse::Right(getMethodNotAllowedResponse(httpRequest, "GET, POST, DELETE"));
         }
     }
     else
     {
-        return CgiRequestOrHttpResponse::Right(METHOD_NOT_ALLOWED_RESPONSE(utils::join(location.allowMethods, ", ")));
+        return CgiRequestOrHttpResponse::Right(
+            getMethodNotAllowedResponse(httpRequest, utils::join(location.allowMethods, ", ")));
     }
 }
