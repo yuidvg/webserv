@@ -40,8 +40,7 @@ typedef Result<const Server, const HttpResponse> MatchedServerResult;
 
 typedef Result<const unsigned int, const HttpResponse> PortNumberResult;
 
-typedef std::pair<int, HttpResponse> ErrorPage;
-typedef std::map<int, HttpResponse> ErrorPages;
+typedef std::map<int, std::string> ErrorPagePaths;
 namespace parseConfig
 {
 typedef Result<const Server, const std::string> ServerResult;
@@ -49,7 +48,7 @@ typedef Result<const std::string, const std::string> NameResult;
 typedef Result<const int, const std::string> PortResult;
 typedef Result<const Location, const std::string> LocationResult;
 typedef Result<const size_t, const std::string> ClientMaxBodySizeResult;
-typedef Result<const ErrorPage, const std::string> ErrorPageResult;
+typedef Result<const ErrorPagePaths, const std::string> ErrorPagePathsResult;
 typedef Result<const std::string, const std::string> PathResult;
 typedef Result<const std::string, const std::string> RootResult;
 typedef Result<const bool, const std::string> AutoindexResult;
