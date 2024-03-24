@@ -43,6 +43,17 @@ const std::string URI_SCHEME_DELIMITER = "://";
 
 const std::string EMPTY_LINE = "\n\n";
 
+const std::string SERVER_ERROR_BODY =
+    " <html> <head> <title>500 Internal Server Error</title> </head> <body> <h1>500 Internal Server "
+    "Error</h1> <p>The server encountered an internal error or misconfiguration and was unable to "
+    "complete your request.<br /></p> </body> </html>";
+
+const std::string BAD_REQUEST_BODY =
+    " <html> <head> <title>400 Bad Request</title> </head> <body> <h1>400 Bad Request</h1> <p>Your "
+    "browser sent a request that this server could not understand.<br /></p> </body> </html>";
+
+const std::string CONTENT_TYPE_HTML = "text/html";
+
 extern const int KQ;
 
 extern HttpRequests HTTP_REQUESTS;

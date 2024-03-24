@@ -12,7 +12,7 @@ void handleReceivedMessage(std::string message, void (*clearMessage)(void), cons
 void handleClientMessages(const ConnectedInternetSocket &socket, const SocketBuffer &socketBuffer)
 {
     // messageをパースして、httpRequestsに変換
-    ParseHttpRequests parseHttpRequests(socketBuffer, socket.serverPort);
+    ParseHttpRequests parseHttpRequests(socketBuffer, socket);
     if (parseHttpRequests.tag == RIGHT)
     {
         // httpRequestsを処理

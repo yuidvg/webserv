@@ -18,18 +18,9 @@ HttpResponse getErrorResponse(const HttpRequest &httpRequest, const int statusCo
     {
         // default error page
         if (statusCode == SERVER_ERROR)
-            return HttpResponse(
-                httpRequest.sd, SERVER_ERROR,
-                " <html> <head> <title>500 Internal Server Error</title> </head> <body> <h1>500 Internal Server "
-                "Error</h1> <p>The server encountered an internal error or misconfiguration and was unable to "
-                "complete your request.<br /></p> </body> </html>",
-                "text/html");
+            return HttpResponse(httpRequest.sd, SERVER_ERROR, SERVER_ERROR_BODY, CONTENT_TYPE_HTML);
         else if (statusCode == BAD_REQUEST)
-            return HttpResponse(
-                httpRequest.sd, BAD_REQUEST,
-                " <html> <head> <title>400 Bad Request</title> </head> <body> <h1>400 Bad Request</h1> <p>Your "
-                "browser sent a request that this server could not understand.<br /></p> </body> </html>",
-                "text/html");
+            return HttpResponse(httpRequest.sd, BAD_REQUEST, BAD_REQUEST_BODY, CONTENT_TYPE_HTML);
     }
 }
 

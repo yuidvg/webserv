@@ -231,12 +231,12 @@ ParseBodyResult parseHttpBody(const std::string &body, const Headers &headers, c
     }
 }
 
-ParseRequestResult parseHttpRequest(const std::string &request, const int port)
+ParseRequestResult parseHttpRequest(const std::string &request, const ConnectedInternetSocket &socket)
 {
     const std::vector<std::string> blocks = utils::split(request, CRLF + CRLF);
     const std::vector<std::string> nonEmptyBlocks = removeEmptyBlocks(blocks);
     if (nonEmptyBlocks.empty())
-        return ParseRequestResult::Error(BAD_REQUEST);
+        return ParseRequestResult::Error(HttpRequest());
 
     std::istringstream requestTextStream(nonEmptyBlocks[0]);
     const ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(requestTextStream);
@@ -248,14 +248,15 @@ ParseRequestResult parseHttpRequest(const std::string &request, const int port)
             const GetHostNameResult getHostNameResult = getHostName(parseHeaderResult.value);
             if (getHostNameResult.success)
             {
-                const ParseBodyResult parseBodyResult =
-                    parseHttpBody(nonEmptyBlocks.size() > 1 ? nonEmptyBlocks[1] : "", parseHeaderResult.value,
-                                  CONFIG.getServer(getHostNameResult.value, port), parseRequestLineResult.value.method);
+                const ParseBodyResult parseBodyResult = parseHttpBody(
+                    nonEmptyBlocks.size() > 1 ? nonEmptyBlocks[1] : "", parseHeaderResult.value,
+                    CONFIG.getServer(getHostNameResult.value, socket.serverPort), parseRequestLineResult.value.method);
                 if (parseBodyResult.status == PARSED)
                 {
                     return ParseRequestResult::Success(
-                        HttpRequest(parseRequestLineResult.value.method, parseRequestLineResult.value.target,
-                                    parseHeaderResult.value, parseBodyResult.value, getHostNameResult.value));
+                        HttpRequest(socket.descriptor, socket.serverPort, socket.clientIp, getHostNameResult.value,
+                                    parseRequestLineResult.value.method, parseRequestLineResult.value.target,
+                                    parseHeaderResult.value, parseBodyResult.value));
                 }
                 else if (parseBodyResult.status == PENDING)
                 {
@@ -263,12 +264,12 @@ ParseRequestResult parseHttpRequest(const std::string &request, const int port)
                 }
                 else
                 {
-                    return ParseRequestResult::Error(parseBodyResult.error);
+                    return ParseRequestResult::Error(HttpRequest());
                 }
             }
             else
             {
-                return ParseRequestResult::Error(getHostNameResult.error);
+                return ParseRequestResult::Error(HttpRequest());
             }
         }
         else if (parseHeaderResult.status == PENDING)
@@ -277,16 +278,16 @@ ParseRequestResult parseHttpRequest(const std::string &request, const int port)
         }
         else
         {
-            return ParseRequestResult::Error(parseHeaderResult.error);
+            return ParseRequestResult::Error(HttpRequest());
         }
     }
     else
     {
-        return ParseRequestResult::Error(parseRequestLineResult.error);
+        return ParseRequestResult::Error(HttpRequest());
     }
 }
 
-HttpRequests parseHttpRequests(const SocketBuffer &socketBuffer, const int port)
+HttpRequests parseHttpRequests(const SocketBuffer &socketBuffer, const ConnectedInternetSocket &socket)
 {
     const std::vector<std::string> blocks = utils::split(socketBuffer.getInbound(), CRLF + CRLF);
     const std::vector<std::string> nonEmptyBlocks = removeEmptyBlocks(blocks);
@@ -322,7 +323,7 @@ HttpRequests parseHttpRequests(const SocketBuffer &socketBuffer, const int port)
         }
         else // POST以外のリクエスト
         {
-            ParseRequestResult parseRequestResult = parseHttpRequest(*it, port);
+            ParseRequestResult parseRequestResult = parseHttpRequest(*it, socket.serverPort);
             if (parseRequestResult.status == PARSED)
             {
                 HTTP_REQUESTS.push(parseRequestResult.value);
