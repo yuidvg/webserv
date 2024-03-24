@@ -63,8 +63,10 @@ extern const int KQ;
 
 extern HttpRequests HTTP_REQUESTS;
 
-extern Ints CLIENT_SDS;
+extern ConnectedInternetSockets CLIENT_SOCKETS;
 
-extern Ints CGI_SDS;
+extern ConnectedUnixSockets CGI_SOCKETS;
+
+extern SocketBuffers SOCKET_BUFFERS;
 
 #define EVENT_BATCH_SIZE 1024

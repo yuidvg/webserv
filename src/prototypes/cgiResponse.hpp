@@ -1,5 +1,5 @@
 #pragma once
-#include "../webserv.hpp"
+#include ".hpp"
 
 ParseCgiResponseResult parseCgiResponse(std::string const &response);
 CgiRequestOrHttpResponse processCgiResponse(const CgiResponse &cgiResponse, const HttpRequest &request,

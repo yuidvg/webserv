@@ -1,6 +1,6 @@
 #pragma once
-#include "../webserv.hpp"
+#include ".hpp"
 
-ConnectedInternetSocketResult createCgi(const CgiRequest &request, const HttpRequest &httpRequest);
+ConnectedInternetSocketResult createCgiProcess(const CgiRequest &request, const HttpRequest &httpRequest);
 bool findCgiExtension(const std::string &target, const std::string &extension);
 Uri segmentUri(const std::string &target, const std::string &cgiExtension);

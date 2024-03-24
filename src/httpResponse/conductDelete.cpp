@@ -1,6 +1,6 @@
 #include "../autoindex/.hpp"
 #include "../httpRequestAndConfig/.hpp"
-#include ".hpp"
+#include "../all.hpp"
 
 HttpResponse conductDelete(const std::string &path, const ErrorPages &errorPages)
 {

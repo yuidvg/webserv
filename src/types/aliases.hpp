@@ -82,8 +82,24 @@ typedef Either<CgiRequest, HttpResponse> CgiRequestOrHttpResponse;
 
 typedef Option<const HttpRequest> HttpRequestQ;
 
-typedef std::vector<const HttpRequest> HttpRequests;
+typedef std::queue<const HttpRequest> HttpRequests;
 
-typedef std::vector<const int> Ints;
+typedef std::vector<const ConnectedInternetSocket> ConnectedInternetSockets;
+
+typedef std::vector<const ConnectedUnixSocket> ConnectedUnixSockets;
 
 typedef Result<const ConnectedUnixSocket, const std::string> ConnectedUnixSocketResult;
+
+typedef Either<ConnectedInternetSocket, ConnectedUnixSocket> ConnectedSocket;
+
+typedef Result<const ConnectedSocket, const std::string> ConnectedSocketResult;
+
+typedef std::vector<SocketBuffer> SocketBuffers;
+
+typedef Result<const HttpResponse, const std::string> HttpResponseResult;
+
+typedef Either<HttpRequest, HttpResponse> HttpMessage;
+
+typedef std::map<const int, const HttpRequest> CgiHttpRequests;
+
+typedef Result<SocketBuffer &, const std::string> FindSocketBufferResult;

@@ -1,8 +1,6 @@
 #pragma once
 
-#include "../webserv.hpp"
+#include "../types/.hpp"
 
 TokensResult tokenize(const char *configPath);
 TokensResult extractADirective(std::vector<std::string> &tokens);
-
-

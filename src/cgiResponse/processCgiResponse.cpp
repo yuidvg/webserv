@@ -23,7 +23,7 @@ CgiRequestOrHttpResponse processLocalRedirectResponse(const CgiResponse &cgiResp
 {
     const HttpRequest redirectRequest(request.method, cgiResponse.location, request.headers, request.body,
                                       request.host);
-    return getCgiRequestOrHttpResponse(redirectRequest, client, errorPages);
+    return processHttpRequest(redirectRequest, client, errorPages);
 }
 
 bool isClientRedirectResponse(const CgiResponse &cgiResponse)
@@ -70,5 +70,24 @@ CgiRequestOrHttpResponse processCgiResponse(const CgiResponse &cgiResponse, cons
     else
     {
         return CgiRequestOrHttpResponse::Right(errorPages.at(SERVER_ERROR));
+    }
+}
+
+void processHttpMessageFromCgi(const HttpMessage &httpMessage)
+{
+    if (httpMessage.tag == LEFT)
+    {
+        const HttpRequest httpRequest = httpMessage.leftValue;
+        // httpRequestのキューに格納
+    }
+    else
+    {
+        const HttpResponse httpResponse = httpMessage.rightValue;
+        FindSocketBufferResult findSocketBufferResult = findSocketBuffer(httpResponse);
+        if (findSocketBufferResult.Success())
+        {
+            SocketBuffer &socketBuffer = findSocketBufferResult.success;
+            socketBuffer.setOutbound(httpResponse.c_str());
+        }
     }
 }

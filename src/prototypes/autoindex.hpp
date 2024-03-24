@@ -1,5 +1,5 @@
 #pragma once
 
-#include "../webserv.hpp"
+#include ".hpp"
 
 DirectoryListHtmlResult directoryListHtml(const std::string &path);

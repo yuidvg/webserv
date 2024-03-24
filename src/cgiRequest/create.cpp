@@ -22,8 +22,7 @@ char *const *mapStringStringToCStringArray(const std::map<std::string, std::stri
 
 } // namespace
 
-
-ConnectedInternetSocketResult createCgi(const CgiRequest &request, const HttpRequest &httpRequest)
+ConnectedInternetSocketResult createCgiProcess(const CgiRequest &request, const HttpRequest &httpRequest)
 {
     int socketPair[2];
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, socketPair) == 0)
@@ -64,6 +63,6 @@ ConnectedInternetSocketResult createCgi(const CgiRequest &request, const HttpReq
     else
     {
         std::cerr << "socketpair failed" << std::endl;
-        return ConnectedInternetSocketResult::Error((SERVER_ERROR);
+        return ConnectedInternetSocketResult::Error(SERVER_ERROR);
     }
 }

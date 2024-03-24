@@ -277,3 +277,48 @@ ParseRequestResult parseHttpRequest(const std::string message, const int port)
             return ParseRequestResult::Error(parseRequestLineResult.error);
     }
 }
+
+ParseHttpRequests parseHttpRequests(const SocketBuffer &socketBuffer, const int port)
+{
+    const std::vector<std::string> blocks = utils::split(socketBuffer.getInbound(), CRLF + CRLF);
+    const std::vector<std::string> nonEmptyBlocks = removeEmptyBlocks(blocks);
+    for (std::vector<std::string>::const_iterator it = nonEmptyBlocks.begin(); it != nonEmptyBlocks.end(); ++it)
+    {
+        if (it->find("POST") != std::string::npos)
+        {
+            if (it != nonEmptyBlocks.end() - 1)
+            {
+                ParseRequestResult parseRequestResult = parseHttpRequest((*it) + CRLF + CRLF + *(it + 1), port);
+                if (parseRequestResult.status == PARSED)
+                {
+                    HTTP_REQUESTS.push(parseRequestResult.value);
+                }
+                else
+                {
+                    ; //pending
+                }
+            }
+            else
+            {
+                // pending
+            }
+        }
+        else // POST以外のリクエスト
+        {
+            ParseRequestResult parseRequestResult = parseHttpRequest(*it, port);
+            if (parseRequestResult.status == PARSED)
+            {
+                HTTP_REQUESTS.push(parseRequestResult.value);
+            }
+            else if (parseRequestResult.status == PENDING)
+            {
+                ; // pending
+            }
+            else
+            {
+                HTTP_REQUESTS.push(parseRequestResult.error);
+            }
+        }
+    }
+    return parseHttpRequests;
+}

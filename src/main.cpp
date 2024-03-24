@@ -1,7 +1,7 @@
-#include "connection/.hpp"
+#include "event/.hpp"
 #include "config/parseConfig.hpp"
 #include "socket/.hpp"
-#include "webserv.hpp"
+#include "types/.hpp"
 
 int main(int argc, char **argv)
 {

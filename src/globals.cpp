@@ -12,7 +12,9 @@ const int KQ = kqueue();
 
 HttpRequests HTTP_REQUESTS;
 
-Ints CLIENT_SDS;
-Ints CGI_SDS;
+ConnectedInternetSockets CLIENT_SOCKETS;
+ConnectedInternetSockets CGI_SOCKETS;
+
+SocketBuffers SOCKET_BUFFERS;
 
 Config CONFIG;

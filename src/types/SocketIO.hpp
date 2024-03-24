@@ -6,7 +6,7 @@
 typedef Result<const ssize_t, const std::string> ReceiveResult;
 typedef Result<const ssize_t, const std::string> SendResult;
 
-class SocketIO
+class SocketBuffer
 {
   private:
     std::string _outbound;
@@ -15,35 +15,35 @@ class SocketIO
   public:
     int sd;
 
-    SocketIO();
-    ~SocketIO();
-    SocketIO(const SocketIO &other);
-    SocketIO &operator=(const SocketIO &other);
+    SocketBuffer();
+    ~SocketBuffer();
+    SocketBuffer(const SocketBuffer &other);
+    SocketBuffer &operator=(const SocketBuffer &other);
 
-    SocketIO(const int sd);
-    bool operator==(const SocketIO &other) const;
-
+    SocketBuffer(const int sd);
+    bool operator==(const SocketBuffer &other) const;
 
     ReceiveResult receiveInbound(size_t);
     std::string getInbound();
     void clearInbound();
     void setOutbound(std::string);
-    SendResult sendOutbound();
+    SendResult sendOutbound(size_t);
 };
 
-SocketIO::SocketIO() : _outbound(""), _inbound(""), sd(-1)
+SocketBuffer::SocketBuffer() : _outbound(""), _inbound(""), sd(-1)
 {
 }
 
-SocketIO::~SocketIO()
+SocketBuffer::~SocketBuffer()
 {
 }
 
-SocketIO::SocketIO(const SocketIO &other) : _outbound(other._outbound), _inbound(other._inbound), sd(other.sd)
+SocketBuffer::SocketBuffer(const SocketBuffer &other)
+    : _outbound(other._outbound), _inbound(other._inbound), sd(other.sd)
 {
 }
 
-SocketIO &SocketIO::operator=(const SocketIO &other)
+SocketBuffer &SocketBuffer::operator=(const SocketBuffer &other)
 {
     if (this != &other)
     {
@@ -54,16 +54,16 @@ SocketIO &SocketIO::operator=(const SocketIO &other)
     return *this;
 }
 
-SocketIO::SocketIO(const int sd) : _outbound(""), _inbound(""), sd(sd)
+SocketBuffer::SocketBuffer(const int sd) : _outbound(""), _inbound(""), sd(sd)
 {
 }
 
-bool SocketIO::operator==(const SocketIO &other) const
+bool SocketBuffer::operator==(const SocketBuffer &other) const
 {
     return sd == other.sd;
 }
 
-ReceiveResult SocketIO::receiveInbound(size_t size)
+ReceiveResult SocketBuffer::receiveInbound(size_t size)
 {
     try
     {
@@ -88,24 +88,24 @@ ReceiveResult SocketIO::receiveInbound(size_t size)
     }
 }
 
-std::string SocketIO::getInbound()
+std::string SocketBuffer::getInbound()
 {
     return _inbound;
 }
 
-void SocketIO::clearInbound()
+void SocketBuffer::clearInbound()
 {
     _inbound = "";
 }
 
-void SocketIO::setOutbound(std::string message)
+void SocketBuffer::setOutbound(std::string message)
 {
     _outbound = message;
 }
 
-SendResult SocketIO::sendOutbound()
+SendResult SocketBuffer::sendOutbound(size_t size)
 {
-    const ssize_t sentLength = send(sd, _outbound.c_str(), _outbound.size(), 0);
+    const ssize_t sentLength = send(sd, _outbound.c_str(), size, 0);
     if (sentLength < 0)
     {
         return SendResult::Error("Failed to send message");
