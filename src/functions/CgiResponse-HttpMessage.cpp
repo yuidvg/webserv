@@ -18,12 +18,12 @@ bool isLocalRedirectResponse(const CgiResponse &cgiResponse)
 {
     return cgiResponse.location.size() > 0 && utils::isAbsolutePath(cgiResponse.location);
 }
-CgiRequestOrHttpResponse processLocalRedirectResponse(const CgiResponse &cgiResponse, const HttpRequest &request,
-                                                      const Client &client, const ErrorPages &errorPages)
+
+HttpRequest processLocalRedirectResponse(const CgiResponse &cgiResponse, const HttpRequest &httpRequest,
+                                         const ErrorPages &errorPages)
 {
-    const HttpRequest redirectRequest(request.method, cgiResponse.location, request.headers, request.body,
-                                      request.host);
-    return processHttpRequest(redirectRequest, client, errorPages);
+    return HttpRequest(httpRequest.sd, httpRequest.serverPort, httpRequest.clientIp, httpRequest.host,
+                       httpRequest.method, cgiResponse.location, httpRequest.headers, httpRequest.body);
 }
 
 bool isClientRedirectResponse(const CgiResponse &cgiResponse)
@@ -34,7 +34,7 @@ bool isClientRedirectResponse(const CgiResponse &cgiResponse)
 }
 HttpResponse processClientRedirectResponse(const CgiResponse &cgiResponse)
 {
-    return HttpResponse(302, "", "", cgiResponse.location);
+    return HttpResponse(, 302, "", "", cgiResponse.location);
 }
 
 bool isClientRedirectWithDocumentResponse(const CgiResponse &cgiResponse)
@@ -48,27 +48,26 @@ HttpResponse processClientRedirectWithDocumentResponse(const CgiResponse &cgiRes
 }
 } // namespace
 
-CgiRequestOrHttpResponse processCgiResponse(const CgiResponse &cgiResponse, const HttpRequest &request, Client &client,
-                                            const ErrorPages &errorPages)
+HttpMessage processCgiResponse(const CgiResponse &cgiResponse, const HttpRequest &httpRequest)
 {
     if (isClientRedirectWithDocumentResponse(cgiResponse))
     {
-        return CgiRequestOrHttpResponse::Right(processClientRedirectWithDocumentResponse(cgiResponse));
+        return HttpMessage::Right(processClientRedirectWithDocumentResponse(cgiResponse));
     }
     else if (isClientRedirectResponse(cgiResponse))
     {
-        return CgiRequestOrHttpResponse::Right(processClientRedirectResponse(cgiResponse));
+        return HttpMessage::Right(processClientRedirectResponse(cgiResponse));
     }
     else if (isLocalRedirectResponse(cgiResponse))
     {
-        return processLocalRedirectResponse(cgiResponse, request, client, errorPages);
+        return processLocalRedirectResponse(cgiResponse, httpRequest);
     }
     else if (isDocumentResponse(cgiResponse))
     {
-        return CgiRequestOrHttpResponse::Right(processDocumentResponse(cgiResponse));
+        return HttpMessage::Right(processDocumentResponse(cgiResponse));
     }
     else
     {
-        return CgiRequestOrHttpResponse::Right(errorPages.at(SERVER_ERROR));
+        return HttpMessage::Right(getErrorResponse(httpRequest, SERVER_ERROR));
     }
 }

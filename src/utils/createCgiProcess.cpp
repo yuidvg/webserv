@@ -2,11 +2,11 @@
 
 namespace
 {
-char *const *mapStringStringToCStringArray(const std::map<std::string, std::string> &envMap)
+char *const *mapStringStringToCStringArray(const StringMap &envMap)
 {
     char **envArray = new char *[envMap.size() + 1];
     int i = 0;
-    for (std::map<std::string, std::string>::const_iterator it = envMap.begin(); it != envMap.end(); ++it)
+    for (StringMap::const_iterator it = envMap.begin(); it != envMap.end(); ++it)
     {
         std::string envString = it->first + "=" + it->second;
         envArray[i] = new char[envString.size() + 1];
@@ -20,7 +20,7 @@ char *const *mapStringStringToCStringArray(const std::map<std::string, std::stri
 
 } // namespace
 
-ConnectedUnixSocketResult createCgiProcess(const CgiRequest &cgiRequest)
+ConnectedUnixSocketResult createCgiProcess(const StringMap &envs, const std::string &scriptPath)
 {
     int socketPair[2];
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, socketPair) == 0)
@@ -40,11 +40,11 @@ ConnectedUnixSocketResult createCgiProcess(const CgiRequest &cgiRequest)
             dup2(socketPair[CGI], STDIN_FILENO);
 
             errno = 0;
-            char *const *envp = mapStringStringToCStringArray(cgiRequest.envs);
+            char *const *envp = mapStringStringToCStringArray(envs);
             char *args[2];
-            args[0] = const_cast<char *>(cgiRequest.scriptPath.c_str());
+            args[0] = const_cast<char *>(scriptPath.c_str());
             args[1] = NULL;
-            execve(cgiRequest.scriptPath.c_str(), args, envp);
+            execve(scriptPath.c_str(), args, envp);
             std::cerr << "execve failed: " << strerror(errno) << std::endl;
             utils::deleteCStrArray(envp);
             while (true)

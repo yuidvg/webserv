@@ -28,7 +28,7 @@ HttpResponse conductDelete(const HttpRequest &httpRequest)
 
 HttpResponse conductGet(const HttpRequest &httpRequest)
 {
-    const Uri uri = segmentize(httpRequest);
+    const Uri uri = segment(httpRequest);
 
     if (utils::isDirectory(uri.extraPath))
     {

@@ -16,30 +16,30 @@ std::string authType(const HttpRequest &request)
     const std::vector<std::string> tokens = utils::split(authorization, " ");
     return tokens.size() > 0 ? tokens[0] : "";
 }
-CgiRequest getCgiRequest(const HttpRequest &httpRequest)
+StringMap getCgiEnvs(const HttpRequest &httpRequest)
 {
-    const Uri uri = segmentize(httpRequest);
-    std::map<std::string, std::string> env;
-    env["AUTH_TYPE"] = authType(httpRequest);
-    env["CONTENT_LENGTH"] = utils::itoa(httpRequest.body.size());
-    env["CONTENT_TYPE"] = utils::value(httpRequest.headers, std::string("content-type"));
-    env["GATEWAY_INTERFACE"] = GATEWAY_INTERFACE;
-    env["PATH_INFO"] = uri.extraPath;
-    env["PATH_TRANSLATED"] =
+    const Uri uri = segment(httpRequest);
+    StringMap env;
+    env.insert(std::make_pair("AUTH_TYPE", authType(httpRequest)));
+    env.insert(std::make_pair("CONTENT_LENGTH", utils::itoa(httpRequest.body.size())));
+    env.insert(std::make_pair("CONTENT_TYPE", utils::value(httpRequest.headers, std::string("content-type"))));
+    env.insert(std::make_pair("GATEWAY_INTERFACE", GATEWAY_INTERFACE));
+    env.insert(std::make_pair("PATH_INFO", uri.extraPath));
+    env.insert(std::make_pair(
+        "PATH_TRANSLATED",
         uri.extraPath.size() > 0
             ? resolvePath(uri.extraPath,
                           CONFIG.getServer(httpRequest.host, httpRequest.serverPort).getLocation(httpRequest.target))
-            : "";
-    env["QUERY_STRING"] = uri.queryString;
-    env["REMOTE_ADDR"] = httpRequest.clientIp;
-    env["REQUEST_METHOD"] = httpRequest.method;
-    env["SCRIPT_NAME"] = uri.scriptPath;
-    env["SERVER_NAME"] = httpRequest.host;
-    env["SERVER_PORT"] = httpRequest.serverPort;
-    env["SERVER_PROTOCOL"] = SERVER_PROTOCOL;
-    env["SERVER_SOFTWARE"] = SERVER_SOFTWARE;
-
-    return CgiRequest(env, uri.scriptPath, httpRequest.body);
+            : ""));
+    env.insert(std::make_pair("QUERY_STRING", uri.queryString));
+    env.insert(std::make_pair("REMOTE_ADDR", httpRequest.clientIp));
+    env.insert(std::make_pair("REQUEST_METHOD", httpRequest.method));
+    env.insert(std::make_pair("SCRIPT_NAME", uri.scriptPath));
+    env.insert(std::make_pair("SERVER_NAME", httpRequest.host));
+    env.insert(std::make_pair("SERVER_PORT", httpRequest.serverPort));
+    env.insert(std::make_pair("SERVER_PROTOCOL", SERVER_PROTOCOL));
+    env.insert(std::make_pair("SERVER_SOFTWARE", SERVER_SOFTWARE));
+    return env;
 }
 } // namespace
 
@@ -50,14 +50,15 @@ CgiRequestOrHttpResponse processHttpRequest(const HttpRequest &httpRequest)
     if (isMethodAllowed(httpRequest, location))
     {
         const std::string resolvedPath = resolvePath(httpRequest.target, location);
-        if (segmentize(httpRequest).scriptPath.size() > 0)
+        if (segment(httpRequest).scriptPath.size() > 0)
         {
-            CgiRequest cgiRequest = getCgiRequest(httpRequest);
-            ConnectedUnixSocketResult cgiProcessResult = createCgiProcess(cgiRequest);
+            StringMap cgiEnvs = getCgiEnvs(httpRequest);
+            ConnectedUnixSocketResult cgiProcessResult = createCgiProcess(cgiEnvs, segment(httpRequest).scriptPath);
             if (cgiProcessResult.success)
             {
                 CGI_HTTP_REQUESTS.insert(std::make_pair(cgiProcessResult.value.descriptor, httpRequest));
-                return CgiRequestOrHttpResponse::Left(cgiRequest);
+                return CgiRequestOrHttpResponse::Left(CgiRequest(cgiProcessResult.value.descriptor, cgiEnvs,
+                                                                 segment(httpRequest).scriptPath, httpRequest.body));
             }
             else
                 return CgiRequestOrHttpResponse::Right(getErrorResponse(httpRequest, SERVER_ERROR));

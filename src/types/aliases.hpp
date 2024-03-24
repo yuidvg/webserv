@@ -78,7 +78,6 @@ typedef Result<const ConnectedInternetSocket, const HttpResponse> ConnectedInter
 typedef std::set<const Socket> Sockets;
 typedef Result<const Sockets, const std::string> SocketsResult;
 
-typedef Either<CgiRequest, HttpResponse> CgiRequestOrHttpResponse;
 
 typedef std::queue<const HttpRequest> HttpRequests;
 
@@ -101,3 +100,5 @@ typedef Either<HttpRequest, HttpResponse> HttpMessage;
 typedef std::map<const int, const HttpRequest> CgiHttpRequests;
 
 typedef Result<SocketBuffer &, const std::string> FindSocketBufferResult;
+
+typedef std::map<const std::string, const std::string> StringMap;

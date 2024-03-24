@@ -1,6 +1,6 @@
 #pragma once
 #include "top.hpp"
 
-ConnectedUnixSocketResult createCgiProcess(const CgiRequest &request);
+ConnectedUnixSocketResult createCgiProcess(const StringMap &envs, const std::string &scriptPath);
 bool findCgiExtension(const std::string &target, const std::string &extension);
-Uri segmentize(const HttpRequest &);
+Uri segment(const HttpRequest &);

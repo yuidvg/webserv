@@ -17,7 +17,7 @@ std::string::size_type findScriptExtensionPos(const std::string &target, const s
 }
 } // namespace
 
-Uri segmentize(const HttpRequest &httpRequest)
+Uri segment(const HttpRequest &httpRequest)
 {
     const Location location =
         CONFIG.getServer(httpRequest.host, httpRequest.serverPort).getLocation(httpRequest.target);

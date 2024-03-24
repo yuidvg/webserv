@@ -7,7 +7,17 @@ HttpResponse getRedirectResponse(const HttpRequest &httpRequest, const std::stri
 
 HttpResponse getErrorResponse(const HttpRequest &httpRequest, const int statusCode)
 {
-    return getServer(httpRequest).errorPages.at(statusCode);
+    const std::string path = getServer(httpRequest).errorPagePaths.at(statusCode);
+    const FileContentResult fileContentResult = utils::fileContent(path);
+    if (fileContentResult.success)
+    {
+        return HttpResponse(httpRequest.sd, statusCode, fileContentResult.value, utils::contentType(path));
+    }
+    else
+    {
+        return HttpResponse(httpRequest.sd, SERVER_ERROR, );
+    }
+
 }
 
 std::string stringify(const HttpResponse &response)
