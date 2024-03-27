@@ -59,7 +59,7 @@ class SocketBuffer
             return ReceiveResult::Error(e.what());
         }
     };
-    std::string getInbound()
+    std::string getInbound() const
     {
         return _inbound;
     }
