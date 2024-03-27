@@ -10,7 +10,7 @@ curl_commands=(
     "curl -X GET http://localhost:8080/ 200"
     "curl -X POST -d \"nickname=test\" http://localhost:8080/upload 200"
     "curl -X DELETE http://localhost:8080/uploadPath/upload.txt 200"
-    "curl -X GET http://localhost:8080/autoindex 200"
+    "curl -X GET http://localhost:8080/autoindex 400"
     "curl -X GET http://localhost:8080/cgi-bin/helloWorld.cgi 200"
     "curl -X GET http://localhost:8080/cgi-bin/redirAfterFiveMinutes.cgi 200"
     "curl -X GET http://localhost:8080/cgi-bin/submit.cgi 200"
