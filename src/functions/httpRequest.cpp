@@ -211,7 +211,10 @@ ParseBodyResult parseHttpBody(const std::string &body, const Headers &headers, c
     {
         if (utils::isNumber(headers.at("content-length")))
         {
-            const size_t bodySize = static_cast<size_t>(std::stoi(headers.at("content-length")));
+            const long tmp = std::strtol(headers.at("content-length").c_str(), NULL, 10);
+            if (tmp < 0 || tmp > std::numeric_limits<size_t>::max())
+                return ParseBodyResult::Error(BAD_REQUEST);
+            const size_t bodySize = static_cast<size_t>(tmp);
             if ((0 < bodySize && bodySize <= server.clientMaxBodySize) && body.length() == bodySize)
                 return ParseBodyResult::Success(body);
             else
