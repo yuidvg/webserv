@@ -24,7 +24,7 @@ class SocketBuffer
     bool operator==(const SocketBuffer &other) const;
 
     ReceiveResult receiveInbound(size_t);
-    std::string getInbound();
+    std::string getInbound() const;
     void substringInbound(size_t);
     void appendOutbound(std::string);
     SendResult sendOutbound(size_t);
@@ -88,7 +88,7 @@ ReceiveResult SocketBuffer::receiveInbound(size_t size)
     }
 }
 
-std::string SocketBuffer::getInbound()
+std::string SocketBuffer::getInbound() const
 {
     return _inbound;
 }

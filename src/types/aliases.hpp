@@ -76,7 +76,6 @@ typedef Result<const ConnectedInternetSocket, const HttpResponse> ConnectedInter
 
 typedef std::set<const Socket> Sockets;
 typedef Result<const Sockets, const std::string> SocketsResult;
-typedef std::queue<const HttpRequest> HttpRequests;
 
 typedef std::vector<const ConnectedInternetSocket> ConnectedInternetSockets;
 
