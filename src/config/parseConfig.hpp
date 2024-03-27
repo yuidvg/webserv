@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../types/bottom.hpp"
+#include "globals.hpp"
 
 namespace parseConfig
 {
