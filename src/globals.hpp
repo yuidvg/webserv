@@ -56,7 +56,7 @@ const std::string CONTENT_TYPE_HTML = "text/html";
 
 extern const int KQ;
 
-extern HttpRequests HTTP_REQUESTS;
+extern std::queue<const HttpRequest> HTTP_REQUESTS;
 
 extern ConnectedInternetSockets CLIENT_SOCKETS;
 

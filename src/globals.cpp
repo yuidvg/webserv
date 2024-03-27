@@ -10,7 +10,7 @@ const HttpResponse getMethodNotAllowedResponse(const HttpRequest &httpRequest, c
 
 const int KQ = kqueue();
 
-HttpRequests HTTP_REQUESTS;
+std::queue<const HttpRequest> HTTP_REQUESTS;
 
 
 ConnectedInternetSockets CLIENT_SOCKETS;

@@ -157,7 +157,6 @@ ParseRequestLineResult parseHttpRequestLine(std::istringstream &requestTextStrea
         return ParseRequestLineResult::Error(getRequestLineResult.error);
 }
 
-// Todo: PENDINGパターン
 ParseHeaderResult parseHttpHeaders(std::istringstream &requestTextStream)
 {
     // tellgで現在の位置を取得、その先からstringを取得する
@@ -302,7 +301,7 @@ ParsedHttpRequests parseHttpRequests(const SocketBuffer &socketBuffer, const Con
         else if (parseRequestResult.status == PENDING)
         {
             // POSTの場合もここに来る
-            if (i != blocks.size() - 1 && blocks[i + 1].find("POST") != std::string::npos)
+            if (i != blocks.size() - 1 && blocks[i].find("POST") != std::string::npos)
             {
                 const std::string postBlock = blocks[i] + blocks[i + 1];
                 const ParseRequestResult parseRequestResult = parseHttpRequest(postBlock, socket);
@@ -315,6 +314,7 @@ ParsedHttpRequests parseHttpRequests(const SocketBuffer &socketBuffer, const Con
                 else if (parseRequestResult.status == ERROR)
                 {
                     HTTP_REQUESTS.push(parseRequestResult.error);
+                    size += blocks[i].length();
                 }
             }
             return ParsedHttpRequests(httpRequests, size);
