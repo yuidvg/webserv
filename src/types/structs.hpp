@@ -16,5 +16,5 @@
 #include "ScriptUri.hpp"
 #include "Server.hpp"
 #include "Socket.hpp"
-#include "SocketIO.hpp"
+#include "SocketBuffer.hpp"
 #include "ParsedHttpRequests.hpp"

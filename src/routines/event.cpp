@@ -1,9 +1,4 @@
-#include "../socket/.hpp"
 #include "../all.hpp"
-#include "../cgiRequest/.hpp"
-#include "../cgiResponse/.hpp"
-#include "../httpRequest/.hpp"
-#include "../httpResponse/.hpp"
 
 namespace
 {
@@ -70,7 +65,7 @@ void handleEvent(const struct kevent &event, const Sockets &listenSockets)
         for (SocketBuffers::iterator eventSocketIOIt = SOCKET_BUFFERS.begin(); eventSocketIOIt != SOCKET_BUFFERS.end();
              ++eventSocketIOIt)
         {
-            if (eventSocketIOIt->sd == event.ident)
+            if (eventSocketIOIt->sd == static_cast<int>(event.ident))
             {
                 if (event.filter == EVFILT_READ)
                 {

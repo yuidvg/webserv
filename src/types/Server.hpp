@@ -4,6 +4,8 @@
 #include "Location.hpp"
 #include "external.hpp"
 
+typedef std::map<int, std::string> ErrorPagePaths;
+
 namespace
 {
 unsigned int lengthOfPrefixMatch(const std::string string, const std::string pattern)

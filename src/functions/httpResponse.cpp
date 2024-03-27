@@ -22,6 +22,7 @@ HttpResponse getErrorHttpResponse(const HttpRequest &httpRequest, const int stat
         else if (statusCode == BAD_REQUEST)
             return HttpResponse(httpRequest.sd, BAD_REQUEST, BAD_REQUEST_BODY, CONTENT_TYPE_HTML);
     }
+    return HttpResponse(httpRequest.sd, statusCode, "", "");
 }
 
 std::string stringify(const HttpResponse &response)

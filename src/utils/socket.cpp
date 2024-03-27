@@ -1,6 +1,5 @@
 #include "../all.hpp"
 
-#include "../all.hpp"
 namespace
 {
 SocketResult getListenSocket(const Server server)
@@ -55,11 +54,11 @@ SocketResult getListenSocket(const Server server)
 namespace utils
 {
 
-SocketsResult utils::createListenSockets(Servers servers)
+SocketsResult createListenSockets(const Servers &servers)
 {
     std::set<const int> openedPorts;
     Sockets listenSockets;
-    for (Servers::iterator serverIt = servers.begin(); serverIt != servers.end(); ++serverIt)
+    for (Servers::const_iterator serverIt = servers.begin(); serverIt != servers.end(); ++serverIt)
     {
         if (openedPorts.find(serverIt->port) == openedPorts.end())
         {

@@ -20,6 +20,7 @@ bool appendOutbound(int sd, std::string content)
     {
         SocketBuffer &socketBuffer = findSocketBufferResult.value;
         socketBuffer.appendOutbound(content);
+        return true;
     }
     else
     {

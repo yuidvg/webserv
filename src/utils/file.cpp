@@ -7,7 +7,7 @@ FileContentResult fileContent(const std::string &path)
 {
     std::ifstream ifs(path);
     if (!ifs.is_open())
-        return (FileContentResult::Error(HttpResponse(BAD_REQUEST, "File not found")));
+        return (FileContentResult::Error(BAD_REQUEST));
 
     std::string fileContent;
     std::string line;

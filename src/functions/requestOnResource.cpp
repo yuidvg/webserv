@@ -9,7 +9,7 @@ HttpResponse conductPost(const HttpRequest &httpRequest)
         const std::string fileName = std::string(utils::removeCharacter(httpRequest.target, '/') + ".txt");
         if (!utils::createFile(fileName, location.uploadPath))
             return getErrorHttpResponse(httpRequest, BAD_REQUEST);
-        const std::string fullFilePath = resolvePath(location.uploadPath, fileName);
+        const std::string fullFilePath = utils::concatPath(location.uploadPath, fileName);
         return utils::writeToFile(fullFilePath, httpRequest.body)
                    ? HttpResponse(httpRequest.sd, SUCCESS, "File created", "text/plain")
                    : getErrorHttpResponse(httpRequest, BAD_REQUEST);

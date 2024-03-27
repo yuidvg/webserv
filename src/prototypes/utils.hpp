@@ -7,7 +7,6 @@ namespace utils
 {
 unsigned int lengthOfPrefixMatch(const std::string string, const std::string pattern);
 
-ErrorPage generateErrorPage(const int statusCode, const std::string &path);
 // string
 std::string &trim(std::string &str);
 std::string lowerCase(const std::string str);
@@ -46,7 +45,12 @@ bool registerEvent(const uintptr_t identifier, const int16_t filter);
 bool setEventFlags(const uintptr_t identifier, const int16_t filter, const uint16_t flags);
 
 // socket
-SocketsResult createListenSockets(const Servers servers);
+SocketsResult createListenSockets(const Servers &servers);
 ConnectedInternetSocketResult newConnectedInternetSocket(const Socket &listenSocket);
 
+// path
+std::string concatPath(const std::string &pathA, const std::string &pathB);
+std::string root(const std::string &path, const Location &location);
+std::string index(const std::string &path, const Location &location);
+std::string resolvePath(const std::string &path, const Location &location);
 } // namespace utils

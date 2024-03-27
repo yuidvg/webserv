@@ -5,18 +5,6 @@
 namespace parseConfig
 {
 
-ErrorPage generateErrorPage(const int statusCode, const std::string &path)
-{
-    const FileContentResult fileContentResult = utils::fileContent(path);
-    if (fileContentResult.success)
-    {
-        return ErrorPage(statusCode, HttpResponse(statusCode, fileContentResult.value, utils::contentType(path)));
-    }
-    if (statusCode == SERVER_ERROR)
-        return ErrorPage(statusCode, SERVER_ERROR_RESPONSE);
-    return ErrorPage(BAD_REQUEST, BAD_REQUEST_RESPONSE);
-}
-
 ServerResult parseServer(const std::vector<std::string> directiveTokens, std::vector<std::string> &tokens)
 {
     if (directiveTokens.size() != 2)

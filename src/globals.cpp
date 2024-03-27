@@ -14,7 +14,7 @@ HttpRequests HTTP_REQUESTS;
 
 
 ConnectedInternetSockets CLIENT_SOCKETS;
-ConnectedInternetSockets CGI_SOCKETS;
+ConnectedUnixSockets CGI_SOCKETS;
 
 CgiHttpRequests CGI_HTTP_REQUESTS;
 

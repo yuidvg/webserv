@@ -1,5 +1,4 @@
 #pragma once
-#include "../globals.hpp"
 #include "Headers.hpp"
 #include "external.hpp"
 
