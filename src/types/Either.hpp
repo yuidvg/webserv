@@ -14,6 +14,8 @@ template <typename L, typename R> struct Either
 
     Either(const L leftValue, const R rightValue, const EitherTag tag)
         : leftValue(leftValue), rightValue(rightValue), tag(tag){};
+    Either(const Either<L, R> &either) : leftValue(either.leftValue), rightValue(either.rightValue), tag(either.tag){};
+    Either() : leftValue(L()), rightValue(R()), tag(LEFT){};
 
     static Either<L, R> Right(const R rightValue)
     {

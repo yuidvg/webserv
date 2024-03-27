@@ -1,29 +1,10 @@
 #include "../all.hpp"
 
-bool depositCgiRequest(const CgiRequest &cgiRequest)
+void appendOutbound(int sd, std::string content)
 {
-    if (appendOutbound(cgiRequest.destinationSd, cgiRequest.body))
-    {
-        return true;
-    }
-    else
-    {
-        std::cerr << "Failed to deposit CGI request" << std::endl;
-        return false;
-    }
+    getSocketBuffer(sd).appendOutbound(content);
 }
-
-bool appendOutbound(int sd, std::string content)
+void depositCgiRequest(const CgiRequest &cgiRequest)
 {
-    FindSocketBufferResult findSocketBufferResult = findSocketBuffer(sd);
-    if (findSocketBufferResult.success)
-    {
-        SocketBuffer &socketBuffer = findSocketBufferResult.value;
-        socketBuffer.appendOutbound(content);
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    appendOutbound(cgiRequest.destinationSd, cgiRequest.body);
 }

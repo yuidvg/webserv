@@ -20,7 +20,7 @@ HttpResponse conductPost(const HttpRequest &);
 
 HttpResponse getRedirectHttpResponse(const HttpRequest &, const std::string &redirectUrl);
 
-FindSocketBufferResult findSocketBuffer(const int sd);
+SocketBuffer &getSocketBuffer(const int sd);
 
 std::string resolvePath(const std::string &path, const Location &location);
 std::string resolvePath(const std::string &path, const std::string &location);
