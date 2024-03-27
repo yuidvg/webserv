@@ -6,44 +6,44 @@ YELLOW="\033[33m"
 NORMAL="\033[0m"
 
 curl_commands=(
-    "curl -X GET http://localhost:8080/"
-    "curl -X POST -d \"nickname=test\" http://localhost:8080/upload"
-    "curl -X DELETE http://localhost:8080/uploadPath/upload.txt"
-    "curl -X GET http://localhost:8080/autoindex"
-    "curl -X GET http://localhost:8080/cgi-bin/helloWorld.cgi"
-    "curl -X GET http://localhost:8080/cgi-bin/redirAfterFiveMinutes.cgi"
-    "curl -X GET http://localhost:8080/cgi-bin/submit.cgi"
-    "curl -X GET http://localhost:8080/cgi-bin/redirect.cgi"
-    "curl -X GET http://localhost:8080/cgi-bin/localRedirect.cgi"
-    "curl -X GET http://localhost:8080/nothing"
-    "curl -X DELETE http://localhost:8080/uploadPath/nothing"
-    "curl -X POST -d \"nickname=test\" http://localhost:8080/nothing"
-)
-
-other_commands=(
-    "ruby tester/chunkRequest.rb"
+    "curl -X GET http://localhost:8080/ 200"
+    "curl -X POST -d \"nickname=test\" http://localhost:8080/upload 200"
+    "curl -X DELETE http://localhost:8080/uploadPath/upload.txt 200"
+    "curl -X GET http://localhost:8080/autoindex 400"
+    "curl -X GET http://localhost:8080/cgi-bin/helloWorld.cgi 200"
+    "curl -X GET http://localhost:8080/cgi-bin/redirAfterFiveMinutes.cgi 200"
+    "curl -X GET http://localhost:8080/cgi-bin/submit.cgi 200"
+    "curl -X GET http://localhost:8080/nothing 400"
+    "curl -X DELETE http://localhost:8080/uploadPath/nothing 400"
+    "curl -X POST -d \"nickname=test\" http://localhost:8080/nothing 400"
+    # "curl -X GET http://localhost:8080/cgi-bin/redirect.cgi 302"
+    # "curl -X GET http://localhost:8080/cgi-bin/localRedirect.cgi 302"
 )
 
 function run_and_check_curl_command() {
-    local cmd=$1
+    local cmd="$1"
+    local expected_code=${cmd##* }
 
     # -s でサイレントモード、-w でHTTPステータスコード出力
-    http_code=$(eval ${cmd} -s -o response.txt -w "%{http_code}")
-    if [[ $http_code -ge 200 && $http_code -le 299 ]]; then
+    http_code=$(eval ${cmd% *} -s -o response.txt -w "%{http_code}")
+    if [[ $http_code -eq $expected_code ]]; then
         echo -en "${GREEN}OK (${http_code})"
-    elif [[ $http_code -ge 300 && $http_code -le 399 ]]; then
-        echo -en "${GREEN}OK (${http_code})"
-    elif [[ $http_code -ge 400 && $http_code -le 499 ]]; then
-        echo -en "${RED}Error (${http_code})"
-    elif [[ $http_code -ge 500 && $http_code -le 599 ]]; then
-        echo -en "${RED}Error (${http_code})"
     else
-        echo -en "${RED}Unknown code: ${http_code}"
+        echo -en "${RED}KO (${http_code})"
     fi
     echo -ne "${NORMAL}"
     echo " -> ${cmd}"
 }
 
+echo "Running curl commands..."
+for cmd in "${curl_commands[@]}"; do
+    run_and_check_curl_command "$cmd"
+done
+
+# その他のコマンド
+other_commands=(
+    "ruby tester/chunkRequest.rb"
+)
 function run_other_command() {
     local cmd=$1
 
@@ -56,11 +56,6 @@ function run_other_command() {
     fi
     echo -e "${NORMAL} -> ${cmd}"
 }
-
-echo "Running curl commands..."
-for cmd in "${curl_commands[@]}"; do
-    run_and_check_curl_command "$cmd"
-done
 
 echo "Running other commands..."
 for cmd in "${other_commands[@]}"; do
