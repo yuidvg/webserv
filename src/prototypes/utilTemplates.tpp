@@ -65,13 +65,6 @@ template <typename T> unsigned int max(const std::vector<T> list)
     return maxSocket;
 }
 
-template <typename T> std::string toString(const T value)
-{
-    std::ostringstream oss;
-    oss << value;
-    return oss.str();
-}
-
 template <typename T, typename Predicate> std::vector<T> filter(const std::vector<T> &vec, Predicate pred)
 {
     std::vector<T> result;

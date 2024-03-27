@@ -38,7 +38,7 @@ StringMap getCgiEnvs(const HttpRequest &httpRequest)
     env.insert(std::make_pair("REQUEST_METHOD", httpRequest.method));
     env.insert(std::make_pair("SCRIPT_NAME", uri.scriptPath));
     env.insert(std::make_pair("SERVER_NAME", httpRequest.host));
-    env.insert(std::make_pair("SERVER_PORT", utils::toString(httpRequest.serverPort)));
+    env.insert(std::make_pair("SERVER_PORT", std::to_string(httpRequest.serverPort)));
     env.insert(std::make_pair("SERVER_PROTOCOL", SERVER_PROTOCOL));
     env.insert(std::make_pair("SERVER_SOFTWARE", SERVER_SOFTWARE));
     return env;
