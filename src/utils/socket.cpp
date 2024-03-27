@@ -66,7 +66,7 @@ SocketsResult createListenSockets(const Servers &servers)
             if (newSocketResult.success)
             {
                 openedPorts.insert(serverIt->port);
-                listenSockets.insert(newSocketResult.value);
+                listenSockets.push_back(newSocketResult.value);
             }
             else
             {

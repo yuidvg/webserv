@@ -68,13 +68,13 @@ typedef Result<const std::string, const StatusCode> FileContentResult;
 typedef std::vector<std::string> Strings;
 
 typedef Result<const int, const std::string> StoiResult;
-typedef Result<CgiResponse, std::string> ParseCgiResponseResult;
+typedef Result<const CgiResponse, const std::string> ParseCgiResponseResult;
 
 typedef Result<const std::string, const std::string> ReadFileResult;
 
 typedef Result<const ConnectedInternetSocket, const std::string> ConnectedInternetSocketResult;
 
-typedef std::set<const Socket> Sockets;
+typedef std::vector<const Socket> Sockets;
 typedef Result<const Sockets, const std::string> SocketsResult;
 
 typedef std::vector<const ConnectedInternetSocket> ConnectedInternetSockets;

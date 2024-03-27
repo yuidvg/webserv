@@ -52,7 +52,7 @@ CgiRequestOrHttpResponse processHttpRequest(const HttpRequest &httpRequest)
 
     if (isMethodAllowed(httpRequest, location))
     {
-        const std::string resolvedPath = resolvePath(httpRequest.target, location);
+        const std::string resolvedPath = utils::resolvePath(httpRequest.target, location);
         if (segment(httpRequest).scriptPath.size() > 0)
         {
             StringMap cgiEnvs = getCgiEnvs(httpRequest);

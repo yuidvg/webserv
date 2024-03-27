@@ -2,7 +2,7 @@
 
 namespace utils
 {
-template <typename Key, typename Value> Value value(const std::map<Key, Value> myMap, const Key key)
+template <typename Key, typename Value> Value value(const std::map<Key, Value> myMap, Key key)
 {
     typename std::map<Key, Value>::const_iterator iterator = myMap.find(key);
     if (iterator != myMap.end())
@@ -15,12 +15,12 @@ template <typename Key, typename Value> Value value(const std::map<Key, Value> m
     }
 }
 
-template <typename T> void printError(const T &message)
+template <typename T> void printError(T &message)
 {
     std::cerr << message << std::endl;
 }
 
-template <typename T> bool contains(const T &needle, const std::vector<T> &haystack)
+template <typename T> bool contains(T &needle, const std::vector<T> &haystack)
 {
     return std::find(haystack.begin(), haystack.end(), needle) != haystack.end();
 }

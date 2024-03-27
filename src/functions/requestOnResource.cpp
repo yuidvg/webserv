@@ -3,7 +3,7 @@
 HttpResponse conductPost(const HttpRequest &httpRequest)
 {
     const Location &location = getLocation(httpRequest);
-    const std::string targetFilePath = resolvePath(location.uploadPath, httpRequest.target);
+    const std::string targetFilePath = utils::concatPath(location.uploadPath, httpRequest.target);
     if (utils::isDirectory(location.uploadPath))
     {
         const std::string fileName = std::string(utils::removeCharacter(httpRequest.target, '/') + ".txt");

@@ -57,9 +57,9 @@ void handleInbound(SocketBuffer &socketIO)
 
 void handleEvent(const struct kevent &event, const Sockets &listenSockets)
 {
-    const Sockets::const_iterator eventListenSocketIt = listenSockets.find(Socket(event.ident));
-    if (eventListenSocketIt != listenSockets.end())
-        handleListenSocketEvent(*eventListenSocketIt);
+    const Socket &eventListenSocket = *std::find(listenSockets.begin(), listenSockets.end(), event.ident);
+    if (eventListenSocket.descriptor == static_cast<int>(event.ident))
+        handleListenSocketEvent(eventListenSocket);
     else
     {
         for (SocketBuffers::iterator eventSocketIOIt = SOCKET_BUFFERS.begin(); eventSocketIOIt != SOCKET_BUFFERS.end();

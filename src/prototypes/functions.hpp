@@ -22,6 +22,4 @@ HttpResponse getRedirectHttpResponse(const HttpRequest &, const std::string &red
 
 SocketBuffer &getSocketBuffer(const int sd);
 
-std::string resolvePath(const std::string &path, const Location &location);
-std::string resolvePath(const std::string &path, const std::string &location);
-ParsedHttpRequests parseHttpRequests(SocketBuffer &socketBuffer, const ConnectedInternetSocket &socket);
+ParsedHttpRequests parseHttpRequests(const SocketBuffer &socketBuffer, const ConnectedInternetSocket &socket);
