@@ -1,15 +1,15 @@
 #include "../all.hpp"
 
 /* ========  helper functions ======== */
-std::vector<std::string> removeEmptyBlocks(const std::vector<std::string> &blocks)
+
+std::vector<std::string> splitHttpRequests(const std::string &requests)
 {
-    std::vector<std::string>::const_iterator it = blocks.begin();
-    while (it != blocks.end() && it->empty())
+    std::vector<std::string> blocks = utils::split(requests, CRLF + CRLF);
+    for (size_t i = 0; i < blocks.size(); i++)
     {
-        ++it;
+        blocks[i] += CRLF + CRLF;
     }
-    std::vector<std::string> nonEmptyBlocks(it, blocks.end());
-    return nonEmptyBlocks;
+    return blocks;
 }
 
 bool isLineTooLong(const std::string &line)
@@ -157,6 +157,7 @@ ParseRequestLineResult parseHttpRequestLine(std::istringstream &requestTextStrea
         return ParseRequestLineResult::Error(getRequestLineResult.error);
 }
 
+// Todo: PENDINGパターン
 ParseHeaderResult parseHttpHeaders(std::istringstream &requestTextStream)
 {
     // tellgで現在の位置を取得、その先からstringを取得する
@@ -233,32 +234,29 @@ ParseBodyResult parseHttpBody(const std::string &body, const Headers &headers, c
 
 ParseRequestResult parseHttpRequest(const std::string &request, const ConnectedInternetSocket &socket)
 {
-    const std::vector<std::string> blocks = utils::split(request, CRLF + CRLF);
-    const std::vector<std::string> nonEmptyBlocks = removeEmptyBlocks(blocks);
-    if (nonEmptyBlocks.empty())
-        return ParseRequestResult::Error(HttpRequest());
-
-    std::istringstream requestTextStream(nonEmptyBlocks[0]);
-    const ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(requestTextStream);
-    if (parseRequestLineResult.status == PARSED)
+    std::istringstream requestTextStream(request);
+    ParseRequestLineResult parseHttpRequestLineResult = parseHttpRequestLine(requestTextStream);
+    if (parseHttpRequestLineResult.status == PARSED)
     {
-        const ParseHeaderResult parseHeaderResult = parseHttpHeaders(requestTextStream);
-        if (parseHeaderResult.status == PARSED)
+        ParseHeaderResult parseHttpHeadersResult = parseHttpHeaders(requestTextStream);
+        if (parseHttpHeadersResult.status == PARSED)
         {
-            const GetHostNameResult getHostNameResult = getHostName(parseHeaderResult.value);
+            const GetHostNameResult getHostNameResult = getHostName(parseHttpHeadersResult.value);
             if (getHostNameResult.success)
             {
-                const ParseBodyResult parseBodyResult = parseHttpBody(
-                    nonEmptyBlocks.size() > 1 ? nonEmptyBlocks[1] : "", parseHeaderResult.value,
-                    CONFIG.getServer(getHostNameResult.value, socket.serverPort), parseRequestLineResult.value.method);
-                if (parseBodyResult.status == PARSED)
+                const std::streampos currentPos = requestTextStream.tellg();
+                std::string body = requestTextStream.str().substr(currentPos);
+                const ParseBodyResult parseHttpBodyResult = parseHttpBody(
+                    body, parseHttpHeadersResult.value, CONFIG.getServer(getHostNameResult.value, socket.clientPort),
+                    parseHttpRequestLineResult.value.method);
+                if (parseHttpBodyResult.status == PARSED)
                 {
                     return ParseRequestResult::Success(
                         HttpRequest(socket.descriptor, socket.serverPort, socket.clientIp, getHostNameResult.value,
-                                    parseRequestLineResult.value.method, parseRequestLineResult.value.target,
-                                    parseHeaderResult.value, parseBodyResult.value));
+                                    parseHttpRequestLineResult.value.method, parseHttpRequestLineResult.value.target,
+                                    parseHttpHeadersResult.value, parseHttpBodyResult.value));
                 }
-                else if (parseBodyResult.status == PENDING)
+                else if (parseHttpBodyResult.status == PENDING)
                 {
                     return ParseRequestResult::Pending();
                 }
@@ -272,7 +270,7 @@ ParseRequestResult parseHttpRequest(const std::string &request, const ConnectedI
                 return ParseRequestResult::Error(HttpRequest());
             }
         }
-        else if (parseHeaderResult.status == PENDING)
+        else if (parseHttpHeadersResult.status == PENDING)
         {
             return ParseRequestResult::Pending();
         }
@@ -287,56 +285,44 @@ ParseRequestResult parseHttpRequest(const std::string &request, const ConnectedI
     }
 }
 
-ParsedHttpRequests parseHttpRequests(SocketBuffer &socketBuffer, const ConnectedInternetSocket &socket)
+ParsedHttpRequests parseHttpRequests(const SocketBuffer &socketBuffer, const ConnectedInternetSocket &socket)
 {
-    const std::vector<std::string> blocks = utils::split(socketBuffer.getInbound(), CRLF + CRLF);
-    const std::vector<std::string> nonEmptyBlocks = removeEmptyBlocks(blocks);
-    for (std::vector<std::string>::const_iterator it = nonEmptyBlocks.begin(); it != nonEmptyBlocks.end(); ++it)
+    const std::vector<std::string> blocks = splitHttpRequests(socketBuffer.getInbound());
+    size_t size = 0;
+    std::queue<const HttpRequest> httpRequests;
+    for (size_t i = 0; i < blocks.size(); i++)
     {
-        if (it->find("POST") != std::string::npos)
+        const ParseRequestResult parseRequestResult = parseHttpRequest(blocks[i], socket);
+        if (parseRequestResult.status == PARSED)
         {
-            if (it != nonEmptyBlocks.end() - 1)
+            httpRequests.push(parseRequestResult.value);
+            size += blocks[i].length();
+            continue;
+        }
+        else if (parseRequestResult.status == PENDING)
+        {
+            // POSTの場合もここに来る
+            if (i != blocks.size() - 1 && blocks[i + 1].find("POST") != std::string::npos)
             {
-                ParseRequestResult parseRequestResult = parseHttpRequest((*it) + CRLF + CRLF + *(it + 1), port);
+                const std::string postBlock = blocks[i] + blocks[i + 1];
+                const ParseRequestResult parseRequestResult = parseHttpRequest(postBlock, socket);
                 if (parseRequestResult.status == PARSED)
                 {
-                    HTTP_REQUESTS.push(parseRequestResult.value);
+                    httpRequests.push(parseRequestResult.value);
+                    size += postBlock.length();
+                    i++;
                 }
-                else if (parseRequestResult.status == PENDING)
+                else if (parseRequestResult.status == ERROR)
                 {
-                    // bufferをクリアして、このブロックを次のリクエストの先頭にする
-                    socketBuffer.clearInbound();
-                    socketBuffer.appendInbound(*it + CRLF + CRLF + *(it + 1));
-                    break;
+                    HTTP_REQUESTS.push(parseRequestResult.error);
                 }
-                else
-                {
-                    HTTP_REQUESTS.push(parseRequestResult.error); // 無効なリクエスト(後ろにbodyがないなど)の場合もある
-                    continue;
-                }
-                ++it;
             }
-            else
-            {
-                break; // POSTのbodyがない場合は次のリクエストを待つ
-            }
+            return ParsedHttpRequests(httpRequests, size);
         }
-        else // POST以外のリクエスト
+        else
         {
-            ParseRequestResult parseRequestResult = parseHttpRequest(*it, socket.serverPort);
-            if (parseRequestResult.status == PARSED)
-            {
-                HTTP_REQUESTS.push(parseRequestResult.value);
-            }
-            else if (parseRequestResult.status == PENDING)
-            {
-                break;
-            }
-            else
-            {
-                HTTP_REQUESTS.push(parseRequestResult.error);
-            }
+            HTTP_REQUESTS.push(parseRequestResult.error);
         }
     }
-    return;
+    return ParsedHttpRequests(httpRequests, size);
 }
