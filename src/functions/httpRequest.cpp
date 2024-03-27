@@ -215,7 +215,7 @@ ParseBodyResult parseHttpBody(const std::string &body, const Headers &headers, c
             if (tmp < 0 || static_cast<size_t>(tmp) > std::numeric_limits<size_t>::max())
                 return ParseBodyResult::Error(BAD_REQUEST);
             const size_t bodySize = static_cast<size_t>(tmp);
-            if ((0 < bodySize && bodySize <= server.clientMaxBodySize) && body.length() == bodySize)
+            if ((0 <= bodySize && bodySize <= server.clientMaxBodySize) && body.length() == bodySize)
                 return ParseBodyResult::Success(body);
             else
                 return ParseBodyResult::Error(BAD_REQUEST);
