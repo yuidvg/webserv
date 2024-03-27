@@ -40,7 +40,7 @@ class SocketBuffer
         try
         {
             char *buffer = new char[size];
-            const ssize_t receivedLength = recv(sd, buffer, sizeof(buffer), 0);
+            const ssize_t receivedLength = recv(sd, buffer, size, 0);
             if (receivedLength < 0)
             {
                 return ReceiveResult::Error("Failed to receive message");
@@ -73,7 +73,8 @@ class SocketBuffer
     }
     SendResult sendOutbound(size_t size)
     {
-        const ssize_t sentLength = send(sd, _outbound.c_str(), size, 0);
+        const ssize_t sentLength =
+            _outbound.size() ? send(sd, _outbound.c_str(), std::min(size, _outbound.size()), 0) : 0;
         if (sentLength < 0)
         {
             return SendResult::Error("Failed to send message");

@@ -34,3 +34,23 @@ void processCgiMessage(const ConnectedUnixSocket &socket, const std::string mess
         std::cerr << "Failed to parse CGI response: " << parsed.error << std::endl;
     }
 }
+
+void processHttpRequests()
+{
+    while (!HTTP_REQUESTS.empty())
+    {
+        const HttpRequest &httpRequest = HTTP_REQUESTS.front();
+        CgiRequestOrHttpResponse cgiRequestOrHttpResponse = processHttpRequest(httpRequest);
+        if (cgiRequestOrHttpResponse.tag == LEFT)
+        {
+            const CgiRequest &cgiRequest = cgiRequestOrHttpResponse.leftValue;
+            appendOutbound(cgiRequest.destinationSd, cgiRequest.body);
+        }
+        else
+        {
+            const HttpResponse &httpResponse = cgiRequestOrHttpResponse.rightValue;
+            appendOutbound(httpResponse.destinationSd, stringify(httpResponse));
+        }
+        HTTP_REQUESTS.pop();
+    }
+}

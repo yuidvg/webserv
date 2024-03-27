@@ -2,6 +2,7 @@
 
 int main(int argc, char **argv)
 {
+    signal(SIGPIPE, SIG_IGN);
     if (KQ != -1)
     {
         if (argc <= 2)

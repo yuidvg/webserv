@@ -105,5 +105,6 @@ void eventLoop(Sockets listenSockets)
                 handleEvent(eventList[i], listenSockets);
             }
         }
+        processHttpRequests();
     }
 }
