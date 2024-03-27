@@ -2,11 +2,12 @@
 
 namespace
 {
-void handleListenSocketEvent(const Socket &listenSocket)
+void createClientSocket(const Socket &listenSocket)
 {
     const ConnectedInternetSocketResult newConnectedSocketResult = utils::newConnectedInternetSocket(listenSocket);
     if (newConnectedSocketResult.success)
     {
+        SOCKET_BUFFERS.push_back(SocketBuffer(newConnectedSocketResult.value.descriptor));
         CLIENT_SOCKETS.push_back(newConnectedSocketResult.value);
     }
     else
@@ -59,7 +60,7 @@ void handleEvent(const struct kevent &event, const Sockets &listenSockets)
 {
     const Socket &eventListenSocket = *std::find(listenSockets.begin(), listenSockets.end(), event.ident);
     if (eventListenSocket.descriptor == static_cast<int>(event.ident))
-        handleListenSocketEvent(eventListenSocket);
+        createClientSocket(eventListenSocket);
     else
     {
         for (SocketBuffers::iterator eventSocketIOIt = SOCKET_BUFFERS.begin(); eventSocketIOIt != SOCKET_BUFFERS.end();
