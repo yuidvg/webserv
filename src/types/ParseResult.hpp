@@ -15,7 +15,7 @@ template <typename T, typename E> struct ParseResult
     const T value;
     const E error;
 
-    ParseResult() : status(PENDING){};
+    ParseResult() : status(PENDING), value(T()), error(E()){};
     ParseResult(const T value, const E error, const ParseStatus status) : status(status), value(value), error(error){};
 
     static ParseResult<T, E> Success(const T value)

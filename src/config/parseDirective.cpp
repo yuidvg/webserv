@@ -1,5 +1,6 @@
-#include "parseConfig.hpp"
 #include "parseDirective.hpp"
+#include "../all.hpp"
+#include "parseConfig.hpp"
 
 namespace parseConfig
 {
@@ -40,21 +41,19 @@ PortResult parseListen(const std::vector<std::string> directiveTokens)
     return PortResult::Success(result.value);
 }
 
-ErrorPagesResult parseErrorPage(const std::vector<std::string> directiveTokens)
+ErrorPagePathsResult parseErrorPage(const Strings directiveTokens)
 {
     if (directiveTokens.size() != 3)
-        return ErrorPagesResult::Error("Config: error_pageの引数が多いです");
+        return ErrorPagePathsResult::Error("Config: error_pageの引数が多いです");
 
     StringToIntResult errorCodeResult = utils::stringToInt(directiveTokens[1], 100, 599);
     if (!errorCodeResult.success)
     {
-        return ErrorPagesResult::Error("Config: error_pageのエラーコードが不正です");
+        return ErrorPagePathsResult::Error("Config: error_pageのエラーコードが不正です");
     }
-    int errorCode = errorCodeResult.value;
-
     std::map<int, std::string> errorPages;
-    errorPages[errorCode] = directiveTokens[2];
-    return ErrorPagesResult::Success(errorPages);
+    errorPages[errorCodeResult.value] = directiveTokens[2];
+    return ErrorPagePathsResult::Success(errorPages);
 }
 
 ClientMaxBodySizeResult parseClientMaxBodySize(const std::vector<std::string> directiveTokens)
@@ -168,4 +167,4 @@ RedirectResult parseReturnDirective(const std::vector<std::string> directiveToke
     return RedirectResult::Success(uri);
 }
 
-}
+} // namespace parseConfig

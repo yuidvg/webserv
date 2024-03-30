@@ -1,10 +1,8 @@
-#include "connection/.hpp"
-#include "config/parseConfig.hpp"
-#include "socket/.hpp"
-#include "webserv.hpp"
+#include "all.hpp"
 
 int main(int argc, char **argv)
 {
+    signal(SIGPIPE, SIG_IGN);
     if (KQ != -1)
     {
         if (argc <= 2)
@@ -16,9 +14,10 @@ int main(int argc, char **argv)
             {
                 const Servers servers = configResult.value;
                 CONFIG.injectServers(servers);
-                if (createListenSockets(servers))
+                const SocketsResult listenSocketsResult = utils::createListenSockets(servers);
+                if (listenSocketsResult.success)
                 {
-                    eventLoop();
+                    eventLoop(listenSocketsResult.value);
                 }
                 else
                 {

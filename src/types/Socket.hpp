@@ -1,90 +1,24 @@
 #pragma once
+#include "external.hpp"
 
-class Socket
+struct Socket
 {
-  private:
-    std::string _receivedMessage;
-    std::string _toBeSentMessage;
-
-  public:
     const int descriptor;
-    const unsigned int port;
-    const std::string opponentIp;
-    const unsigned int opponentPort;
-
-    Socket() : descriptor(0), port(0), opponentIp(""), opponentPort(0){};
-    Socket(const int descriptor, const unsigned int port, const std::string &opponentIp = "",
-           const unsigned int opponentPort = 0)
-        : descriptor(descriptor), port(port), opponentIp(opponentIp), opponentPort(opponentPort){};
-    ~Socket(){};
-
-    Socket(const Socket &other)
-        : _receivedMessage(other._receivedMessage), _toBeSentMessage(other._toBeSentMessage),
-          descriptor(other.descriptor), port(other.port), opponentIp(other.opponentIp), opponentPort(other.opponentPort)
+    const size_t port;
+    Socket(const int descriptor, const size_t port = 0) : descriptor(descriptor), port(port)
     {
     }
-    Socket &operator=(const Socket &other)
+    Socket() : descriptor(0), port(0)
     {
-        if (this != &other)
-        {
-            _receivedMessage = other._receivedMessage;
-            _toBeSentMessage = other._toBeSentMessage;
-        }
-        return *this;
     }
-
-    bool operator==(const Socket &other) const
+    Socket(const Socket &x) : descriptor(x.descriptor), port(x.port)
     {
-        return descriptor == other.descriptor && port == other.port && opponentIp == other.opponentIp &&
-               opponentPort == other.opponentPort;
-    };
-    bool operator!=(const Socket &other) const
+    }
+    ~Socket()
     {
-        return !(*this == other);
-    };
-
-    bool receiveMessage(intptr_t sizeData)
+    }
+    bool operator==(const Socket &x) const
     {
-        size_t size = sizeData;
-        char *buffer = new char[size + 1];
-        const ssize_t receivedLength = recv(descriptor, buffer, size, 0);
-        if (receivedLength >= 0)
-        {
-            buffer[receivedLength] = '\0';
-            _receivedMessage += buffer;
-        }
-        delete[] buffer;
-        return receivedLength >= 0;
-    };
-    std::string getReceivedMessage() const
-    {
-        return _receivedMessage;
-    };
-    void appendToBeSentMessage(const std::string &message)
-    {
-        _toBeSentMessage += message;
-    };
-    bool hasMessageToSend() const
-    {
-        return !_toBeSentMessage.empty();
-    };
-    bool sendMessage(uintptr_t size)
-    {
-        std::string message = _toBeSentMessage.substr(0, size);
-        const int sentLength = send(descriptor, message.c_str(), message.size(), 0);
-        if (sentLength >= 0)
-        {
-            std::cout << "message sent: " << sentLength << std::endl;
-            _toBeSentMessage = _toBeSentMessage.substr(sentLength);
-            return true;
-        }
-        else
-            return false;
-    };
-    bool isListenSocket() const
-    {
-        return opponentIp.empty() && opponentPort == 0;
-    };
+        return descriptor == x.descriptor;
+    }
 };
-
-// TODO:compile errorが発生しているため、一時的に復活

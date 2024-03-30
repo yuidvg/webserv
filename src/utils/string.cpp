@@ -1,4 +1,4 @@
-#include ".hpp"
+#include "../all.hpp"
 
 namespace utils
 {

@@ -1,7 +1,10 @@
 #pragma once
 
+#include "HttpResponse.hpp"
 #include "Location.hpp"
 #include "external.hpp"
+
+typedef std::map<int, std::string> ErrorPagePaths;
 
 namespace
 {
@@ -18,14 +21,12 @@ struct Server
 {
     const std::string name;
     const size_t port;
-    const std::map<int, std::string> errorPages;
+    const ErrorPagePaths errorPages;
     const size_t clientMaxBodySize;
     const Locations locations;
 
-    Server()
-        : name(""), port(80), errorPages(std::map<int, std::string>()), clientMaxBodySize(1048576),
-          locations(Locations()){};
-    Server(const std::string &name, const size_t &port, const std::map<int, std::string> &errorPages,
+    Server() : name(""), port(80), errorPages(), clientMaxBodySize(1048576), locations(Locations()){};
+    Server(const std::string &name, const size_t &port, const ErrorPagePaths &errorPages,
            const size_t &clientMaxBodySize, const Locations &locations)
         : name(name), port(port), errorPages(errorPages), clientMaxBodySize(clientMaxBodySize), locations(locations){};
     Location getLocation(const std::string &target) const
