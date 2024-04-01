@@ -71,7 +71,7 @@ CgiRequestOrHttpResponse processHttpRequest(const HttpRequest &httpRequest)
             if (!location.redirect.empty())
                 return CgiRequestOrHttpResponse::Right(getRedirectHttpResponse(httpRequest, location.redirect));
             else if (httpRequest.method == "GET")
-                return CgiRequestOrHttpResponse::Right(conductGet(httpRequest));
+                return CgiRequestOrHttpResponse::Right(conductGet(httpRequest, resolvedPath));
             else if (httpRequest.method == "POST")
                 return CgiRequestOrHttpResponse::Right(conductPost(httpRequest));
             else if (httpRequest.method == "DELETE")

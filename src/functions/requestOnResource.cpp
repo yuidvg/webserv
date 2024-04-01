@@ -26,23 +26,21 @@ HttpResponse conductDelete(const HttpRequest &httpRequest)
         return getErrorHttpResponse(httpRequest, BAD_REQUEST);
 }
 
-HttpResponse conductGet(const HttpRequest &httpRequest)
+HttpResponse conductGet(const HttpRequest &httpRequest, const std::string &target)
 {
-    const Uri uri = segment(httpRequest);
-
-    if (utils::isDirectory(uri.extraPath))
+    if (utils::isDirectory(target))
     {
         const Location &location = getLocation(httpRequest);
         if (location.autoindex)
         {
-            const DirectoryListHtmlResult directoryListHtmlResult = directoryListHtml(uri.extraPath);
+            const DirectoryListHtmlResult directoryListHtmlResult = directoryListHtml(target);
             return directoryListHtmlResult.success
                        ? HttpResponse(httpRequest.sd, SUCCESS, directoryListHtmlResult.value, "text/html")
                        : getErrorHttpResponse(httpRequest, BAD_REQUEST);
         }
         else if (location.index.size() > 0)
         {
-            const std::string indexPath = uri.extraPath + location.index;
+            const std::string indexPath = target + location.index;
             const FileContentResult fileContentResult = utils::fileContent(indexPath);
             return fileContentResult.success
                        ? HttpResponse(httpRequest.sd, SUCCESS, fileContentResult.value, utils::contentType(indexPath))
@@ -53,11 +51,11 @@ HttpResponse conductGet(const HttpRequest &httpRequest)
             return getErrorHttpResponse(httpRequest, BAD_REQUEST);
         }
     }
-    else // when uri.extraPath is assumed to be a file.
+    else // when target is assumed to be a file.
     {
-        const FileContentResult fileContentResult = utils::fileContent(uri.extraPath);
+        const FileContentResult fileContentResult = utils::fileContent(target);
         return fileContentResult.success
-                   ? HttpResponse(httpRequest.sd, SUCCESS, fileContentResult.value, utils::contentType(uri.extraPath))
+                   ? HttpResponse(httpRequest.sd, SUCCESS, fileContentResult.value, utils::contentType(target))
                    : getErrorHttpResponse(httpRequest, BAD_REQUEST);
     }
 }
