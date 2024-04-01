@@ -14,7 +14,7 @@ CgiRequestOrHttpResponse processHttpRequest(const HttpRequest &);
 std::string stringify(const HttpResponse &);
 
 // methods
-HttpResponse conductGet(const HttpRequest &);
+HttpResponse conductGet(const HttpRequest &httpRequest, const std::string &target);
 HttpResponse conductDelete(const HttpRequest &);
 HttpResponse conductPost(const HttpRequest &);
 
