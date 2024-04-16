@@ -159,9 +159,12 @@ ParseRequestLineResult parseHttpRequestLine(std::istringstream &requestTextStrea
 
 ParseHeaderResult parseHttpHeaders(std::istringstream &requestTextStream)
 {
-    // tellgで現在の位置を取得、その先からstringを取得する
+    // tellgで現在の位置を取得、その先からCRLFまでstringを取得する
     const std::streampos currentPos = requestTextStream.tellg();
-    std::string headerText = requestTextStream.str().substr(currentPos);
+    std::string requestStr = requestTextStream.str();
+    const std::size_t headerEndPos = requestStr.find("\r\n\r\n", currentPos);
+    const std::streampos endPos = (headerEndPos != std::string::npos) ? headerEndPos + 4 : requestStr.length();
+    const std::string headerText = requestStr.substr(currentPos, endPos - currentPos);
 
     std::vector<std::string> header = utils::split(headerText, CRLF);
     if (header.size() == 0)
@@ -246,25 +249,40 @@ ParseRequestResult parseHttpRequest(const std::string &request, const ConnectedI
             const GetHostNameResult getHostNameResult = getHostName(parseHttpHeadersResult.value);
             if (getHostNameResult.success)
             {
-                const std::streampos currentPos = requestTextStream.tellg();
-                std::string body = requestTextStream.str().substr(currentPos);
-                const ParseBodyResult parseHttpBodyResult = parseHttpBody(
-                    body, parseHttpHeadersResult.value, CONFIG.getServer(getHostNameResult.value, socket.clientPort),
-                    parseHttpRequestLineResult.value.method);
-                if (parseHttpBodyResult.status == PARSED)
+                if (request.find("POST") != std::string::npos)
+                {
+                    if (utils::split(request, CRLF + CRLF).size() == 1)
+                        return ParseRequestResult::Pending();
+                    else
+                    {
+                        const std::string body = utils::split(request, CRLF + CRLF)[1];
+                        const ParseBodyResult parseHttpBodyResult =
+                            parseHttpBody(body, parseHttpHeadersResult.value,
+                                          CONFIG.getServer(getHostNameResult.value, socket.clientPort),
+                                          parseHttpRequestLineResult.value.method);
+                        if (parseHttpBodyResult.status == PARSED)
+                        {
+                            return ParseRequestResult::Success(HttpRequest(
+                                socket.descriptor, socket.serverPort, socket.clientIp, getHostNameResult.value,
+                                parseHttpRequestLineResult.value.method, parseHttpRequestLineResult.value.target,
+                                parseHttpHeadersResult.value, parseHttpBodyResult.value));
+                        }
+                        else if (parseHttpBodyResult.status == PENDING)
+                        {
+                            return ParseRequestResult::Pending();
+                        }
+                        else
+                        {
+                            return ParseRequestResult::Error(HttpRequest());
+                        }
+                    }
+                }
+                else
                 {
                     return ParseRequestResult::Success(
                         HttpRequest(socket.descriptor, socket.serverPort, socket.clientIp, getHostNameResult.value,
                                     parseHttpRequestLineResult.value.method, parseHttpRequestLineResult.value.target,
-                                    parseHttpHeadersResult.value, parseHttpBodyResult.value));
-                }
-                else if (parseHttpBodyResult.status == PENDING)
-                {
-                    return ParseRequestResult::Pending();
-                }
-                else
-                {
-                    return ParseRequestResult::Error(HttpRequest());
+                                    parseHttpHeadersResult.value, ""));
                 }
             }
             else
@@ -311,7 +329,7 @@ ParsedHttpRequests parseHttpRequests(const SocketBuffer &socketBuffer, const Con
                 if (parseRequestResult.status == PARSED)
                 {
                     httpRequests.push(parseRequestResult.value);
-                    size += postBlock.length();
+                    size += blocks[i + 1].length();
                     i++;
                 }
                 else if (parseRequestResult.status == ERROR)
