@@ -79,22 +79,28 @@ bool isDirectory(const std::string &path)
     return S_ISDIR(statbuf.st_mode);
 }
 
-bool createFile(const std::string &fileName, const std::string &path)
+int createFile(const std::string &fileName, const std::string &path)
 {
     std::string fullPath = path + fileName;
-    std::ofstream file(fullPath.c_str());
-    if (!file)
+    const int fd = open(fullPath.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_NONBLOCK, 0644);
+    if (fd >= 0)
     {
-        std::cerr << "Failed to create file: " << fullPath << std::endl;
-        return false;
+        if (utils::registerEvent(fd, EVFILT_WRITE))
+            return fd;
+        else
+        {
+            close(fd);
+            return -1;
+        }
     }
-    file.close();
-    return true;
+    else
+        return -1;
 }
 
 bool writeToFile(const std::string &path, const std::string &content)
 {
     std::ofstream ofs(path);
+
     if (ofs.is_open())
     {
         ofs << content;

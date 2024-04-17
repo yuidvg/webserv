@@ -6,6 +6,7 @@ void eraseSocketBuffer(const int sd)
     {
         if (it->sd == sd)
         {
+            close(it->sd);
             SOCKET_BUFFERS.erase(it);
             break;
         }

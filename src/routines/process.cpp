@@ -44,6 +44,7 @@ void processHttpRequests()
         if (cgiRequestOrHttpResponse.tag == LEFT)
         {
             const CgiRequest &cgiRequest = cgiRequestOrHttpResponse.leftValue;
+            
             appendOutbound(cgiRequest.destinationSd, cgiRequest.body);
         }
         else

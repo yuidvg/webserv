@@ -28,7 +28,7 @@ bool isAbsoluteUri(const std::string &uri);
 FileContentResult fileContent(const std::string &path);
 std::string contentType(const std::string &path);
 bool isDirectory(const std::string &path);
-bool createFile(const std::string &fileName, const std::string &path);
+int createFile(const std::string &fileName, const std::string &path);
 bool writeToFile(const std::string &path, const std::string &content);
 
 // vector

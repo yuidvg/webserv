@@ -59,8 +59,9 @@ CgiRequestOrHttpResponse processHttpRequest(const HttpRequest &httpRequest)
             ConnectedUnixSocketResult cgiProcessResult = createCgiProcess(cgiEnvs, segment(httpRequest).scriptPath);
             if (cgiProcessResult.success)
             {
-                CGI_HTTP_REQUESTS.insert(std::make_pair(cgiProcessResult.value.descriptor, httpRequest));
-                return CgiRequestOrHttpResponse::Left(CgiRequest(cgiProcessResult.value.descriptor, cgiEnvs,
+                const ConnectedUnixSocket &cgiProcessSocket = cgiProcessResult.value;
+                CGI_HTTP_REQUESTS.insert(std::make_pair(cgiProcessSocket.descriptor, httpRequest));
+                return CgiRequestOrHttpResponse::Left(CgiRequest(cgiProcessSocket.descriptor, cgiEnvs,
                                                                  segment(httpRequest).scriptPath, httpRequest.body));
             }
             else

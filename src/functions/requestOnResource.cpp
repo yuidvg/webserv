@@ -7,12 +7,15 @@ HttpResponse conductPost(const HttpRequest &httpRequest)
     if (utils::isDirectory(location.uploadPath))
     {
         const std::string fileName = std::string(utils::removeCharacter(httpRequest.target, '/') + ".txt");
-        if (!utils::createFile(fileName, location.uploadPath))
+        if (const int fd = utils::createFile(fileName, location.uploadPath) >= 0)
+        {
+            SocketBuffer socketBufferForFileToWrite(fd);
+            socketBufferForFileToWrite.appendOutbound(httpRequest.body);
+            SOCKET_BUFFERS.push_back(socketBufferForFileToWrite);
+            return HttpResponse(httpRequest.sd, SUCCESS, "File upload", "text/plain");
+        }
+        else
             return getErrorHttpResponse(httpRequest, BAD_REQUEST);
-        const std::string fullFilePath = utils::concatPath(location.uploadPath, fileName);
-        return utils::writeToFile(fullFilePath, httpRequest.body)
-                   ? HttpResponse(httpRequest.sd, SUCCESS, "File created", "text/plain")
-                   : getErrorHttpResponse(httpRequest, BAD_REQUEST);
     }
     return getErrorHttpResponse(httpRequest, BAD_REQUEST);
 }
