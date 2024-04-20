@@ -174,7 +174,7 @@ ParseHeaderResult parseHttpHeaders(std::istringstream &requestTextStream)
         Headers headers;
         for (std::vector<std::string>::iterator it = header.begin(); it != header.end(); ++it)
         {
-            std::string::size_type pos = it->find(":");
+            std::string::size_type pos = it->find(": ");
             if (pos != std::string::npos)
             {
                 std::string key = it->substr(0, pos);
@@ -273,7 +273,8 @@ ParseRequestResult parseHttpRequest(const std::string &request, const ConnectedI
                         }
                         else
                         {
-                            return ParseRequestResult::Error(HttpRequest());
+                            return ParseRequestResult::Error(HttpRequest(socket.descriptor, socket.serverPort,
+                                                                         socket.clientIp, "", "", "", Headers(), ""));
                         }
                     }
                 }
@@ -296,12 +297,14 @@ ParseRequestResult parseHttpRequest(const std::string &request, const ConnectedI
         }
         else
         {
-            return ParseRequestResult::Error(HttpRequest());
+            return ParseRequestResult::Error(
+                HttpRequest(socket.descriptor, socket.serverPort, socket.clientIp, "", "", "", Headers(), ""));
         }
     }
     else
     {
-        return ParseRequestResult::Error(HttpRequest());
+        return ParseRequestResult::Error(
+            HttpRequest(socket.descriptor, socket.serverPort, socket.clientIp, "", "", "", Headers(), ""));
     }
 }
 
