@@ -11,7 +11,6 @@ HttpResponse conductPost(const HttpRequest &httpRequest)
         {
             SocketBuffer socketBufferForFileToWrite(fd);
             socketBufferForFileToWrite.appendOutbound(httpRequest.body);
-            SOCKET_BUFFERS.push_back(socketBufferForFileToWrite);
             return HttpResponse(httpRequest.sd, SUCCESS, "File upload", "text/plain");
         }
         else

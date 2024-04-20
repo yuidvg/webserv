@@ -7,7 +7,6 @@ void createClientSocket(const Socket &listenSocket)
     const ConnectedInternetSocketResult newConnectedSocketResult = utils::newConnectedInternetSocket(listenSocket);
     if (newConnectedSocketResult.success)
     {
-        SOCKET_BUFFERS.push_back(SocketBuffer(newConnectedSocketResult.value.descriptor));
         CLIENT_SOCKETS.push_back(newConnectedSocketResult.value);
     }
     else

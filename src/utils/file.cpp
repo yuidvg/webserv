@@ -86,7 +86,10 @@ int createFile(const std::string &fileName, const std::string &path)
     if (fd >= 0)
     {
         if (utils::registerEvent(fd, EVFILT_WRITE))
+        {
+            SOCKET_BUFFERS.push_back(SocketBuffer(fd));
             return fd;
+        }
         else
         {
             close(fd);
