@@ -7,7 +7,8 @@ HttpResponse conductPost(const HttpRequest &httpRequest)
     if (utils::isDirectory(location.uploadPath))
     {
         const std::string fileName = std::string(utils::removeCharacter(httpRequest.target, '/') + ".txt");
-        if (const int fd = utils::createFile(fileName, location.uploadPath) >= 0)
+        const int fd = utils::createFile(fileName, location.uploadPath);
+        if (fd  >= 0)
         {
             SocketBuffer socketBufferForFileToWrite(fd);
             socketBufferForFileToWrite.appendOutbound(httpRequest.body);
