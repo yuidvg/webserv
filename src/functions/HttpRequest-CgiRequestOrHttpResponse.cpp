@@ -48,42 +48,50 @@ StringMap getCgiEnvs(const HttpRequest &httpRequest)
 
 CgiRequestOrHttpResponse processHttpRequest(const HttpRequest &httpRequest)
 {
-    const Location location = getLocation(httpRequest);
-
-    if (isMethodAllowed(httpRequest, location))
+    if (httpRequest.host.length() > 0)
     {
-        const std::string resolvedPath = utils::resolvePath(httpRequest.target, location);
-        if (segment(httpRequest).scriptPath.size() > 0)
+        const Location location = getLocation(httpRequest);
+
+        if (isMethodAllowed(httpRequest, location))
         {
-            StringMap cgiEnvs = getCgiEnvs(httpRequest);
-            ConnectedUnixSocketResult cgiProcessResult = createCgiProcess(cgiEnvs, segment(httpRequest).scriptPath);
-            if (cgiProcessResult.success)
+            const std::string resolvedPath = utils::resolvePath(httpRequest.target, location);
+            if (segment(httpRequest).scriptPath.size() > 0)
             {
-                const ConnectedUnixSocket &cgiProcessSocket = cgiProcessResult.value;
-                CGI_HTTP_REQUESTS.insert(std::make_pair(cgiProcessSocket.descriptor, httpRequest));
-                return CgiRequestOrHttpResponse::Left(CgiRequest(cgiProcessSocket.descriptor, cgiEnvs,
-                                                                 segment(httpRequest).scriptPath, httpRequest.body));
+                StringMap cgiEnvs = getCgiEnvs(httpRequest);
+                ConnectedUnixSocketResult cgiProcessResult = createCgiProcess(cgiEnvs, segment(httpRequest).scriptPath);
+                if (cgiProcessResult.success)
+                {
+                    const ConnectedUnixSocket &cgiProcessSocket = cgiProcessResult.value;
+                    CGI_HTTP_REQUESTS.insert(std::make_pair(cgiProcessSocket.descriptor, httpRequest));
+                    return CgiRequestOrHttpResponse::Left(CgiRequest(
+                        cgiProcessSocket.descriptor, cgiEnvs, segment(httpRequest).scriptPath, httpRequest.body));
+                }
+                else
+                    return CgiRequestOrHttpResponse::Right(getErrorHttpResponse(httpRequest, SERVER_ERROR));
             }
             else
-                return CgiRequestOrHttpResponse::Right(getErrorHttpResponse(httpRequest, SERVER_ERROR));
+            {
+                if (!location.redirect.empty())
+                    return CgiRequestOrHttpResponse::Right(getRedirectHttpResponse(httpRequest, location.redirect));
+                else if (httpRequest.method == "GET")
+                    return CgiRequestOrHttpResponse::Right(conductGet(httpRequest, resolvedPath));
+                else if (httpRequest.method == "POST")
+                    return CgiRequestOrHttpResponse::Right(conductPost(httpRequest));
+                else if (httpRequest.method == "DELETE")
+                    return CgiRequestOrHttpResponse::Right(conductDelete(httpRequest));
+                else
+                    return CgiRequestOrHttpResponse::Right(
+                        getMethodNotAllowedResponse(httpRequest, "GET, POST, DELETE"));
+            }
         }
         else
         {
-            if (!location.redirect.empty())
-                return CgiRequestOrHttpResponse::Right(getRedirectHttpResponse(httpRequest, location.redirect));
-            else if (httpRequest.method == "GET")
-                return CgiRequestOrHttpResponse::Right(conductGet(httpRequest, resolvedPath));
-            else if (httpRequest.method == "POST")
-                return CgiRequestOrHttpResponse::Right(conductPost(httpRequest));
-            else if (httpRequest.method == "DELETE")
-                return CgiRequestOrHttpResponse::Right(conductDelete(httpRequest));
-            else
-                return CgiRequestOrHttpResponse::Right(getMethodNotAllowedResponse(httpRequest, "GET, POST, DELETE"));
+            return CgiRequestOrHttpResponse::Right(
+                getMethodNotAllowedResponse(httpRequest, utils::join(location.allowMethods, ", ")));
         }
     }
     else
     {
-        return CgiRequestOrHttpResponse::Right(
-            getMethodNotAllowedResponse(httpRequest, utils::join(location.allowMethods, ", ")));
+        return CgiRequestOrHttpResponse::Right(getErrorHttpResponse(httpRequest, BAD_REQUEST));
     }
 }
