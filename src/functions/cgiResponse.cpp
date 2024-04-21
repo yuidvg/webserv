@@ -17,6 +17,22 @@ bool isStatusLine(std::string const &line)
 {
     return line.find(STATUS_FIELD) == 0;
 }
+
+HttpRequestResult getCgiHttpRequest(const int cgiSd)
+{
+    const CgiHttpRequests::iterator it = CGI_HTTP_REQUESTS.find(cgiSd);
+    if (it != CGI_HTTP_REQUESTS.end())
+    {
+        const HttpRequest httpRequest = it->second;
+        CGI_HTTP_REQUESTS.erase(it);
+        return HttpRequestResult::Success(httpRequest);
+    }
+    else
+    {
+        return HttpRequestResult::Error("getHttpRequest: no request for CGI SD " + std::to_string(cgiSd));
+    }
+}
+
 } // namespace
 
 ParseCgiResponseResult parseCgiResponse(std::string const &response, const int cgiSd)
@@ -39,8 +55,17 @@ ParseCgiResponseResult parseCgiResponse(std::string const &response, const int c
         const int status = statusResult.success ? statusResult.value : 0;
         const std::string body =
             headerAndBody.size() > 1 ? response.substr(headerAndBody[0].length() + EMPTY_LINE.length()) : "";
-
-        return ParseCgiResponseResult::Success(CgiResponse(cgiSd, contentType, location, status, Headers(), body));
+        const HttpRequestResult httpRequestResult = getCgiHttpRequest(cgiSd);
+        if (httpRequestResult.success)
+        {
+            const HttpRequest httpRequest = httpRequestResult.value;
+            return ParseCgiResponseResult::Success(
+                CgiResponse(cgiSd, httpRequest, contentType, location, status, Headers(), body));
+        }
+        else
+        {
+            return ParseCgiResponseResult::Error(httpRequestResult.error);
+        }
     }
     else
     {

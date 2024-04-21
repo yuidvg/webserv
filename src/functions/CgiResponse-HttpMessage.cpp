@@ -9,7 +9,7 @@ bool isDocumentResponse(const CgiResponse &cgiResponse)
 
 HttpResponse processDocumentResponse(const CgiResponse &cgiResponse)
 {
-    return HttpResponse(getHttpRequest(cgiResponse.cgiSd).sd,
+    return HttpResponse(cgiResponse.httpRequest.sd,
                         utils::isStatusInRange(cgiResponse.status) ? cgiResponse.status : SUCCESS, cgiResponse.body);
 }
 
