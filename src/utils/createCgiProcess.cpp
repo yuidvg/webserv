@@ -24,7 +24,9 @@ ConnectedUnixSocketResult createCgiProcess(const StringMap &envs, const std::str
 {
     int socketPair[2];
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, socketPair) == 0 &&
-        utils::registerEvent(socketPair[SERVER_END], EVFILT_WRITE))
+        utils::registerEvent(socketPair[SERVER_END], EVFILT_WRITE) &&
+        utils::registerEvent(socketPair[SERVER_END], EVFILT_READ) &&
+        utils::setEventFlags(socketPair[SERVER_END], EVFILT_WRITE, EV_DISABLE))
     {
         std::cout << "socketpair succeeded" << std::endl;
         const pid_t pid = fork();
