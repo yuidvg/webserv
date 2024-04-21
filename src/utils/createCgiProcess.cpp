@@ -39,7 +39,8 @@ ConnectedUnixSocketResult createCgiProcess(const StringMap &envs, const std::str
         else if (pid == 0) // cgi process
         {
             std::cout << "child process" << std::endl;
-            if (close(socketPair[SERVER_END]) == 0 && dup2(socketPair[CGI], STDIN_FILENO) != -1)
+            if (close(socketPair[SERVER_END]) == 0 && dup2(socketPair[CGI], STDIN_FILENO) != -1 &&
+                dup2(socketPair[CGI], STDOUT_FILENO) != -1)
             {
                 errno = 0;
                 char *const *envp = mapStringStringToCStringArray(envs);

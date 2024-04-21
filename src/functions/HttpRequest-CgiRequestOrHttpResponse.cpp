@@ -55,16 +55,19 @@ CgiRequestOrHttpResponse processHttpRequest(const HttpRequest &httpRequest)
         if (isMethodAllowed(httpRequest, location))
         {
             const std::string resolvedPath = utils::resolvePath(httpRequest.target, location);
-            if (segment(httpRequest).scriptPath.size() > 0)
+            const std::string scriptPath = segment(httpRequest).scriptPath;
+            if (scriptPath.size() > 0)
             {
+                const std::string rootedScriptPath = utils::root(scriptPath, location);
                 StringMap cgiEnvs = getCgiEnvs(httpRequest);
-                ConnectedUnixSocketResult cgiProcessResult = createCgiProcess(cgiEnvs, segment(httpRequest).scriptPath);
+                ConnectedUnixSocketResult cgiProcessResult = createCgiProcess(cgiEnvs, rootedScriptPath);
                 if (cgiProcessResult.success)
                 {
                     const ConnectedUnixSocket &cgiProcessSocket = cgiProcessResult.value;
+                    CGI_SOCKETS.push_back(cgiProcessSocket);
                     CGI_HTTP_REQUESTS.insert(std::make_pair(cgiProcessSocket.descriptor, httpRequest));
-                    return CgiRequestOrHttpResponse::Left(CgiRequest(
-                        cgiProcessSocket.descriptor, cgiEnvs, segment(httpRequest).scriptPath, httpRequest.body));
+                    return CgiRequestOrHttpResponse::Left(
+                        CgiRequest(cgiProcessSocket.descriptor, cgiEnvs, rootedScriptPath, httpRequest.body));
                 }
                 else
                     return CgiRequestOrHttpResponse::Right(getErrorHttpResponse(httpRequest, SERVER_ERROR));

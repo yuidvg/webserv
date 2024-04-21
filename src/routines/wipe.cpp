@@ -6,10 +6,11 @@ bool eraseSocketBuffer(const int sd)
     {
         if (it->sd == sd)
         {
-            if (utils::unregisterEvent(it->sd) && close(it->sd) == 0)
+            if (close(it->sd) == 0)
             {
+                utils::unregisterEvent(it->sd);
                 it = SOCKET_BUFFERS.erase(it);
-                return true;
+                break;
             }
             else
             {
@@ -18,7 +19,7 @@ bool eraseSocketBuffer(const int sd)
             }
         }
     }
-    return false;
+    return true;
 }
 
 void addSocketBuffer(const int sd)
