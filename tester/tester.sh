@@ -23,8 +23,8 @@ curl_commands=(
     "curl -X GET http://${SERVER_ADDRESS}/cgi-bin/helloWorld.cgi 200"
     "curl -X GET http://${SERVER_ADDRESS}/cgi-bin/redirAfterFiveMinutes.cgi 200"
     "curl -X GET http://${SERVER_ADDRESS}/cgi-bin/submit.cgi 200"
-    # "curl -X GET http://${SERVER_ADDRESS}/cgi-bin/redirect.cgi 302"
-    # "curl -X GET http://${SERVER_ADDRESS}/cgi-bin/localRedirect.cgi 302"
+    "curl -X GET http://${SERVER_ADDRESS}/cgi-bin/redirect.cgi 302"
+    "curl -X GET http://${SERVER_ADDRESS}/cgi-bin/localRedirect.cgi 302"
 )
 
 function run_and_check_curl_command() {
