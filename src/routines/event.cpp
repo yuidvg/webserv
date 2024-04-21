@@ -81,7 +81,10 @@ void handleEvent(const struct kevent &event, const Sockets &listenSockets)
                 {
                     SendResult sendResult = eventSocketIOIt->sendOutbound(event.data);
                     if (!sendResult.success)
+                    {
+                        eraseSocketBuffer(eventSocketIOIt->sd);
                         utils::printError(sendResult.error);
+                    }
                 }
             }
         }

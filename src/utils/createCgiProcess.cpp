@@ -37,17 +37,17 @@ ConnectedUnixSocketResult createCgiProcess(const StringMap &envs, const std::str
         else if (pid == 0) // cgi process
         {
             std::cout << "child process" << std::endl;
-            close(socketPair[SERVER_END]);
-            dup2(socketPair[CGI], STDIN_FILENO);
-
-            errno = 0;
-            char *const *envp = mapStringStringToCStringArray(envs);
-            char *args[2];
-            args[0] = const_cast<char *>(scriptPath.c_str());
-            args[1] = NULL;
-            execve(scriptPath.c_str(), args, envp);
-            std::cerr << "execve failed: " << strerror(errno) << std::endl;
-            utils::deleteCStrArray(envp);
+            if (close(socketPair[SERVER_END]) == 0 && dup2(socketPair[CGI], STDIN_FILENO) != -1)
+            {
+                errno = 0;
+                char *const *envp = mapStringStringToCStringArray(envs);
+                char *args[2];
+                args[0] = const_cast<char *>(scriptPath.c_str());
+                args[1] = NULL;
+                execve(scriptPath.c_str(), args, envp);
+                std::cerr << "execve failed: " << strerror(errno) << std::endl;
+                utils::deleteCStrArray(envp);
+            }
             while (true)
             {
                 sleep(1);
@@ -55,8 +55,8 @@ ConnectedUnixSocketResult createCgiProcess(const StringMap &envs, const std::str
         }
         else // server process
         {
+            addSocketBuffer(socketPair[SERVER_END]);
             close(socketPair[CGI]);
-            SOCKET_BUFFERS.push_back(SocketBuffer(socketPair[SERVER_END]));
             return ConnectedUnixSocketResult::Success(ConnectedUnixSocket(socketPair[SERVER_END], pid));
         }
     }

@@ -1,36 +1,46 @@
 #include "../all.hpp"
 
-void eraseSocketBuffer(const int sd)
+bool eraseSocketBuffer(const int sd)
 {
-    for (SocketBuffers::iterator it = SOCKET_BUFFERS.begin(); it != SOCKET_BUFFERS.end();)
+    for (SocketBuffers::iterator it = SOCKET_BUFFERS.begin(); it != SOCKET_BUFFERS.end(); ++it)
     {
         if (it->sd == sd)
         {
-            close(it->sd);
-            SOCKET_BUFFERS.erase(it);
-            break;
-        }
-        else
-        {
-            ++it;
+            if (utils::unregisterEvent(it->sd) && close(it->sd) == 0)
+            {
+                it = SOCKET_BUFFERS.erase(it);
+                return true;
+            }
+            else
+            {
+                utils::printError("Failed to close socket");
+                return false;
+            }
         }
     }
+    return false;
+}
+
+void addSocketBuffer(const int sd)
+{
+    for (SocketBuffers::iterator it = SOCKET_BUFFERS.begin(); it != SOCKET_BUFFERS.end(); ++it)
+    {
+        if (it->sd == sd)
+            return;
+    }
+    SOCKET_BUFFERS.push_back(SocketBuffer(sd));
 }
 
 void wipeCgi(const pid_t cgiPid, const int sd)
 {
-    // Remove the socket buffer
-    eraseSocketBuffer(sd);
-
-    // Close the socket
-    close(sd);
-
-    // Kill the Cgi process
-    int wstats;
-    if (waitpid(cgiPid, &wstats, WNOHANG) == 0)
+    if (eraseSocketBuffer(sd))
     {
-        kill(cgiPid, SIGKILL);
-        waitpid(cgiPid, &wstats, 0);
+        // Kill the Cgi process
+        int wstats;
+        if (waitpid(cgiPid, &wstats, WNOHANG) == 0)
+        {
+            kill(cgiPid, SIGKILL);
+            waitpid(cgiPid, &wstats, 0);
+        }
     }
 }
-

@@ -43,6 +43,7 @@ void deleteCStrArray(char *const *array);
 // kernelEvent
 bool registerEvent(const uintptr_t identifier, const int16_t filter);
 bool setEventFlags(const uintptr_t identifier, const int16_t filter, const uint16_t flags);
+bool unregisterEvent(const uintptr_t identifier);
 
 // socket
 SocketsResult createListenSockets(const Servers &servers);
