@@ -14,5 +14,6 @@ src/*/main.cpp
 client_app
 /uploadPath/*
 !/uploadPath/.gitkeep
+test
 
 *.plist*
