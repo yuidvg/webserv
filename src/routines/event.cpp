@@ -7,7 +7,6 @@ void createClientSocket(const Socket &listenSocket)
     const ConnectedInternetSocketResult newConnectedSocketResult = utils::newConnectedInternetSocket(listenSocket);
     if (newConnectedSocketResult.success)
     {
-        SOCKET_BUFFERS.push_back(SocketBuffer(newConnectedSocketResult.value.descriptor));
         CLIENT_SOCKETS.push_back(newConnectedSocketResult.value);
     }
     else
@@ -31,21 +30,21 @@ ConnectedSocketResult getConnectedSocket(const int sd)
     return ConnectedSocketResult::Error("Failed to find connected socket with descriptor " + std::to_string(sd));
 }
 
-void handleInbound(SocketBuffer &socketIO)
+void handleInbound(SocketBuffer &socketBuffer)
 {
-    ConnectedSocketResult connectedSocketResult = getConnectedSocket(socketIO.sd);
+    ConnectedSocketResult connectedSocketResult = getConnectedSocket(socketBuffer.sd);
     if (connectedSocketResult.success)
     {
         const ConnectedSocket &connectedSocket = connectedSocketResult.value;
         if (connectedSocket.tag == LEFT)
         {
             const ConnectedInternetSocket &clientSocket = connectedSocket.leftValue;
-            processClientMessages(clientSocket, socketIO);
+            processClientMessages(clientSocket, socketBuffer);
         }
         else
         {
             const ConnectedUnixSocket &cgiSocket = connectedSocket.rightValue;
-            const std::string message = socketIO.getInbound();
+            const std::string message = socketBuffer.getInbound();
             wipeCgi(cgiSocket.opponentPid, cgiSocket.descriptor);
             processCgiMessage(cgiSocket, message);
         }
@@ -63,26 +62,26 @@ void handleEvent(const struct kevent &event, const Sockets &listenSockets)
         createClientSocket(eventListenSocket);
     else
     {
-        for (SocketBuffers::iterator eventSocketIOIt = SOCKET_BUFFERS.begin(); eventSocketIOIt != SOCKET_BUFFERS.end();
-             ++eventSocketIOIt)
+        SocketBuffer &eventSocketBuffer = getSocketBuffer(event.ident);
+        if (eventSocketBuffer.sd == static_cast<int>(event.ident))
         {
-            if (eventSocketIOIt->sd == static_cast<int>(event.ident))
+            if (event.filter == EVFILT_READ)
             {
-                if (event.filter == EVFILT_READ)
+                ReceiveResult receiveResult = eventSocketBuffer.receiveInbound(event.data);
+                if (receiveResult.success)
                 {
-                    ReceiveResult receiveResult = eventSocketIOIt->receiveInbound(event.data);
-                    if (receiveResult.success)
-                    {
-                        handleInbound(*eventSocketIOIt);
-                    }
-                    else
-                        utils::printError(receiveResult.error);
+                    handleInbound(eventSocketBuffer);
                 }
-                else // EVFILT_WRITE
+                else
+                    utils::printError(receiveResult.error);
+            }
+            else // EVFILT_WRITE
+            {
+                SendResult sendResult = eventSocketBuffer.sendOutbound(event.data);
+                if (!sendResult.success)
                 {
-                    SendResult sendResult = eventSocketIOIt->sendOutbound(event.data);
-                    if (!sendResult.success)
-                        utils::printError(sendResult.error);
+                    eraseSocketBuffer(eventSocketBuffer.sd);
+                    utils::printError(sendResult.error);
                 }
             }
         }

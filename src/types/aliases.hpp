@@ -98,4 +98,6 @@ typedef std::map<const int, const HttpRequest> CgiHttpRequests;
 typedef Either<CgiRequest, HttpResponse> CgiRequestOrHttpResponse;
 typedef Result<SocketBuffer &, const std::string> FindSocketBufferResult;
 
+typedef Result<const HttpRequest, const std::string> HttpRequestResult;
+
 typedef std::map<const std::string, const std::string> StringMap;

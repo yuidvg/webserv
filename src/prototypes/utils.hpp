@@ -28,7 +28,7 @@ bool isAbsoluteUri(const std::string &uri);
 FileContentResult fileContent(const std::string &path);
 std::string contentType(const std::string &path);
 bool isDirectory(const std::string &path);
-bool createFile(const std::string &fileName, const std::string &path);
+int createFile(const std::string &fileName, const std::string &path);
 bool writeToFile(const std::string &path, const std::string &content);
 
 // vector
@@ -43,6 +43,7 @@ void deleteCStrArray(char *const *array);
 // kernelEvent
 bool registerEvent(const uintptr_t identifier, const int16_t filter);
 bool setEventFlags(const uintptr_t identifier, const int16_t filter, const uint16_t flags);
+bool unregisterEvent(const uintptr_t identifier);
 
 // socket
 SocketsResult createListenSockets(const Servers &servers);

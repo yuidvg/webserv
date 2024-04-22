@@ -7,6 +7,5 @@ SocketBuffer &getSocketBuffer(const int sd)
         if (it->sd == sd)
             return (*it);
     }
-    SOCKET_BUFFERS.push_back(SocketBuffer(sd));
-    return SOCKET_BUFFERS.back();
+    return *SOCKET_BUFFERS.begin();
 }

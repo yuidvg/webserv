@@ -84,13 +84,16 @@ ConnectedInternetSocketResult newConnectedInternetSocket(const Socket &listenSoc
     const int newSd = accept(listenSocket.descriptor, (struct sockaddr *)&clientAddr, &clientAddrLen);
     if (newSd >= 0)
     {
-        if (utils::registerEvent(newSd, EVFILT_READ) && utils::registerEvent(newSd, EVFILT_WRITE))
+        if (utils::registerEvent(newSd, EVFILT_READ) && utils::registerEvent(newSd, EVFILT_WRITE) &&
+            utils::setEventFlags(newSd, EVFILT_WRITE, EV_DISABLE))
         {
+            addSocketBuffer(newSd);
             return ConnectedInternetSocketResult::Success(ConnectedInternetSocket(
                 newSd, listenSocket.port, ntohs(clientAddr.sin_port), std::string(inet_ntoa(clientAddr.sin_addr))));
         }
         else
         {
+            close(newSd);
             return ConnectedInternetSocketResult::Error("Failed to register new conected socket: " +
                                                         std::string(strerror(errno)));
         }

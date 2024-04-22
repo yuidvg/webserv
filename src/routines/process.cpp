@@ -27,7 +27,17 @@ void processCgiMessage(const ConnectedUnixSocket &socket, const std::string mess
     if (parsed.success)
     {
         const CgiResponse &cgiResponse = parsed.value;
-        processCgiResponse(cgiResponse);
+        HttpMessage httpMessageFromCgiResponse = processCgiResponse(cgiResponse);
+        if (httpMessageFromCgiResponse.tag == LEFT)
+        {
+            const HttpRequest &httpRequest = httpMessageFromCgiResponse.leftValue;
+            HTTP_REQUESTS.push(httpRequest);
+        }
+        else
+        {
+            const HttpResponse &httpResponse = httpMessageFromCgiResponse.rightValue;
+            appendOutbound(httpResponse.destinationSd, stringify(httpResponse));
+        }
     }
     else
     {
