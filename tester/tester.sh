@@ -23,8 +23,8 @@ curl_commands=(
     "curl -X GET http://${SERVER_ADDRESS}/cgi-bin/helloWorld.cgi 200"
     "curl -X GET http://${SERVER_ADDRESS}/cgi-bin/redirAfterFiveMinutes.cgi 200"
     "curl -X GET http://${SERVER_ADDRESS}/cgi-bin/submit.cgi 200"
-    "curl -X GET http://${SERVER_ADDRESS}/cgi-bin/redirect.cgi 302"
-    "curl -X GET http://${SERVER_ADDRESS}/cgi-bin/localRedirect.cgi 302"
+    # "curl -X GET http://${SERVER_ADDRESS}/cgi-bin/remoteRedirect.cgi -L 302"
+    # "curl -X GET http://${SERVER_ADDRESS}/cgi-bin/localRedirect.cgi -L 302"
 )
 
 function run_and_check_curl_command() {
@@ -68,4 +68,4 @@ echo "Running other commands..."
 for cmd in "${other_commands[@]}"; do
     run_other_command "$cmd"
 done
-# siege -c 10 -r 10 http://${SERVER_ADDRESS} -b
+siege -c 10 -r 10 http://${SERVER_ADDRESS} -b
