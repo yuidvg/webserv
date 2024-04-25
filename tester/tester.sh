@@ -68,4 +68,3 @@ echo "Running other commands..."
 for cmd in "${other_commands[@]}"; do
     run_other_command "$cmd"
 done
-siege -c 10 -r 10 http://${SERVER_ADDRESS} -b
