@@ -9,5 +9,5 @@ print "Content-Type: text/html\n\n";
 print "<html><head>\n";
 print "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n";
 print "</head><body>\n";
-print "$ I love you\n";
+print "$suki is delicious\n";
 print "</body></html>";
