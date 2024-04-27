@@ -11,6 +11,7 @@ HttpResponse conductPost(const HttpRequest &httpRequest)
         if (fd >= 0)
         {
         const std::string fullFilePath = utils::concatPath(location.uploadPath, fileName);
+        // TODO: I/O多重化
         return utils::writeToFile(fullFilePath, httpRequest.body)
                    ? HttpResponse(httpRequest.sd, SUCCESS, "File uploaded", "text/plain")
                    : getErrorHttpResponse(httpRequest, BAD_REQUEST);
