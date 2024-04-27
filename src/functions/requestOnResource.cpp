@@ -10,9 +10,10 @@ HttpResponse conductPost(const HttpRequest &httpRequest)
         const int fd = utils::createFile(fileName, location.uploadPath);
         if (fd  >= 0)
         {
-            SocketBuffer socketBufferForFileToWrite(fd);
-            socketBufferForFileToWrite.appendOutbound(httpRequest.body);
-            return HttpResponse(httpRequest.sd, SUCCESS, "File upload", "text/plain");
+        const std::string fullFilePath = utils::concatPath(location.uploadPath, fileName);
+        return utils::writeToFile(fullFilePath, httpRequest.body)
+                   ? HttpResponse(httpRequest.sd, SUCCESS, "File uploaded", "text/plain")
+                   : getErrorHttpResponse(httpRequest, BAD_REQUEST);
         }
         else
             return getErrorHttpResponse(httpRequest, BAD_REQUEST);
