@@ -47,6 +47,8 @@ ConnectedUnixSocketResult createCgiProcess(const StringMap &envs, const std::str
                 char *args[2];
                 args[0] = const_cast<char *>(scriptPath.c_str());
                 args[1] = NULL;
+                chdir((scriptPath + "/../").c_str());
+                std::cout << "pwd: " << getcwd(NULL, 0) << std::endl;
                 execve(scriptPath.c_str(), args, envp);
                 std::cerr << "execve failed: " << strerror(errno) << std::endl;
                 utils::deleteCStrArray(envp);
