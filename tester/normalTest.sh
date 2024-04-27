@@ -18,7 +18,7 @@ get_test=(
 post_test=(
     "curl -X POST -d \"nickname=test\" ${ORIGIN}/upload/test 200"
     "curl -X POST -d \"nickname=test\" ${ORIGIN}/nothing/test 400"
-    "curl -X POST ${ORIGIN}/upload/test ${ORIGIN}/upload/ 400"
+    "curl -X POST -d \"nickname=test\" ${ORIGIN}/upload/ 400"
     "curl -X POST ${ORIGIN}/upload/test1 -H 'Host: ${SERVER}' -H 'Content-Length: 11' -d \"Hello World\" 200"
     "curl -X POST ${ORIGIN}/upload/test2 -H 'Host: ${SERVER}' -H 'Content-Length: -9' -d \"123456789\" 400"
     "curl -X POST ${ORIGIN}/upload/test3 -H 'Host: ${SERVER}' -H 'Content-Length: 100' -d \"123456789\" 400"
