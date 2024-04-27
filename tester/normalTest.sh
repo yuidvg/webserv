@@ -2,48 +2,59 @@
 
 RED="\033[31m"
 GREEN="\033[32m"
-YELLOW="\033[33m"
 NORMAL="\033[0m"
-SERVER_ADDRESS="${1:-localhost:8080}"
+SERVER="localhost"
+PORT="8080"
+ORIGIN="http://${SERVER}:${PORT}"
 
-curl_commands=(
-    "curl -X GET http://${SERVER_ADDRESS}/ 200"
-    "curl -X POST -d \"nickname=test\" http://${SERVER_ADDRESS}/upload 200"
-    "curl -X DELETE http://${SERVER_ADDRESS}/upload/upload 200"
-    "curl -X GET http://${SERVER_ADDRESS}/autoindex 200"
-    "curl -X GET http://${SERVER_ADDRESS}/nothing 400"
-    "curl -X GET http://${SERVER_ADDRESS}/nothing 400"
-    "curl -X POST -d \"nickname=test\" http://${SERVER_ADDRESS}/nothing 400"
-    "curl -X DELETE http://${SERVER_ADDRESS}/upload/nothing 400"
-    "curl -X GET http://${SERVER_ADDRESS}/ -H 'Host: ${SERVER_ADDRESS}' 200"
-    "curl -X GET http://${SERVER_ADDRESS}/ -H 'Host:${SERVER_ADDRESS}' 400"
-    "curl -X POST http://${SERVER_ADDRESS}/upload/test -H 'Host: ${SERVER_ADDRESS}' -H 'Content-Length: 11' -d \"Hello World\" 200"
-    "curl -X POST http://${SERVER_ADDRESS}/upload/test -H 'Host: ${SERVER_ADDRESS}' -H 'Content-Length: -9' -d \"123456789\" 400"
-    "curl -X POST http://${SERVER_ADDRESS}/upload/test -H 'Host: ${SERVER_ADDRESS}' -H 'Content-Length: 100' -d \"123456789\" 400"
-    "curl -X GET http://${SERVER_ADDRESS}/cgi-bin/helloWorld.cgi 200"
-    "curl -X GET http://${SERVER_ADDRESS}/cgi-bin/redirAfterFiveSeconds.cgi 200"
-    "curl -X GET http://${SERVER_ADDRESS}/cgi-bin/submit.cgi 200"
-    # "curl -X GET http://${SERVER_ADDRESS}/cgi-bin/remoteRedirect.cgi -L 302"
-    # "curl -X GET http://${SERVER_ADDRESS}/cgi-bin/localRedirect.cgi -L 302"
+# GET tests
+get_test=(
+    "curl -X GET ${ORIGIN}/ 200"
+    "curl -X GET ${ORIGIN}/nothing 400"
+    "curl -X GET ${ORIGIN}/autoindex 200"
 )
 
+# POST tests
+post_test=(
+    "curl -X POST -d \"nickname=test\" ${ORIGIN}/upload/test 200"
+    "curl -X POST -d \"nickname=test\" ${ORIGIN}/nothing/test 400"
+    "curl -X POST ${ORIGIN}/upload/test1 -H 'Host: ${SERVER}' -H 'Content-Length: 11' -d \"Hello World\" 200"
+    "curl -X POST ${ORIGIN}/upload/test2 -H 'Host: ${SERVER}' -H 'Content-Length: -9' -d \"123456789\" 400"
+    "curl -X POST ${ORIGIN}/upload/test3 -H 'Host: ${SERVER}' -H 'Content-Length: 100' -d \"123456789\" 400"
+)
+
+# DELETE tests
+delete_test=(
+    "curl -X DELETE ${ORIGIN}/upload/test 200"
+    "curl -X DELETE ${ORIGIN}/upload/nothing 400"
+)
 
 function run_and_check_curl_command() {
     local cmd="$1"
     local expected_code=${cmd##* }
 
-    # -s でサイレントモード、-w でHTTPステータスコード出力
-    http_code=$(eval ${cmd% *} -s -o response.txt -w "%{http_code}")
+    # Execute curl command and capture HTTP status code
+    http_code=$(eval "${cmd% *} -s -o /dev/null -w \"%{http_code}\"")
     if [[ $http_code -eq $expected_code ]]; then
-        echo -en "${GREEN}OK (${http_code})"
+        echo -e "${GREEN}OK (${http_code})${NORMAL} -> $cmd"
     else
-        echo -en "${RED}KO (${http_code})"
+        echo -e "${RED}KO (${http_code})${NORMAL} -> $cmd"
     fi
-    echo -ne "${NORMAL}"
-    echo " -> ${cmd}"
 }
 
-echo "Running curl commands..."
-for cmd in "${curl_commands[@]}"; do
+echo "Running GET requests..."
+for cmd in "${get_test[@]}"; do
+    run_and_check_curl_command "$cmd"
+done
+echo
+
+echo "Running POST requests..."
+for cmd in "${post_test[@]}"; do
+    run_and_check_curl_command "$cmd"
+done
+echo
+
+echo "\nRunning DELETE requests..."
+for cmd in "${delete_test[@]}"; do
     run_and_check_curl_command "$cmd"
 done
