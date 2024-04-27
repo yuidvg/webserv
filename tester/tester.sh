@@ -11,7 +11,7 @@ echo "############# Normal tests #############"
 echo
 
 echo "############# CGI tests #############"
-./tester/cgiTester.sh
+./tester/cgiTest.sh
 echo
 
 # その他のコマンド
