@@ -8,8 +8,8 @@ SERVER_ADDRESS="${1:-localhost:8080}"
 
 curl_commands=(
     "curl -X GET http://${SERVER_ADDRESS}/ 200"
-    "curl -X POST -d \"nickname=test\" http://${SERVER_ADDRESS}/uploadPath 200"
-    "curl -X DELETE http://${SERVER_ADDRESS}/uploadPath/uploadPath.txt 200"
+    "curl -X POST -d \"nickname=test\" http://${SERVER_ADDRESS}/upload 200"
+    "curl -X DELETE http://${SERVER_ADDRESS}/uploadPath/upload 200"
     "curl -X GET http://${SERVER_ADDRESS}/autoindex 200"
     "curl -X GET http://${SERVER_ADDRESS}/nothing 400"
     "curl -X GET http://${SERVER_ADDRESS}/nothing 400"
