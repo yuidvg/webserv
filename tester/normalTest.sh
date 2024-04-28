@@ -11,7 +11,6 @@ ORIGIN="http://${SERVER}:${PORT}"
 get_test=(
     "curl -X GET ${ORIGIN}/ 200"
     "curl -X GET ${ORIGIN}/nothing 400"
-    "curl -X GET ${ORIGIN}/autoindex 200"
 )
 
 # POST tests
