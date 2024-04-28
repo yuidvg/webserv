@@ -1,10 +1,10 @@
 #include "../all.hpp"
 
-std::pair<EventDatas, Strings> retrieveDatas(const KEvents &readEvents)
+std::pair<EventDatas, Strings> retrieveDatas(const KernelEvents &readEvents)
 {
     EventDatas eventDatas;
-    Strings errors;
-    for (KEvents::const_iterator it = readEvents.begin(); it != readEvents.end(); ++it)
+    SocketErrors socketErrors;
+    for (KernelEvents::const_iterator it = readEvents.begin(); it != readEvents.end(); ++it)
     {
         const struct kevent &event = *it;
         const int sd = event.ident;
@@ -19,15 +19,13 @@ std::pair<EventDatas, Strings> retrieveDatas(const KEvents &readEvents)
         }
         else if (receivedLength == 0)
         {
-            std::cerr << "recv() failed: connection closed by peer" << std::endl;
-            close(sd);
+            socketErrors.push_back(SocketError(Socket(sd, 0, 0, "", 0), "Connection closed by client"));
         }
         else
         {
-            std::cerr << "recv() failed: " << std::endl;
-            close(sd);
+            socketErrors.push_back(SocketError(Socket(sd, 0, 0, "", 0), "Error reading from socket"));
         }
         delete[] buffer;
     }
-    return std::make_pair(eventDatas, Strings());
+    return std::make_pair(eventDatas, socketErrors);
 }

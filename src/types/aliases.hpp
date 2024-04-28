@@ -22,19 +22,26 @@ typedef std::vector<const EventData> EventDatas;
 // http
 namespace parseHttpRequest
 {
-struct FirstBlockResult
+struct RequestLine
 {
     const std::string method;
     const std::string target;
     const std::string version;
-    const Headers headers;
+    RequestLine(const std::string method, const std::string target, const std::string version)
+        : method(method), target(target), version(version){};
 };
-typedef ParseResult<const FirstBlockResult, const EventBlock> ParseFirstBlockResult;
+struct FirstBlockResult
+{
+    const RequestLine requestLine;
+    const Headers headers;
+    FirstBlockResult(const RequestLine requestLine, const Headers headers)
+        : requestLine(requestLine), headers(headers){};
+};
+typedef ParseResult<const Headers, const EventData> ParseHeadersResult;
+typedef ParseResult<const std::string, const EventData> ParseBodyResult;
+typedef ParseResult<const std::string, const EventData> UnchunkBodyResult;
+typedef ParseResult<const FirstBlockResult, const EventData> ParseFirstBlockResult;
 typedef Either<const EventData, const HttpRequest> EventDataOrParsedRequest;
-typedef ParseResult<const std::string, const int> ParseBodyResult;
-typedef Result<const std::string, const int> GetHostNameResult;
-typedef ParseResult<const std::string, const int> UnchunkBodyResult;
-typedef Result<const HttpRequest, const std::string> HttpRequestResult;
 typedef std::queue<const EventDataOrParsedRequest> ParseHttpRequestResults;
 } // namespace parseHttpRequest
 
@@ -77,8 +84,7 @@ typedef Result<const CgiResponse, const std::string> ParseCgiResponseResult;
 
 typedef Result<const std::string, const std::string> ReadFileResult;
 
-
-typedef std::vector<const Socket> Sockets;
+typedef std::set<const Socket> Sockets;
 typedef Result<const Sockets, const std::string> SocketsResult;
 
 typedef Result<const HttpResponse, const std::string> HttpResponseResult;
@@ -92,4 +98,10 @@ typedef Either<CgiRequest, HttpResponse> CgiRequestOrHttpResponse;
 
 typedef std::map<const std::string, const std::string> StringMap;
 
-typedef std::vector<const struct kevent> KEvents;
+typedef std::vector<const struct kevent> KernelEvents;
+
+typedef std::pair<const Socket, const std::string> SocketError;
+
+typedef std::vector<const SocketError> SocketErrors;
+
+typedef std::vector<const Event> Events;

@@ -47,7 +47,7 @@ SocketResult getListenSocket(const Server server)
         return (SocketResult::Error("failed to register listen socket"));
     }
 
-    return SocketResult::Success(Socket(sd, server.port));
+    return SocketResult::Success(Socket(sd, server.port, 0, "", 0));
 }
 } // namespace
 
@@ -77,7 +77,7 @@ SocketsResult createListenSockets(const Servers &servers)
     return SocketsResult::Success(listenSockets);
 }
 
-ConnectedInternetSocketResult newConnectedInternetSocket(const Socket &listenSocket)
+SocketResult newClientSocket(const Socket &listenSocket)
 {
     struct sockaddr_in clientAddr;
     socklen_t clientAddrLen = sizeof(clientAddr);
@@ -88,19 +88,18 @@ ConnectedInternetSocketResult newConnectedInternetSocket(const Socket &listenSoc
             utils::setEventFlags(newSd, EVFILT_WRITE, EV_DISABLE))
         {
             addSocketBuffer(newSd);
-            return ConnectedInternetSocketResult::Success(ConnectedInternetSocket(
-                newSd, listenSocket.port, ntohs(clientAddr.sin_port), std::string(inet_ntoa(clientAddr.sin_addr))));
+            return SocketResult::Success(Socket(newSd, listenSocket.serverPort, ntohs(clientAddr.sin_port),
+                                                std::string(inet_ntoa(clientAddr.sin_addr)), 0));
         }
         else
         {
             close(newSd);
-            return ConnectedInternetSocketResult::Error("Failed to register new conected socket: " +
-                                                        std::string(strerror(errno)));
+            return SocketResult::Error("Failed to register new conected socket: " + std::string(strerror(errno)));
         }
     }
     else
     {
-        return ConnectedInternetSocketResult::Error("accept() failed: " + std::string(strerror(errno)));
+        return SocketResult::Error("accept() failed: " + std::string(strerror(errno)));
     }
 }
 } // namespace utils

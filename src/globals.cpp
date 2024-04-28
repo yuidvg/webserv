@@ -12,12 +12,6 @@ const int KQ = kqueue();
 
 std::queue<const HttpRequest> HTTP_REQUESTS;
 
-
-ConnectedInternetSockets CLIENT_SOCKETS;
-ConnectedUnixSockets CGI_SOCKETS;
-
 CgiHttpRequests CGI_HTTP_REQUESTS;
-
-SocketBuffers SOCKET_BUFFERS;
 
 Config CONFIG;

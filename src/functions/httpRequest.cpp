@@ -1,23 +1,6 @@
 #include "../all.hpp"
 
-/* ========  helper functions ======== */
-
-static std::vector<std::string> splitBlocks(const std::string &requests)
-{
-    std::vector<std::string> blocks = utils::split(requests, CRLF + CRLF);
-    for (size_t i = 0; i < blocks.size(); i++)
-    {
-        blocks[i] += CRLF + CRLF;
-    }
-    return blocks;
-}
-
-bool isBody(const std::string &block)
-{
-    return block.find("POST") == std::string::npos && block.find("GET") == std::string::npos && block.find("DELETE") == std::string::npos;
-}
-
-bool isLineTooLong(const std::string &line)
+static bool isLineTooLong(const std::string &line)
 {
     if (line.length() > MAX_LEN)
         return true;
@@ -25,17 +8,7 @@ bool isLineTooLong(const std::string &line)
         return false;
 }
 
-int getRequestLineStatusCode(const RequestLine requestLine)
-{
-    if (requestLine.target.find(':') != std::string::npos &&
-        requestLine.target.find('*') != std::string::npos) // CONNECT, OPTIONSは非対応
-        return BAD_REQUEST;
-
-    if (requestLine.version != SERVER_PROTOCOL)
-        return BAD_REQUEST;
-
-    return SUCCESS;
-}
+/* Parse RequestLine */
 
 bool validateAndDecodeTarget(std::string &target)
 {
@@ -61,38 +34,118 @@ bool validateAndDecodeTarget(std::string &target)
     return true;
 }
 
-GetRequestLineResult getRequestLine(std::istringstream &requestTextStream)
+static RequestLine getRequestLine(std::istringstream &requestTextStream)
 {
     std::string method, target, version;
     std::string line;
-
-    while ((line = utils::getlineCustom(requestTextStream)).empty())
-        ;
 
     if (!requestTextStream.eof() && !isLineTooLong(line))
     {
         std::istringstream requestLine(line);
         if ((requestLine >> method >> target >> version) && requestLine.eof() && validateAndDecodeTarget(target))
-        {
-            const RequestLine requestLineElements = {method, target, version};
-            return GetRequestLineResult::Success(requestLineElements);
-        }
+            return RequestLine(method, target, version);
         else
-            return GetRequestLineResult::Error(BAD_REQUEST);
+            return NULL;
     }
     else
-        return GetRequestLineResult::Error(BAD_REQUEST);
+        return NULL;
 }
 
-GetHostNameResult getHostName(const Headers &headers)
+static int getRequestLineStatusCode(const RequestLine requestLine)
 {
-    if (headers.find("host") != headers.end())
-        return GetHostNameResult::Success(headers.at("host"));
-    else
-        return GetHostNameResult::Error(BAD_REQUEST);
+    if (requestLine.target.find(':') != std::string::npos &&
+        requestLine.target.find('*') != std::string::npos) // CONNECT, OPTIONSは非対応
+        return BAD_REQUEST;
+
+    if (requestLine.version != SERVER_PROTOCOL)
+        return BAD_REQUEST;
+
+    return SUCCESS;
 }
 
-UnchunkBodyResult unchunkBody(const std::string &body, const size_t maxBodySize)
+static RequestLine parseHttpRequestLine(std::istringstream &requestTextStream)
+{
+    // 最初に空行がある場合は読み飛ばす
+    std::string firstLine = utils::getlineCustom(requestTextStream);
+    while (firstLine.empty() && !requestTextStream.eof())
+        firstLine = utils::getlineCustom(requestTextStream);
+    if (!firstLine.empty())
+        requestTextStream.seekg(0);
+
+    const RequestLine requestLine = getRequestLine(requestTextStream);
+    if (requestLine != NULL)
+    {
+        const int statusCode = getRequestLineStatusCode(requestLine);
+        if (statusCode == SUCCESS)
+            return requestLine;
+        else
+            return NULL;
+    }
+    else
+        return NULL;
+}
+
+/*.Parse Header */
+
+static ParseHeaderResult parseHttpHeaders(std::istringstream &requestTextStream)
+{
+    // tellgで現在の位置を取得、その先からCRLFまでstringを取得する
+    const std::streampos currentPos = requestTextStream.tellg();
+    std::string requestStr = requestTextStream.str();
+    const std::size_t headerEndPos = requestStr.find("\r\n\r\n", currentPos);
+    const std::streampos endPos = (headerEndPos != std::string::npos) ? headerEndPos + 4 : requestStr.length();
+    const std::string headerText = requestStr.substr(currentPos, endPos - currentPos);
+
+    std::vector<std::string> header = utils::split(headerText, CRLF);
+    if (header.size() == 0)
+        return ParseHeaderResult::Pending();
+    else
+    {
+        Headers headers;
+        for (std::vector<std::string>::iterator it = header.begin(); it != header.end(); ++it)
+        {
+            std::string::size_type pos = it->find(": ");
+            if (pos != std::string::npos)
+            {
+                std::string key = it->substr(0, pos);
+                std::string value = it->substr(pos + 1);
+                std::transform(key.begin(), key.end(), key.begin(), ::tolower); // headerのkeyは大文字小文字を区別しない
+                value = utils::trim(value);                                     // valueの前後の空白を削除
+                headers[key] = value;
+            }
+            else
+                return ParseHeaderResult::Success(NULL);
+        }
+        return ParseHeaderResult::Success(headers);
+    }
+}
+
+/* Parse FirstBlock */
+
+static ParseFirstBlockResult parseFirstBlock(const Socket &socket, const std::string &block)
+{
+    std::istringstream requestextStream(block);
+    const RequestLine requestLine = parseHttpRequestLine(requestTextStream);
+    if (requestLine != NULL)
+    {
+        const ParseHeaderResult parseHeaderResult = parseHttpHeaders(requestTextStream);
+        if (parseHeaderResult.status == SUCCESS)
+        {
+            if (Headers != NULL)
+                return ParseFirstBlockResult::Success(FirstBlock(requestLine, parseHeaderResult.value));
+            else
+                return ParseFirstBlockResult::Error(parseHeaderResult.error);
+        }
+        else if (parseHeaderResult.status == PENDING)
+            return ParseFirstBlockResult::Pending();
+    }
+    else
+        return ParseFirstBlockResult::Error(parseRequestLineResult.error);
+}
+
+/* Parse Body */
+
+static UnchunkBodyResult unchunkBody(const std::string &body, const size_t maxBodySize)
 {
     if (body.find("\r\n0") == std::string::npos)
     {
@@ -139,63 +192,7 @@ UnchunkBodyResult unchunkBody(const std::string &body, const size_t maxBodySize)
     }
 }
 
-/* ======== main funcitons ======== */
-ParseRequestLineResult parseHttpRequestLine(std::istringstream &requestTextStream)
-{
-    // 最初に空行がある場合は読み飛ばす
-    std::string firstLine = utils::getlineCustom(requestTextStream);
-    while (firstLine.empty() && !requestTextStream.eof())
-        firstLine = utils::getlineCustom(requestTextStream);
-    if (!firstLine.empty())
-        requestTextStream.seekg(0);
-
-    const GetRequestLineResult getRequestLineResult = getRequestLine(requestTextStream);
-    if (getRequestLineResult.success)
-    {
-        const int statusCode = getRequestLineStatusCode(getRequestLineResult.value);
-        if (statusCode == SUCCESS)
-            return ParseRequestLineResult::Success(getRequestLineResult.value);
-        else
-            return ParseRequestLineResult::Error(statusCode);
-    }
-    else
-        return ParseRequestLineResult::Error(getRequestLineResult.error);
-}
-
-ParseHeaderResult parseHttpHeaders(std::istringstream &requestTextStream)
-{
-    // tellgで現在の位置を取得、その先からCRLFまでstringを取得する
-    const std::streampos currentPos = requestTextStream.tellg();
-    std::string requestStr = requestTextStream.str();
-    const std::size_t headerEndPos = requestStr.find("\r\n\r\n", currentPos);
-    const std::streampos endPos = (headerEndPos != std::string::npos) ? headerEndPos + 4 : requestStr.length();
-    const std::string headerText = requestStr.substr(currentPos, endPos - currentPos);
-
-    std::vector<std::string> header = utils::split(headerText, CRLF);
-    if (header.size() == 0)
-        return ParseHeaderResult::Pending();
-    else
-    {
-        Headers headers;
-        for (std::vector<std::string>::iterator it = header.begin(); it != header.end(); ++it)
-        {
-            std::string::size_type pos = it->find(": ");
-            if (pos != std::string::npos)
-            {
-                std::string key = it->substr(0, pos);
-                std::string value = it->substr(pos + 1);
-                std::transform(key.begin(), key.end(), key.begin(), ::tolower); // headerのkeyは大文字小文字を区別しない
-                value = utils::trim(value);                                     // valueの前後の空白を削除
-                headers[key] = value;
-            }
-            else
-                return ParseHeaderResult::Error(BAD_REQUEST);
-        }
-        return ParseHeaderResult::Success(headers);
-    }
-}
-
-ParseBodyResult parseHttpBody(const std::string &body, const Headers &headers, const Server &server,
+static ParseBodyResult parseHttpBody(const std::string &body, const Headers &headers, const Server &server,
                               const std::string &method)
 {
     std::string line;
@@ -242,24 +239,58 @@ ParseBodyResult parseHttpBody(const std::string &body, const Headers &headers, c
     }
 }
 
-EventDataOrParsedRequest parseHttpRequest(const int sd, const std::string &request)
+static std::string getHostName(const Headers &headers)
+{
+    if (headers.find("host") != headers.end())
+        return headers.at("host");
+    else
+        return "";
+}
+
+static EventDataOrParsedRequest parseHttpRequest(const Socket &socket, const std::string &request)
 {
     const std::string blocks = splitBlocks(request);
-    const ParseFirstBlockResult parseFirstBlockResult = parseFirstBlock(blocks[0]);
-    if(parseFirstBlockResult.status == Parsed)
+    const ParseFirstBlockResult parseFirstBlockResult = parseFirstBlock(socket, blocks[0]);
+    if (parseFirstBlockResult.status == Parsed)
     {
-        const GetHostNameResult getHostNameResult = getHostName(parseFirstBlockResult.value.headers);
-        if ()
+        const std::string host = getHostName(parseFirstBlockResult.value.headers);
+        if (!host.empty())
         {
-            const ParseBodyResult parseBodyResult = parseHttpBody(parseFirstBlockResult.value.body, parseFirstBlockResult.value.headers, CONFIG.getServer(host, port), parseFirstBlockResult.value.requestLine.method);
+            const ParseBodyResult parseBodyResult =
+                parseHttpBody(parseFirstBlockResult.value.body, parseFirstBlockResult.value.headers,
+                              CONFIG.getServer(host, socket.clientPort), parseFirstBlockResult.value.requestLine.method);
+            if (parseBodyResult.status == Success)
+                return EventDataOrParsedRequest::Right(HttpRequest(socket.descriptor, socket.clientIp,
+                                                                  parseFirstBlockResult.value.requestLine,
+                                                                  parseFirstBlockResult.value.headers, parseBodyResult.value));
+            else if (parseBodyResult.status == Pending)
+                return EventDataOrParsedRequest::Left(EventData(socket, request));
+            else
+                return EventDataOrParsedRequest::Right(HttpRequest(socket.descriptor, socket.clientIp);
         }
         else
-            return EventDataOrParsedRequest::Right(HttpRequest());
+            return EventDataOrParsedRequest::Right(HttpRequest(socket.descriptor, socket.clientIp);
     }
     else if (parseFirstBlockResult.status == Pending)
-        return EventDataOrParsedRequest::Left(EventData(sd, request));
+        return EventDataOrParsedRequest::Left(EventData(socket, request));
     else
-        return EventDataOrParsedRequest::Right(HttpRequest());
+        return EventDataOrParsedRequest::Right(HttpRequest(socket.descriptor, socket.clientIp));
+}
+
+static std::vector<std::string> splitBlocks(const std::string &requests)
+{
+    std::vector<std::string> blocks = utils::split(requests, CRLF + CRLF);
+    for (size_t i = 0; i < blocks.size(); i++)
+    {
+        blocks[i] += CRLF + CRLF;
+    }
+    return blocks;
+}
+
+static bool isBody(const std::string &block)
+{
+    return block.find("POST") == std::string::npos && block.find("GET") == std::string::npos &&
+           block.find("DELETE") == std::string::npos;
 }
 
 static std::vector<std::string> splitHttpRequests(const EventData &eventData)
@@ -268,7 +299,7 @@ static std::vector<std::string> splitHttpRequests(const EventData &eventData)
     const std::vector<std::string> blocks = splitBlocks(eventData.data);
     for (size_t i = 0; i < blocks.size(); i++)
     {
-        if(blocks[i].find("POST") != std::string::npos && i != blocks.size() - 1 && isBody(blocks[i + 1]))
+        if (blocks[i].find("POST") != std::string::npos && i != blocks.size() - 1 && isBody(blocks[i + 1]))
         {
             const std::string postBlock = blocks[i] + blocks[i + 1];
             httpRequests.push_back(postBlock);
@@ -280,59 +311,18 @@ static std::vector<std::string> splitHttpRequests(const EventData &eventData)
     return httpRequests;
 }
 
-ParseHttpRequestResults ParseHttpRequestResults(const EventDatas &httpRequestEventDatas)
+ParseHttpRequestResults parseHttpRequests(const EventDatas &httpRequestEventDatas)
 {
     ParseHttpRequestResults parseHttpRequestResults;
     for (size_t i = 0; i < httpRequestEventDatas.size(); i++)
     {
-        const HttpRequests httpRequests = splitHttpRequests(httpRequestEventDatas[i]);
+        const std::vector<std::string> httpRequests = splitHttpRequests(httpRequestEventDatas[i]);
         for (size_t j = 0; j < httpRequests.size(); j++)
         {
-            const ParseHttpRequestResults parseHttpRequestResult = parseHttpRequest(httpRequestEventDatas[i].sd, httpRequests[j]);
+            const EventDataOrParsedRequest parseHttpRequestResult =
+                parseHttpRequest(httpRequestEventDatas[i].socket, httpRequests[j]);
             parseHttpRequestResults.push_back(parseHttpRequestResult);
         }
     }
-    return parseRequestResults;
+    return parseHttpRequestResults;
 }
-
-// {
-//     const std::vector<std::string> blocks = splitHttpRequests(socketBuffer.getInbound());
-//     size_t size = 0;
-//     std::queue<const HttpRequest> httpRequests;
-//     for (size_t i = 0; i < blocks.size(); i++)
-//     {
-//         const ParseRequestResult parseRequestResult = parseHttpRequest(blocks[i], socket);
-//         if (parseRequestResult.status == PARSED)
-//         {
-//             httpRequests.push(parseRequestResult.value);
-//             size += blocks[i].length();
-//             continue;
-//         }
-//         else if (parseRequestResult.status == PENDING)
-//         {
-//             // POSTの場合もここに来る
-//             if (i != blocks.size() - 1 && blocks[i].find("POST") != std::string::npos)
-//             {
-//                 const std::string postBlock = blocks[i] + blocks[i + 1];
-//                 const ParseRequestResult parseRequestResult = parseHttpRequest(postBlock, socket);
-//                 if (parseRequestResult.status == PARSED)
-//                 {
-//                     httpRequests.push(parseRequestResult.value);
-//                     size += blocks[i + 1].length();
-//                     i++;
-//                 }
-//                 else if (parseRequestResult.status == ERROR)
-//                 {
-//                     HTTP_REQUESTS.push(parseRequestResult.error);
-//                     size += blocks[i].length();
-//                 }
-//             }
-//             return ParsedHttpRequests(httpRequests, size);
-//         }
-//         else
-//         {
-//             HTTP_REQUESTS.push(parseRequestResult.error);
-//         }
-//     }
-//     return ParsedHttpRequests(httpRequests, size);
-// }

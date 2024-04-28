@@ -2,7 +2,7 @@
 #include "top.hpp"
 
 DirectoryListHtmlResult directoryListHtml(const std::string &path);
-ParseRequestResult parseHttpRequest(const std::string &request, const int port);
+ParseHttpRequestResults parseHttpRequests(const EventDatas &httpRequestEventDatas);
 HttpRequest getHttpRequest(const int cgiSd);
 bool findCgiExtension(const std::string &target, const std::string &extension);
 Uri segment(const HttpRequest &);
@@ -20,7 +20,6 @@ HttpResponse conductPost(const HttpRequest &);
 
 HttpResponse getRedirectHttpResponse(const HttpRequest &, const std::string &redirectUrl);
 
-
 ParsedHttpRequests parseHttpRequests(const EventDatas &eventDatas);
 
-EventDatas retrieveDatas(const KEvents &readEvents);
+std::pair<EventDatas, Strings> retrieveDatas(const KernelEvents &readEvents);
