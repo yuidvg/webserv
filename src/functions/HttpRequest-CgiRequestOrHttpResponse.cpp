@@ -60,10 +60,10 @@ CgiRequestOrHttpResponse processHttpRequest(const HttpRequest &httpRequest)
             {
                 const std::string rootedScriptPath = utils::root(scriptPath, location);
                 StringMap cgiEnvs = getCgiEnvs(httpRequest);
-                ConnectedUnixSocketResult cgiProcessResult = createCgiProcess(cgiEnvs, rootedScriptPath);
+                SocketResult cgiProcessResult = createCgiProcess(cgiEnvs, rootedScriptPath);
                 if (cgiProcessResult.success)
                 {
-                    const ConnectedUnixSocket &cgiProcessSocket = cgiProcessResult.value;
+                    const Socket &cgiProcessSocket = cgiProcessResult.value;
                     CGI_SOCKETS.push_back(cgiProcessSocket);
                     CGI_HTTP_REQUESTS.insert(std::make_pair(cgiProcessSocket.descriptor, httpRequest));
                     return CgiRequestOrHttpResponse::Left(

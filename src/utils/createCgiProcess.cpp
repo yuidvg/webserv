@@ -20,7 +20,7 @@ char *const *mapStringStringToCStringArray(const StringMap &envMap)
 
 } // namespace
 
-ConnectedUnixSocketResult createCgiProcess(const StringMap &envs, const std::string &scriptPath)
+SocketResult createCgiProcess(const StringMap &envs, const std::string &scriptPath)
 {
     int socketPair[2];
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, socketPair) == 0 &&
@@ -34,7 +34,7 @@ ConnectedUnixSocketResult createCgiProcess(const StringMap &envs, const std::str
         {
             close(socketPair[SERVER_END]);
             close(socketPair[CGI]);
-            return ConnectedUnixSocketResult::Error("fork failed");
+            return SocketResult::Error("fork failed");
         }
         else if (pid == 0) // cgi process
         {
@@ -60,12 +60,12 @@ ConnectedUnixSocketResult createCgiProcess(const StringMap &envs, const std::str
         {
             addSocketBuffer(socketPair[SERVER_END]);
             close(socketPair[CGI]);
-            return ConnectedUnixSocketResult::Success(ConnectedUnixSocket(socketPair[SERVER_END], pid));
+            return SocketResult::Success(Socket(socketPair[SERVER_END], 0, 0, "", pid));
         }
     }
     else
     {
         std::cerr << "socketpair/registerEvent failed" << std::endl;
-        return ConnectedUnixSocketResult::Error("socketpair/registerEvent failed");
+        return SocketResult::Error("socketpair/registerEvent failed");
     }
 }

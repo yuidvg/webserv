@@ -10,8 +10,6 @@ HttpResponse conductPost(const HttpRequest &httpRequest)
         const int fd = utils::createFile(fileName, location.uploadPath);
         if (fd  >= 0)
         {
-            SocketBuffer socketBufferForFileToWrite(fd);
-            socketBufferForFileToWrite.appendOutbound(httpRequest.body);
             return HttpResponse(httpRequest.sd, SUCCESS, "File upload", "text/plain");
         }
         else

@@ -17,21 +17,26 @@ typedef Result<const Server, const std::string> ParseServerResult;
 typedef Result<const Location, const std::string> ParseLocationResult;
 typedef Result<const std::string, const std::string> StringResult;
 
-// http
+typedef std::vector<const EventData> EventDatas;
 
-struct RequestLine
+// http
+namespace parseHttpRequest
+{
+struct FirstBlockResult
 {
     const std::string method;
     const std::string target;
     const std::string version;
+    const Headers headers;
 };
-typedef ParseResult<const RequestLine, const int> ParseRequestLineResult;
-typedef ParseResult<const Headers, const int> ParseHeaderResult;
+typedef ParseResult<const FirstBlockResult, const EventBlock> ParseFirstBlockResult;
+typedef Either<const EventData, const HttpRequest> EventDataOrParsedRequest;
 typedef ParseResult<const std::string, const int> ParseBodyResult;
-typedef ParseResult<const HttpRequest, const HttpRequest> ParseRequestResult;
-typedef Result<const RequestLine, const int> GetRequestLineResult;
 typedef Result<const std::string, const int> GetHostNameResult;
 typedef ParseResult<const std::string, const int> UnchunkBodyResult;
+typedef Result<const HttpRequest, const std::string> HttpRequestResult;
+typedef std::queue<const EventDataOrParsedRequest> ParseHttpRequestResults;
+} // namespace parseHttpRequest
 
 // autoindex
 typedef Result<const std::string, const StatusCode> DirectoryListHtmlResult;
@@ -72,32 +77,19 @@ typedef Result<const CgiResponse, const std::string> ParseCgiResponseResult;
 
 typedef Result<const std::string, const std::string> ReadFileResult;
 
-typedef Result<const ConnectedInternetSocket, const std::string> ConnectedInternetSocketResult;
 
 typedef std::vector<const Socket> Sockets;
 typedef Result<const Sockets, const std::string> SocketsResult;
-
-typedef std::vector<const ConnectedInternetSocket> ConnectedInternetSockets;
-
-typedef std::vector<const ConnectedUnixSocket> ConnectedUnixSockets;
-
-typedef Result<const ConnectedUnixSocket, const std::string> ConnectedUnixSocketResult;
-
-typedef Either<ConnectedInternetSocket, ConnectedUnixSocket> ConnectedSocket;
-
-typedef Result<const ConnectedSocket, const std::string> ConnectedSocketResult;
-
-typedef std::vector<SocketBuffer> SocketBuffers;
 
 typedef Result<const HttpResponse, const std::string> HttpResponseResult;
 
 typedef Either<HttpRequest, HttpResponse> HttpMessage;
 
 typedef std::map<const int, const HttpRequest> CgiHttpRequests;
+typedef std::queue<const CgiResponse> CgiResponses;
 
 typedef Either<CgiRequest, HttpResponse> CgiRequestOrHttpResponse;
-typedef Result<SocketBuffer &, const std::string> FindSocketBufferResult;
-
-typedef Result<const HttpRequest, const std::string> HttpRequestResult;
 
 typedef std::map<const std::string, const std::string> StringMap;
+
+typedef std::vector<const struct kevent> KEvents;

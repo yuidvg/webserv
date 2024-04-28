@@ -13,12 +13,10 @@ void processHttpMessageFromCgi(const HttpMessage &httpMessage)
     }
 }
 
-void processClientMessages(const ConnectedInternetSocket &socket, SocketBuffer &socketBuffer)
+void processClientMessages(const EventDatas &eventDatas)
 {
-    // messageをパースして、httpRequestsに変換
-    ParsedHttpRequests parsed = parseHttpRequests(socketBuffer, socket);
+    ParsedHttpRequests parsed = parseHttpRequests(eventDatas);
     socketBuffer.substringInbound(parsed.size);
-    utils::appendQueue(parsed.httpRequests, HTTP_REQUESTS);
 }
 
 void processCgiMessage(const ConnectedUnixSocket &socket, const std::string message)

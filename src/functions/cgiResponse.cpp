@@ -72,3 +72,13 @@ ParseCgiResponseResult parseCgiResponse(std::string const &response, const int c
         return ParseCgiResponseResult::Error("parseCgiResponse: no header in response");
     }
 }
+
+CgiResponses parseCgiResponses(const EventDatas &cgiResponseEventDatas)
+{
+    for (EventDatas::const_iterator it = cgiResponseEventDatas.begin(); it != cgiResponseEventDatas.end(); ++it)
+    {
+        const EventData &eventData = *it;
+        const int cgiSd = eventData.sd;
+        const ParseCgiResponseResult parseResult = parseCgiResponse(eventData.data, cgiSd);
+    }
+}

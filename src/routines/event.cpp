@@ -87,6 +87,27 @@ void handleEvent(const struct kevent &event, const Sockets &listenSockets)
         }
     }
 }
+
+bool isReadEvent(const struct kevent &event)
+{
+    return event.filter == EVFILT_READ;
+}
+
+bool isWriteEvent(const struct kevent &event)
+{
+    return event.filter == EVFILT_WRITE;
+}
+
+bool isHttpRequestData(const EventData &eventData)
+{
+    return std::find(CLIENT_SOCKETS.begin(), CLIENT_SOCKETS.end(), eventData.sd) != CLIENT_SOCKETS.end();
+}
+
+bool isCgiResponseData(const EventData &eventData)
+{
+    return std::find(CGI_SOCKETS.begin(), CGI_SOCKETS.end(), eventData.sd) != CGI_SOCKETS.end();
+}
+
 } // namespace
 
 void eventLoop(Sockets listenSockets)
@@ -95,15 +116,30 @@ void eventLoop(Sockets listenSockets)
 
     while (true)
     {
-        std::cout << "waiting for events..." << std::endl;
-        const int numOfEvents = kevent(KQ, NULL, 0, eventList, EVENT_BATCH_SIZE, NULL);
-        if (numOfEvents != -1)
+        try
         {
-            for (int i = 0; i < numOfEvents; ++i)
+            std::cout << "waiting for events..." << std::endl;
+            const int numOfEvents = kevent(KQ, NULL, 0, eventList, EVENT_BATCH_SIZE, NULL);
+            const KEvents events = KEvents(eventList, eventList + numOfEvents);
+            if (numOfEvents != -1)
             {
-                handleEvent(eventList[i], listenSockets);
+                const KEvents readEvents = utils::filter(events, isReadEvent);
+                const EventDatas eventDatas = retrieveDatas(readEvents);
+                const EventDatas httpRequestDatas = utils::filter(eventDatas, isHttpRequestData);
+                const EventDatas cgiResponseDatas = utils::filter(eventDatas, isCgiResponseData);
+                const HttpRequestsAndEventDatas parsedHttpRequests = parseHttpRequests(httpRequestDatas);
+                const CgiResponses cgiResponses = parseCgiResponses(cgiResponseDatas);
+                const KEvents writeEvents = utils::filter(events, isWriteEvent);
+                for (int i = 0; i < numOfEvents; ++i)
+                {
+                    handleEvent(eventList[i], listenSockets);
+                }
             }
+            processHttpRequests();
         }
-        processHttpRequests();
+        catch (std::exception &e)
+        {
+            std::cerr << "eventLoop: " << e.what() << std::endl;
+        }
     }
 }

@@ -2,7 +2,7 @@
 
 /* ========  helper functions ======== */
 
-std::vector<std::string> splitHttpRequests(const std::string &requests)
+static std::vector<std::string> splitBlocks(const std::string &requests)
 {
     std::vector<std::string> blocks = utils::split(requests, CRLF + CRLF);
     for (size_t i = 0; i < blocks.size(); i++)
@@ -10,6 +10,11 @@ std::vector<std::string> splitHttpRequests(const std::string &requests)
         blocks[i] += CRLF + CRLF;
     }
     return blocks;
+}
+
+bool isBody(const std::string &block)
+{
+    return block.find("POST") == std::string::npos && block.find("GET") == std::string::npos && block.find("DELETE") == std::string::npos;
 }
 
 bool isLineTooLong(const std::string &line)
@@ -237,116 +242,97 @@ ParseBodyResult parseHttpBody(const std::string &body, const Headers &headers, c
     }
 }
 
-ParseRequestResult parseHttpRequest(const std::string &request, const ConnectedInternetSocket &socket)
+EventDataOrParsedRequest parseHttpRequest(const int sd, const std::string &request)
 {
-    std::istringstream requestTextStream(request);
-    ParseRequestLineResult parseHttpRequestLineResult = parseHttpRequestLine(requestTextStream);
-    if (parseHttpRequestLineResult.status == PARSED)
+    const std::string blocks = splitBlocks(request);
+    const ParseFirstBlockResult parseFirstBlockResult = parseFirstBlock(blocks[0]);
+    if(parseFirstBlockResult.status == Parsed)
     {
-        ParseHeaderResult parseHttpHeadersResult = parseHttpHeaders(requestTextStream);
-        if (parseHttpHeadersResult.status == PARSED)
+        const GetHostNameResult getHostNameResult = getHostName(parseFirstBlockResult.value.headers);
+        if ()
         {
-            const GetHostNameResult getHostNameResult = getHostName(parseHttpHeadersResult.value);
-            if (getHostNameResult.success)
-            {
-                if (request.find("POST") != std::string::npos)
-                {
-                    if (utils::split(request, CRLF + CRLF).size() == 1)
-                        return ParseRequestResult::Pending();
-                    else
-                    {
-                        const std::string body = utils::split(request, CRLF + CRLF)[1];
-                        const ParseBodyResult parseHttpBodyResult =
-                            parseHttpBody(body, parseHttpHeadersResult.value,
-                                          CONFIG.getServer(getHostNameResult.value, socket.clientPort),
-                                          parseHttpRequestLineResult.value.method);
-                        if (parseHttpBodyResult.status == PARSED)
-                        {
-                            return ParseRequestResult::Success(HttpRequest(
-                                socket.descriptor, socket.serverPort, socket.clientIp, getHostNameResult.value,
-                                parseHttpRequestLineResult.value.method, parseHttpRequestLineResult.value.target,
-                                parseHttpHeadersResult.value, parseHttpBodyResult.value));
-                        }
-                        else if (parseHttpBodyResult.status == PENDING)
-                        {
-                            return ParseRequestResult::Pending();
-                        }
-                        else
-                        {
-                            return ParseRequestResult::Error(HttpRequest(socket.descriptor, socket.serverPort,
-                                                                         socket.clientIp, "", "", "", Headers(), ""));
-                        }
-                    }
-                }
-                else
-                {
-                    return ParseRequestResult::Success(
-                        HttpRequest(socket.descriptor, socket.serverPort, socket.clientIp, getHostNameResult.value,
-                                    parseHttpRequestLineResult.value.method, parseHttpRequestLineResult.value.target,
-                                    parseHttpHeadersResult.value, ""));
-                }
-            }
-            else
-            {
-                return ParseRequestResult::Error(HttpRequest());
-            }
-        }
-        else if (parseHttpHeadersResult.status == PENDING)
-        {
-            return ParseRequestResult::Pending();
+            const ParseBodyResult parseBodyResult = parseHttpBody(parseFirstBlockResult.value.body, parseFirstBlockResult.value.headers, CONFIG.getServer(host, port), parseFirstBlockResult.value.requestLine.method);
         }
         else
-        {
-            return ParseRequestResult::Error(
-                HttpRequest(socket.descriptor, socket.serverPort, socket.clientIp, "", "", "", Headers(), ""));
-        }
+            return EventDataOrParsedRequest::Right(HttpRequest());
     }
+    else if (parseFirstBlockResult.status == Pending)
+        return EventDataOrParsedRequest::Left(EventData(sd, request));
     else
-    {
-        return ParseRequestResult::Error(
-            HttpRequest(socket.descriptor, socket.serverPort, socket.clientIp, "", "", "", Headers(), ""));
-    }
+        return EventDataOrParsedRequest::Right(HttpRequest());
 }
 
-ParsedHttpRequests parseHttpRequests(const SocketBuffer &socketBuffer, const ConnectedInternetSocket &socket)
+static std::vector<std::string> splitHttpRequests(const EventData &eventData)
 {
-    const std::vector<std::string> blocks = splitHttpRequests(socketBuffer.getInbound());
-    size_t size = 0;
-    std::queue<const HttpRequest> httpRequests;
+    std::vector<std::string> httpRequests;
+    const std::vector<std::string> blocks = splitBlocks(eventData.data);
     for (size_t i = 0; i < blocks.size(); i++)
     {
-        const ParseRequestResult parseRequestResult = parseHttpRequest(blocks[i], socket);
-        if (parseRequestResult.status == PARSED)
+        if(blocks[i].find("POST") != std::string::npos && i != blocks.size() - 1 && isBody(blocks[i + 1]))
         {
-            httpRequests.push(parseRequestResult.value);
-            size += blocks[i].length();
-            continue;
-        }
-        else if (parseRequestResult.status == PENDING)
-        {
-            // POSTの場合もここに来る
-            if (i != blocks.size() - 1 && blocks[i].find("POST") != std::string::npos)
-            {
-                const std::string postBlock = blocks[i] + blocks[i + 1];
-                const ParseRequestResult parseRequestResult = parseHttpRequest(postBlock, socket);
-                if (parseRequestResult.status == PARSED)
-                {
-                    httpRequests.push(parseRequestResult.value);
-                    size += blocks[i + 1].length();
-                    i++;
-                }
-                else if (parseRequestResult.status == ERROR)
-                {
-                    HTTP_REQUESTS.push(parseRequestResult.error);
-                    size += blocks[i].length();
-                }
-            }
-            return ParsedHttpRequests(httpRequests, size);
+            const std::string postBlock = blocks[i] + blocks[i + 1];
+            httpRequests.push_back(postBlock);
+            i++;
         }
         else
+            httpRequests.push_back(blocks[i]);
+    }
+    return httpRequests;
+}
+
+ParseHttpRequestResults ParseHttpRequestResults(const EventDatas &httpRequestEventDatas)
+{
+    ParseHttpRequestResults parseHttpRequestResults;
+    for (size_t i = 0; i < httpRequestEventDatas.size(); i++)
+    {
+        const HttpRequests httpRequests = splitHttpRequests(httpRequestEventDatas[i]);
+        for (size_t j = 0; j < httpRequests.size(); j++)
         {
-            HTTP_REQUESTS.push(parseRequestResult.error);
+            const ParseHttpRequestResults parseHttpRequestResult = parseHttpRequest(httpRequestEventDatas[i].sd, httpRequests[j]);
+            parseHttpRequestResults.push_back(parseHttpRequestResult);
         }
     }
-    return ParsedHttpRequests(httpRequests, size);
+    return parseRequestResults;
 }
+
+// {
+//     const std::vector<std::string> blocks = splitHttpRequests(socketBuffer.getInbound());
+//     size_t size = 0;
+//     std::queue<const HttpRequest> httpRequests;
+//     for (size_t i = 0; i < blocks.size(); i++)
+//     {
+//         const ParseRequestResult parseRequestResult = parseHttpRequest(blocks[i], socket);
+//         if (parseRequestResult.status == PARSED)
+//         {
+//             httpRequests.push(parseRequestResult.value);
+//             size += blocks[i].length();
+//             continue;
+//         }
+//         else if (parseRequestResult.status == PENDING)
+//         {
+//             // POSTの場合もここに来る
+//             if (i != blocks.size() - 1 && blocks[i].find("POST") != std::string::npos)
+//             {
+//                 const std::string postBlock = blocks[i] + blocks[i + 1];
+//                 const ParseRequestResult parseRequestResult = parseHttpRequest(postBlock, socket);
+//                 if (parseRequestResult.status == PARSED)
+//                 {
+//                     httpRequests.push(parseRequestResult.value);
+//                     size += blocks[i + 1].length();
+//                     i++;
+//                 }
+//                 else if (parseRequestResult.status == ERROR)
+//                 {
+//                     HTTP_REQUESTS.push(parseRequestResult.error);
+//                     size += blocks[i].length();
+//                 }
+//             }
+//             return ParsedHttpRequests(httpRequests, size);
+//         }
+//         else
+//         {
+//             HTTP_REQUESTS.push(parseRequestResult.error);
+//         }
+//     }
+//     return ParsedHttpRequests(httpRequests, size);
+// }

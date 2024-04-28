@@ -6,7 +6,7 @@ ParseRequestResult parseHttpRequest(const std::string &request, const int port);
 HttpRequest getHttpRequest(const int cgiSd);
 bool findCgiExtension(const std::string &target, const std::string &extension);
 Uri segment(const HttpRequest &);
-ConnectedUnixSocketResult createCgiProcess(const StringMap &envs, const std::string &scriptPath);
+SocketResult createCgiProcess(const StringMap &envs, const std::string &scriptPath);
 ParseCgiResponseResult parseCgiResponse(std::string const &response, const int cgiSd);
 HttpMessage processCgiResponse(const CgiResponse &cgiResponse);
 CgiRequestOrHttpResponse processHttpRequest(const HttpRequest &);
@@ -20,6 +20,7 @@ HttpResponse conductPost(const HttpRequest &);
 
 HttpResponse getRedirectHttpResponse(const HttpRequest &, const std::string &redirectUrl);
 
-SocketBuffer &getSocketBuffer(const int sd);
 
-ParsedHttpRequests parseHttpRequests(const SocketBuffer &socketBuffer, const ConnectedInternetSocket &socket);
+ParsedHttpRequests parseHttpRequests(const EventDatas &eventDatas);
+
+EventDatas retrieveDatas(const KEvents &readEvents);

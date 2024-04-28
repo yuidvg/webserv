@@ -3,7 +3,7 @@
 
 void eventLoop(Sockets listenSds);
 void handleReceivedMessage();
-void processClientMessages(const ConnectedInternetSocket &socket, SocketBuffer &socketBuffer);
+void processClientMessages(const EventDatas &eventDatas);
 bool eraseSocketBuffer(const int sd);
 void appendOutbound(int sd, std::string content);
 void depositCgiRequest(const CgiRequest &cgiRequest);
