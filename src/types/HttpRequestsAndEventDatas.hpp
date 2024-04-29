@@ -5,8 +5,8 @@
 
 struct HttpRequestsAndEventDatas
 {
-    const std::vector<const HttpRequest> httpRequests;
-    const std::vector<const EventData> eventDatas;
+    const std::queue<const HttpRequest> httpRequests;
+    const std::queue<const EventData> eventDatas;
 
     HttpRequestsAndEventDatas() : httpRequests(), eventDatas()
     {

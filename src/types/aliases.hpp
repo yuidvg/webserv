@@ -20,8 +20,6 @@ typedef Result<const std::string, const std::string> StringResult;
 typedef std::vector<const EventData> EventDatas;
 
 // http
-namespace parseHttpRequest
-{
 struct RequestLine
 {
     const std::string method;
@@ -30,20 +28,20 @@ struct RequestLine
     RequestLine(const std::string method, const std::string target, const std::string version)
         : method(method), target(target), version(version){};
 };
-struct FirstBlockResult
+struct FirstBlock
 {
     const RequestLine requestLine;
     const Headers headers;
-    FirstBlockResult(const RequestLine requestLine, const Headers headers)
+    FirstBlock(const RequestLine requestLine, const Headers headers)
         : requestLine(requestLine), headers(headers){};
 };
-typedef ParseResult<const Headers, const EventData> ParseHeadersResult;
-typedef ParseResult<const std::string, const EventData> ParseBodyResult;
-typedef ParseResult<const std::string, const EventData> UnchunkBodyResult;
-typedef ParseResult<const FirstBlockResult, const EventData> ParseFirstBlockResult;
+typedef Result<const RequestLine, const std::string> SplitRequestLineResult;
+typedef Result<const RequestLine, const std::string> ParseRequestLineResult;
+typedef ParseResult<const Headers, const EventData> ParseHeaderResult;
+typedef ParseResult<const std::string, const std::string> ParseBodyResult;
+typedef ParseResult<const std::string, const std::string> UnchunkBodyResult;
+typedef ParseResult<const FirstBlock, const std::string> ParseFirstBlockResult;
 typedef Either<const EventData, const HttpRequest> EventDataOrParsedRequest;
-typedef std::queue<const EventDataOrParsedRequest> ParseHttpRequestResults;
-} // namespace parseHttpRequest
 
 // autoindex
 typedef Result<const std::string, const StatusCode> DirectoryListHtmlResult;

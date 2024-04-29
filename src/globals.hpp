@@ -56,14 +56,6 @@ const std::string CONTENT_TYPE_HTML = "text/html";
 
 extern const int KQ;
 
-extern std::queue<const HttpRequest> HTTP_REQUESTS;
-
-extern ConnectedInternetSockets CLIENT_SOCKETS;
-
-extern ConnectedUnixSockets CGI_SOCKETS;
-
-extern SocketBuffers SOCKET_BUFFERS;
-
 extern CgiHttpRequests CGI_HTTP_REQUESTS;
 
 #define EVENT_BATCH_SIZE 1024

@@ -31,11 +31,9 @@ bool isInitiateEvent(const struct kevent &event, const Sockets &listenSockets)
 
 } // namespace
 
-void eventLoop(Sockets listenSockets)
+void eventLoop(Sockets sockets)
 {
     struct kevent eventList[EVENT_BATCH_SIZE];
-    Sockets clientSockets;
-    Sockets cgiSockets;
 
     while (true)
     {
@@ -43,14 +41,14 @@ void eventLoop(Sockets listenSockets)
         {
             std::cout << "waiting for events..." << std::endl;
             const int numOfEvents = kevent(KQ, NULL, 0, eventList, EVENT_BATCH_SIZE, NULL);
-            const std::pair<const Events, const std::string> 
+            const KernelEvents kernelEvents = KernelEvents(eventList, eventList + numOfEvents);
+            const Events events = utils::map(kernelEvents, toEvent, sockets);
             if (numOfEvents != -1)
             {
-                const KernelEvents readEvents = utils::filter(events, isReadEvent);
-                const KernelEvents initiateEvents = utils::filter(events, isInitiateEvent);
-                const KernelEvents clientEvents = utils::filter(events, isClientEvent);
-                const KernelEvents cgiEvents = utils::filter(events, isCgiEvent);
-                const KernelEvents writeEvents = utils::filter(events, isWriteEvent);
+                const KernelEvents readEvents = utils::filter(kernelEvents, isReadEvent);
+                const KernelEvents initiateEvents = utils::filter(kernelEvents, isInitiateEvent);
+                const KernelEvents cgiEvents = utils::filter(kernelEvents, isCgiEvent);
+                const KernelEvents writeEvents = utils::filter(kernelEvents, isWriteEvent);
                 const SocketResult newConnectedSocketResult =
                     utils::newClientSocket(*listenSockets.find(eventList[0].ident));
                 const std::pair<EventDatas, Strings> eventDatas_errors = retrieveDatas(readEvents);
@@ -58,7 +56,7 @@ void eventLoop(Sockets listenSockets)
                 const EventDatas cgiResponseDatas = utils::filter(eventDatas_errors.first, isCgiResponseData);
                 const HttpRequestsAndEventDatas parsedHttpRequests = parseHttpRequests(httpRequestDatas);
                 const CgiResponses cgiResponses = parseCgiResponses(cgiResponseDatas);
-                const KernelEvents writeEvents = utils::filter(events, isWriteEvent);
+                const KernelEvents writeEvents = utils::filter(kernelEvents, isWriteEvent);
                 for (int i = 0; i < numOfEvents; ++i)
                 {
                     handleEvent(eventList[i], listenSockets);

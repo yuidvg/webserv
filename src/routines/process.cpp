@@ -15,8 +15,21 @@ void processHttpMessageFromCgi(const HttpMessage &httpMessage)
 
 void processClientMessages(const EventDatas &eventDatas)
 {
-    ParsedHttpRequests parsed = parseHttpRequests(eventDatas);
-    socketBuffer.substringInbound(parsed.size);
+    const ParseHttpRequestResults parsed = parseHttpRequests(eventDatas);
+    for (ParseHttpRequestResults::const_iterator it = parsed.begin(); it != parsed.end(); ++it)
+    {
+        const EventDataOrParsedRequest &parseResult = *it;
+        if (parseResult.tag == LEFT)
+        {
+            const EventData &eventData = parseResult.leftValue;
+            //
+        }
+        else
+        {
+            const HttpRequest &httpRequest = parseResult.value;
+            //
+        }
+    }
 }
 
 void processCgiMessage(const ConnectedUnixSocket &socket, const std::string message)

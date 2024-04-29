@@ -88,4 +88,24 @@ template <typename T> void appendQueue(std::queue<T> source, std::queue<T> &dest
     }
 }
 
+template <typename T, typename F, typename R> std::vector<R> map(const std::vector<T> &vec, F f)
+{
+    std::vector<R> result;
+    for (typename std::vector<T>::const_iterator it = vec.begin(); it != vec.end(); ++it)
+    {
+        result.push_back(f(*it));
+    }
+    return result;
+}
+
+template <typename T, typename F, typename R, typename A> std::vector<R> map(const std::vector<T> &vec, F f, A arg)
+{
+    std::vector<R> result;
+    for (typename std::vector<T>::const_iterator it = vec.begin(); it != vec.end(); ++it)
+    {
+        result.push_back(f(*it, arg));
+    }
+    return result;
+}
+
 } // namespace utils

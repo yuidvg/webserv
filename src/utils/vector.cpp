@@ -13,4 +13,5 @@ std::string join(const std::vector<std::string> &list, const std::string &delimi
     }
     return str;
 }
+
 } // namespace utils
