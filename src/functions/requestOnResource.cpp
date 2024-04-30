@@ -6,9 +6,9 @@ HttpResponse conductPost(const HttpRequest &httpRequest)
     const std::string targetFilePath = utils::concatPath(location.uploadPath, httpRequest.target);
     if (utils::isDirectory(location.uploadPath))
     {
-        const std::string fileName = std::string(utils::removeCharacter(httpRequest.target, '/') + ".txt");
+    const std::string fileName = httpRequest.target.substr(httpRequest.target.find_last_of('/') + 1);
         const int fd = utils::createFile(fileName, location.uploadPath);
-        if (fd  >= 0)
+        if (fd >= 0)
         {
             return HttpResponse(httpRequest.socket.descriptor, SUCCESS, "File upload", "text/plain");
         }
@@ -20,11 +20,18 @@ HttpResponse conductPost(const HttpRequest &httpRequest)
 
 HttpResponse conductDelete(const HttpRequest &httpRequest)
 {
-    const std::string relativePath = httpRequest.target.substr(1);
+    const std::string path = httpRequest.target.substr(1);                   // upload/hogehoge
+    const std::string targetFile = path.substr(path.find_first_of('/') + 1); // hogehoge
+    const Location location = getLocation(httpRequest);
+    const std::string relativePath =
+        location.root.empty() ? "./" + location.uploadPath + '/' + targetFile : "./" + location.root + '/' + targetFile;
     if (remove(relativePath.c_str()) == 0)
         return (HttpResponse(httpRequest.socket.descriptor, SUCCESS, httpRequest.target, "text/html"));
     else
+    {
+        strerror(errno);
         return getErrorHttpResponse(httpRequest, BAD_REQUEST);
+    }
 }
 
 HttpResponse conductGet(const HttpRequest &httpRequest, const std::string &target)
