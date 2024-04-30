@@ -47,7 +47,7 @@ SocketResult getListenSocket(const Server server)
         return (SocketResult::Error("failed to register listen socket"));
     }
 
-    return SocketResult::Success(Socket(sd, server.port, 0, "", 0));
+    return SocketResult::Success(Socket(sd, INITIATE, server.port));
 }
 } // namespace
 
@@ -66,7 +66,7 @@ SocketsResult createListenSockets(const Servers &servers)
             if (newSocketResult.success)
             {
                 openedPorts.insert(serverIt->port);
-                listenSockets.push_back(newSocketResult.value);
+                listenSockets.insert(newSocketResult.value);
             }
             else
             {
@@ -88,7 +88,7 @@ SocketResult newClientSocket(const Socket &listenSocket)
             utils::setEventFlags(newSd, EVFILT_WRITE, EV_DISABLE))
         {
             addSocketBuffer(newSd);
-            return SocketResult::Success(Socket(newSd, listenSocket.serverPort, ntohs(clientAddr.sin_port),
+            return SocketResult::Success(Socket(newSd, CLIENT, listenSocket.serverPort, ntohs(clientAddr.sin_port),
                                                 std::string(inet_ntoa(clientAddr.sin_addr)), 0));
         }
         else
@@ -101,5 +101,23 @@ SocketResult newClientSocket(const Socket &listenSocket)
     {
         return SocketResult::Error("accept() failed: " + std::string(strerror(errno)));
     }
+}
+
+Sockets newClientSockets(const Events &initiateEvents)
+{
+    Sockets newClientSockets;
+    for (Events::const_iterator it = initiateEvents.begin(); it != initiateEvents.end(); ++it)
+    {
+        const SocketResult newClientSocketResult = newClientSocket(it->socket);
+        if (newClientSocketResult.success)
+        {
+            newClientSockets.insert(newClientSocketResult.value);
+        }
+        else
+        {
+            utils::printError(newClientSocketResult.error);
+        }
+    }
+    return newClientSockets;
 }
 } // namespace utils

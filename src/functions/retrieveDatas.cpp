@@ -1,31 +1,28 @@
 #include "../all.hpp"
 
-std::pair<EventDatas, Strings> retrieveDatas(const KernelEvents &readEvents)
+EventDatas retrieveDatas(const Events &clientReadEvents)
 {
     EventDatas eventDatas;
-    SocketErrors socketErrors;
-    for (KernelEvents::const_iterator it = readEvents.begin(); it != readEvents.end(); ++it)
+    for (Events::const_iterator it = clientReadEvents.begin(); it != clientReadEvents.end(); ++it)
     {
-        const struct kevent &event = *it;
-        const int sd = event.ident;
-        const intptr_t size = event.data;
-        char *buffer = new char[size + 1]; // +1 for null terminator
-        const ssize_t receivedLength = recv(sd, buffer, size, 0);
+        const Event &clientReadEvent = *it;
+        char *buffer = new char[clientReadEvent.size + 1]; // +1 for null terminator
+        const ssize_t receivedLength = recv(clientReadEvent.socket.descriptor, buffer, clientReadEvent.size, 0);
         if (receivedLength > 0)
         {
             buffer[receivedLength] = '\0';
             const std::string data(buffer);
-            eventDatas.push_back(EventData(Socket(sd, 0, 0, "", 0), data));
+            eventDatas.push_back(EventData(clientReadEvent.socket, data));
         }
         else if (receivedLength == 0)
         {
-            socketErrors.push_back(SocketError(Socket(sd, 0, 0, "", 0), "Connection closed by client"));
+            close(clientReadEvent.socket.descriptor);
         }
         else
         {
-            socketErrors.push_back(SocketError(Socket(sd, 0, 0, "", 0), "Error reading from socket"));
+            close(clientReadEvent.socket.descriptor);
         }
         delete[] buffer;
     }
-    return std::make_pair(eventDatas, socketErrors);
+    return eventDatas;
 }

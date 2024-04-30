@@ -191,8 +191,7 @@ static UnchunkBodyResult unchunkBody(const std::string &body, const size_t maxBo
     }
 }
 
-static ParseBodyResult parseBody(const std::string &body, const Headers &headers, const size_t maxBodySize,
-                              const std::string &method)
+static ParseBodyResult parseBody(const std::string &body, const Headers &headers, const size_t maxBodySize)
 {
     std::string line;
 
@@ -258,7 +257,7 @@ static EventDataOrParsedRequest parseHttpRequest(const Socket &socket, const std
             const RequestLine requestLine = parseFirstBlockResult.value.requestLine;
             const ParseBodyResult parseBodyResult =
                 parseBody(blocks[1], parseFirstBlockResult.value.headers,
-                              CONFIG.getServer(host, socket.clientPort).clientMaxBodySize, requestLine.method);
+                              CONFIG.getServer(host, socket.clientPort).clientMaxBodySize);
             if (parseBodyResult.status == PARSED)
                 return EventDataOrParsedRequest::Right(HttpRequest(socket, host,
                                                                   requestLine.method, requestLine.target,
@@ -303,15 +302,15 @@ static std::vector<std::string> splitHttpRequests(const EventData &eventData)
 
 HttpRequestsAndEventDatas parseHttpRequests(const EventDatas &httpRequestEventDatas)
 {
-    std::queue<HttpRequest> httpRequests;
-    std::queue<EventData> eventDatas;
+    std::queue<const HttpRequest> httpRequests;
+    std::queue<const EventData> eventDatas;
     for (size_t i = 0; i < httpRequestEventDatas.size(); i++)
     {
-        const std::vector<std::string> httpRequests = splitHttpRequests(httpRequestEventDatas[i]);
+        const std::vector<std::string> Requests = splitHttpRequests(httpRequestEventDatas[i]);
         for (size_t j = 0; j < httpRequests.size(); j++)
         {
             const EventDataOrParsedRequest parseHttpRequestResult =
-                parseHttpRequest(httpRequestEventDatas[i].socket, httpRequests[j]);
+                parseHttpRequest(httpRequestEventDatas[i].socket, Requests[j]);
             if (parseHttpRequestResult.tag == LEFT)
                 eventDatas.push(parseHttpRequestResult.leftValue);
             else

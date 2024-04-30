@@ -3,9 +3,10 @@
 
 enum SocketType
 {
-    LISTEN,
+    INITIATE,
     CLIENT,
-    CGI
+    CGI,
+    FILE_FD
 };
 
 struct Socket
@@ -33,6 +34,14 @@ struct Socket
     }
     ~Socket()
     {
+    }
+    Socket &operator=(const Socket &x)
+    {
+        if (this != &x)
+        {
+            *this = x;
+        }
+        return *this;
     }
     bool operator==(const Socket &x) const
     {

@@ -1,7 +1,7 @@
 #pragma once
 #include "external.hpp"
-#include <CgiResponse.hpp>
-#include <HttpRequest.hpp>
+#include "CgiResponse.hpp"
+#include "HttpRequest.hpp"
 
 struct Parsed
 {

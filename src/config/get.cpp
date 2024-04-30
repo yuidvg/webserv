@@ -2,7 +2,7 @@
 
 Server getServer(const HttpRequest &httpRequest)
 {
-    return (CONFIG.getServer(httpRequest.host, httpRequest.serverPort));
+    return (CONFIG.getServer(httpRequest.host, httpRequest.socket.serverPort));
 }
 
 Location getLocation(const HttpRequest &httpRequest)

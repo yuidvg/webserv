@@ -10,7 +10,7 @@ HttpResponse conductPost(const HttpRequest &httpRequest)
         const int fd = utils::createFile(fileName, location.uploadPath);
         if (fd  >= 0)
         {
-            return HttpResponse(httpRequest.sd, SUCCESS, "File upload", "text/plain");
+            return HttpResponse(httpRequest.socket.descriptor, SUCCESS, "File upload", "text/plain");
         }
         else
             return getErrorHttpResponse(httpRequest, BAD_REQUEST);
@@ -22,7 +22,7 @@ HttpResponse conductDelete(const HttpRequest &httpRequest)
 {
     const std::string relativePath = httpRequest.target.substr(1);
     if (remove(relativePath.c_str()) == 0)
-        return (HttpResponse(httpRequest.sd, SUCCESS, httpRequest.target, "text/html"));
+        return (HttpResponse(httpRequest.socket.descriptor, SUCCESS, httpRequest.target, "text/html"));
     else
         return getErrorHttpResponse(httpRequest, BAD_REQUEST);
 }
@@ -36,7 +36,7 @@ HttpResponse conductGet(const HttpRequest &httpRequest, const std::string &targe
         {
             const DirectoryListHtmlResult directoryListHtmlResult = directoryListHtml(target);
             return directoryListHtmlResult.success
-                       ? HttpResponse(httpRequest.sd, SUCCESS, directoryListHtmlResult.value, "text/html")
+                       ? HttpResponse(httpRequest.socket.descriptor, SUCCESS, directoryListHtmlResult.value, "text/html")
                        : getErrorHttpResponse(httpRequest, BAD_REQUEST);
         }
         else if (location.index.size() > 0)
@@ -44,7 +44,7 @@ HttpResponse conductGet(const HttpRequest &httpRequest, const std::string &targe
             const std::string indexPath = target + '/' + location.index;
             const FileContentResult fileContentResult = utils::fileContent(indexPath);
             return fileContentResult.success
-                       ? HttpResponse(httpRequest.sd, SUCCESS, fileContentResult.value, utils::contentType(indexPath))
+                       ? HttpResponse(httpRequest.socket.descriptor, SUCCESS, fileContentResult.value, utils::contentType(indexPath))
                        : getErrorHttpResponse(httpRequest, BAD_REQUEST);
         }
         else
@@ -56,7 +56,7 @@ HttpResponse conductGet(const HttpRequest &httpRequest, const std::string &targe
     {
         const FileContentResult fileContentResult = utils::fileContent(target);
         return fileContentResult.success
-                   ? HttpResponse(httpRequest.sd, SUCCESS, fileContentResult.value, utils::contentType(target))
+                   ? HttpResponse(httpRequest.socket.descriptor, SUCCESS, fileContentResult.value, utils::contentType(target))
                    : getErrorHttpResponse(httpRequest, BAD_REQUEST);
     }
 }

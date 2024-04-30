@@ -2,7 +2,7 @@
 
 HttpResponse getRedirectHttpResponse(const HttpRequest &httpRequest, const std::string &redirectUrl)
 {
-    return HttpResponse(httpRequest.sd, REDIRECTION, "", "", redirectUrl);
+    return HttpResponse(httpRequest.socket.descriptor, REDIRECTION, "", "", redirectUrl);
 }
 
 HttpResponse getErrorHttpResponse(const HttpRequest &httpRequest, const int statusCode)
@@ -12,17 +12,18 @@ HttpResponse getErrorHttpResponse(const HttpRequest &httpRequest, const int stat
     if (fileContentResult.success)
     {
         // custom error page
-        return HttpResponse(httpRequest.sd, statusCode, fileContentResult.value, utils::contentType(path));
+        return HttpResponse(httpRequest.socket.descriptor, statusCode, fileContentResult.value,
+                            utils::contentType(path));
     }
     else
     {
         // default error page
         if (statusCode == SERVER_ERROR)
-            return HttpResponse(httpRequest.sd, SERVER_ERROR, SERVER_ERROR_BODY, CONTENT_TYPE_HTML);
+            return HttpResponse(httpRequest.socket.descriptor, SERVER_ERROR, SERVER_ERROR_BODY, CONTENT_TYPE_HTML);
         else if (statusCode == BAD_REQUEST)
-            return HttpResponse(httpRequest.sd, BAD_REQUEST, BAD_REQUEST_BODY, CONTENT_TYPE_HTML);
+            return HttpResponse(httpRequest.socket.descriptor, BAD_REQUEST, BAD_REQUEST_BODY, CONTENT_TYPE_HTML);
     }
-    return HttpResponse(httpRequest.sd, statusCode, "", "");
+    return HttpResponse(httpRequest.socket.descriptor, statusCode, "", "");
 }
 
 std::string stringify(const HttpResponse &response)

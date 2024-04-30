@@ -14,8 +14,8 @@ struct HttpRequestsAndEventDatas
     ~HttpRequestsAndEventDatas()
     {
     }
-    HttpRequestsAndEventDatas(const std::vector<const HttpRequest> &httpRequests,
-                              const std::vector<const EventData> &eventDatas)
+    HttpRequestsAndEventDatas(const std::queue<const HttpRequest> &httpRequests,
+                              const std::queue<const EventData> &eventDatas)
         : httpRequests(httpRequests), eventDatas(eventDatas)
     {
     }
@@ -27,8 +27,8 @@ struct HttpRequestsAndEventDatas
     {
         if (this != &other)
         {
-            const_cast<std::vector<const HttpRequest> &>(httpRequests) = other.httpRequests;
-            const_cast<std::vector<const EventData> &>(eventDatas) = other.eventDatas;
+            const_cast<std::queue<const HttpRequest> &>(httpRequests) = other.httpRequests;
+            const_cast<std::queue<const EventData> &>(eventDatas) = other.eventDatas;
         }
         return *this;
     }

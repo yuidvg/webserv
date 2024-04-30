@@ -4,10 +4,10 @@ template <typename T> class Option
 {
   private:
     const bool isSome;
-    T value;
+    const T value;
 
   public:
-    Option(T &value) : isSome(true), value(value)
+    Option(const T &value) : isSome(true), value(value)
     {
     }
     Option() : isSome(false), value(T())
@@ -25,7 +25,7 @@ template <typename T> class Option
         isSome = const_cast<bool &>(other.isSome);
         return *this;
     }
-    explicit operator bool() const
+    operator bool() const
     {
         return isSome;
     }

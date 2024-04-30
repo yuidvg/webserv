@@ -3,30 +3,34 @@
 namespace
 {
 
-bool isReadEvent(const struct kevent &event)
+bool isReadEvent(const Event &event)
 {
-    return event.filter == EVFILT_READ;
+    return event.type == READ;
 }
 
-bool isWriteEvent(const struct kevent &event)
+bool isWriteEvent(const Event &event)
 {
-    return event.filter == EVFILT_WRITE;
+    return event.type == WRITE;
 }
 
-bool isClientEvent(std::pair<const int, const Sockets &> sd_clientSockets)
+bool isClientEvent(const Event &event)
 {
-    const int sd = sd_clientSockets.first;
-    const Sockets &clientSockets = sd_clientSockets.second;
-    return std::find(clientSockets.begin(), clientSockets.end(), sd) != clientSockets.end();
+    return event.socket.type == CLIENT;
 }
 
-bool isCgiEvent(const int sd, const Sockets &cgiSockets)
+bool isCgiEvent(const Event &event)
 {
+    return event.socket.type == CGI;
 }
 
-bool isInitiateEvent(const struct kevent &event, const Sockets &listenSockets)
+bool isInitiateEvent(const Event &event)
 {
-    return std::find(listenSockets.begin(), listenSockets.end(), event.ident) != listenSockets.end();
+    return event.socket.type == INITIATE;
+}
+
+bool isFileEvent(const Event &event)
+{
+    return event.socket.type == FILE_FD;
 }
 
 } // namespace
@@ -41,25 +45,36 @@ void eventLoop(Sockets sockets)
         {
             std::cout << "waiting for events..." << std::endl;
             const int numOfEvents = kevent(KQ, NULL, 0, eventList, EVENT_BATCH_SIZE, NULL);
-            const KernelEvents kernelEvents = KernelEvents(eventList, eventList + numOfEvents);
-            const Events events = utils::map(kernelEvents, toEvent, sockets);
             if (numOfEvents != -1)
             {
-                const KernelEvents readEvents = utils::filter(kernelEvents, isReadEvent);
-                const KernelEvents initiateEvents = utils::filter(kernelEvents, isInitiateEvent);
-                const KernelEvents cgiEvents = utils::filter(kernelEvents, isCgiEvent);
-                const KernelEvents writeEvents = utils::filter(kernelEvents, isWriteEvent);
-                const SocketResult newConnectedSocketResult =
-                    utils::newClientSocket(*listenSockets.find(eventList[0].ident));
-                const std::pair<EventDatas, Strings> eventDatas_errors = retrieveDatas(readEvents);
-                const EventDatas httpRequestDatas = utils::filter(eventDatas_errors.first, isHttpRequestData);
+                const KernelEvents kernelEvents = KernelEvents(eventList, eventList + numOfEvents);
+                const Events events = toEvents(kernelEvents, sockets);
+                // READ
+                const Events readEvents = utils::filter(events, isReadEvent);
+                //  INITIATE
+                const Events initiateEvents = utils::filter(readEvents, isInitiateEvent);
+                const Sockets newClientSockets = utils::newClientSockets(initiateEvents);
+                sockets.insert(newClientSockets.begin(), newClientSockets.end());
+                //  CLIENT
+                const Events clientReadEvents = utils::filter(readEvents, isClientEvent);
+                const EventDatas httpRequestDatas = retrieveDatas(clientReadEvents);
+                //  CGI
+                const Events cgiReadEvents = utils::filter(readEvents, isCgiEvent);
+                // WRITE
+                const Events writeEvents = utils::filter(events, isWriteEvent);
+                //  CLIENT
+                const Events clientWriteEvents = utils::filter(writeEvents, isClientEvent);
+                //  CGI
+                const Events cgiWriteEvents = utils::filter(writeEvents, isCgiEvent);
+                //  FILE
+                const Events fileWriteEvents = utils::filter(writeEvents, isFileEvent);
                 const EventDatas cgiResponseDatas = utils::filter(eventDatas_errors.first, isCgiResponseData);
                 const HttpRequestsAndEventDatas parsedHttpRequests = parseHttpRequests(httpRequestDatas);
                 const CgiResponses cgiResponses = parseCgiResponses(cgiResponseDatas);
                 const KernelEvents writeEvents = utils::filter(kernelEvents, isWriteEvent);
                 for (int i = 0; i < numOfEvents; ++i)
                 {
-                    handleEvent(eventList[i], listenSockets);
+                    handleEvent(eventList[i], sockets);
                 }
             }
             processHttpRequests();

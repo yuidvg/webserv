@@ -22,4 +22,4 @@ HttpResponse getRedirectHttpResponse(const HttpRequest &, const std::string &red
 
 Option<const Socket> findSocket(const int sd, const Sockets &sockets);
 std::pair<EventDatas, Strings> retrieveDatas(const KernelEvents &readEvents);
-Option<Event> toEvent(const struct kevent &kernelEvent, const Sockets &sockets);
+Events toEvents(const KernelEvents &kernelEvents, const Sockets &sockets);

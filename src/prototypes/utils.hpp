@@ -47,7 +47,7 @@ bool unregisterEvent(const uintptr_t identifier);
 
 // socket
 SocketsResult createListenSockets(const Servers &servers);
-SocketResult newClientSocket(const Socket &listenSocket);
+Sockets newClientSockets(const Events &initiateEvents);
 
 // path
 std::string concatPath(const std::string &pathA, const std::string &pathB);
