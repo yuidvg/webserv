@@ -10,8 +10,4 @@ const HttpResponse getMethodNotAllowedResponse(const HttpRequest &httpRequest, c
 
 const int KQ = kqueue();
 
-std::queue<const HttpRequest> HTTP_REQUESTS;
-
-CgiHttpRequests CGI_HTTP_REQUESTS;
-
 Config CONFIG;

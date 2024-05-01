@@ -20,7 +20,7 @@ char *const *mapStringStringToCStringArray(const StringMap &envMap)
 
 } // namespace
 
-SocketResult createCgiProcess(const StringMap &envs, const std::string &scriptPath)
+Option<Socket> createCgiProcess(const StringMap &envs, const std::string &scriptPath)
 {
     int socketPair[2];
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, socketPair) == 0 &&
@@ -33,14 +33,14 @@ SocketResult createCgiProcess(const StringMap &envs, const std::string &scriptPa
         if (pid == -1)
         {
             close(socketPair[SERVER_END]);
-            close(socketPair[CGI]);
-            return SocketResult::Error("fork failed");
+            close(socketPair[CGI_END]);
+            return Option<Socket>();
         }
         else if (pid == 0) // cgi process
         {
             std::cout << "child process" << std::endl;
-            if (close(socketPair[SERVER_END]) == 0 && dup2(socketPair[CGI], STDIN_FILENO) != -1 &&
-                dup2(socketPair[CGI], STDOUT_FILENO) != -1)
+            if (close(socketPair[SERVER_END]) == 0 && dup2(socketPair[CGI_END], STDIN_FILENO) != -1 &&
+                dup2(socketPair[CGI_END], STDOUT_FILENO) != -1)
             {
                 errno = 0;
                 char *const *envp = mapStringStringToCStringArray(envs);
@@ -58,14 +58,13 @@ SocketResult createCgiProcess(const StringMap &envs, const std::string &scriptPa
         }
         else // server process
         {
-            addSocketBuffer(socketPair[SERVER_END]);
-            close(socketPair[CGI]);
-            return SocketResult::Success(Socket(socketPair[SERVER_END], 0, 0, "", pid));
+            close(socketPair[CGI_END]);
+            return Option<Socket>(Socket(socketPair[SERVER_END], CGI, 0, 0, "", pid));
         }
     }
     else
     {
         std::cerr << "socketpair/registerEvent failed" << std::endl;
-        return SocketResult::Error("socketpair/registerEvent failed");
+        return Option<Socket>();
     }
 }

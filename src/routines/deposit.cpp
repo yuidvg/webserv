@@ -6,5 +6,5 @@ void appendOutbound(int sd, std::string content)
 }
 void depositCgiRequest(const CgiRequest &cgiRequest)
 {
-    appendOutbound(cgiRequest.destinationSd, cgiRequest.body);
+    appendOutbound(cgiRequest.cgiSocket, cgiRequest.body);
 }

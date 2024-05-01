@@ -18,25 +18,25 @@ bool isStatusLine(std::string const &line)
     return line.find(STATUS_FIELD) == 0;
 }
 
-HttpRequestResult getCgiHttpRequest(const int cgiSd)
+Option<HttpRequest> getCgiHttpRequest(const int cgiSd)
 {
     const CgiHttpRequests::iterator it = CGI_HTTP_REQUESTS.find(cgiSd);
     if (it != CGI_HTTP_REQUESTS.end())
     {
         const HttpRequest httpRequest = it->second;
         CGI_HTTP_REQUESTS.erase(it);
-        return HttpRequestResult::Success(httpRequest);
+        return Option<HttpRequest>(httpRequest);
     }
     else
     {
-        return HttpRequestResult::Error("getHttpRequest: no request for CGI SD " + std::to_string(cgiSd));
+        return Option<HttpRequest>();
     }
 }
 
-} // namespace
-
-ParseCgiResponseResult parseCgiResponse(std::string const &response, const int cgiSd)
+Option<CgiResponse> parseCgiResponse(const EventData &cgiResponseEventData)
 {
+    const std::string response = cgiResponseEventData.data;
+    const int cgiSd = cgiResponseEventData.socket.descriptor;
     const std::vector<std::string> headerAndBody = utils::split(response, EMPTY_LINE);
     if (headerAndBody.size() > 0)
     {
@@ -55,30 +55,36 @@ ParseCgiResponseResult parseCgiResponse(std::string const &response, const int c
         const int status = statusResult.success ? statusResult.value : 0;
         const std::string body =
             headerAndBody.size() > 1 ? response.substr(headerAndBody[0].length() + EMPTY_LINE.length()) : "";
-        const HttpRequestResult httpRequestResult = getCgiHttpRequest(cgiSd);
-        if (httpRequestResult.success)
+        const Option<HttpRequest> httpRequest = getCgiHttpRequest(cgiSd);
+        if (httpRequest)
         {
-            const HttpRequest httpRequest = httpRequestResult.value;
-            return ParseCgiResponseResult::Success(
-                CgiResponse(cgiSd, httpRequest, contentType, location, status, Headers(), body));
+            return Option<CgiResponse>(
+                CgiResponse(cgiSd, *httpRequest, contentType, location, status, Headers(), body));
         }
         else
         {
-            return ParseCgiResponseResult::Error(httpRequestResult.error);
+            return Option<CgiResponse>();
         }
     }
     else
     {
-        return ParseCgiResponseResult::Error("parseCgiResponse: no header in response");
+        return Option<CgiResponse>();
     }
 }
 
+} // namespace
+
 CgiResponses parseCgiResponses(const EventDatas &cgiResponseEventDatas)
 {
+    CgiResponses cgiResponses;
     for (EventDatas::const_iterator it = cgiResponseEventDatas.begin(); it != cgiResponseEventDatas.end(); ++it)
     {
-        const EventData &eventData = *it;
-        const int cgiSd = eventData.sd;
-        const ParseCgiResponseResult parseResult = parseCgiResponse(eventData.data, cgiSd);
+        const EventData &cgiResponseEventData = *it;
+        const Option<CgiResponse> parsedCgiResponse = parseCgiResponse(cgiResponseEventData);
+        if (parsedCgiResponse)
+        {
+            cgiResponses.push_back(*parsedCgiResponse);
+        }
     }
+    return cgiResponses;
 }

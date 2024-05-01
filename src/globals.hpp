@@ -8,7 +8,7 @@ const std::string SERVER_SOFTWARE = "webserv/1.0";
 
 // domain sockets
 const unsigned int SERVER_END = 0;
-const unsigned int CGI = 1;
+const unsigned int CGI_END = 1;
 
 // charsets
 const std::string CRLF = "\r\n";

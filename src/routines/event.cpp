@@ -38,6 +38,8 @@ bool isFileEvent(const Event &event)
 void eventLoop(Sockets sockets)
 {
     struct kevent eventList[EVENT_BATCH_SIZE];
+    EventDatas DANGLINGS;
+    EventDatas OUTBOUNDS;
 
     while (true)
     {
@@ -47,8 +49,7 @@ void eventLoop(Sockets sockets)
             const int numOfEvents = kevent(KQ, NULL, 0, eventList, EVENT_BATCH_SIZE, NULL);
             if (numOfEvents != -1)
             {
-                const KernelEvents kernelEvents = KernelEvents(eventList, eventList + numOfEvents);
-                const Events events = toEvents(kernelEvents, sockets);
+                const Events events = toEvents(KernelEvents(eventList, eventList + numOfEvents), sockets);
                 // READ
                 const Events readEvents = utils::filter(events, isReadEvent);
                 //  INITIATE
@@ -58,8 +59,19 @@ void eventLoop(Sockets sockets)
                 //  CLIENT
                 const Events clientReadEvents = utils::filter(readEvents, isClientEvent);
                 const EventDatas httpRequestDatas = retrieveDatas(clientReadEvents);
+                const std::pair<const HttpRequests, const EventDatas> httpRequests_danglings =
+                    parseHttpRequests(httpRequestDatas);
+                const HttpRequests httpRequests = httpRequests_danglings.first;
+                DANGLINGS.insert(DANGLINGS.end(), httpRequests_danglings.second.begin(),
+                                 httpRequests_danglings.second.end());
+                const std::pair<const HttpResponses, const CgiRequests> httpResponses_cgiRequests =
+                    processHttpRequests(httpRequests);
+                OUTBOUNDS.insert(OUTBOUNDS.end(), httpResponses_cgiRequests.first.begin(),
+                                 httpResponses_cgiRequests.first.end());
                 //  CGI
                 const Events cgiReadEvents = utils::filter(readEvents, isCgiEvent);
+                const EventDatas cgiResponseDatas = retrieveDatas(cgiReadEvents);
+                const CgiResponses cgiResponses = parseCgiResponses(cgiResponseDatas);
                 // WRITE
                 const Events writeEvents = utils::filter(events, isWriteEvent);
                 //  CLIENT
@@ -68,20 +80,10 @@ void eventLoop(Sockets sockets)
                 const Events cgiWriteEvents = utils::filter(writeEvents, isCgiEvent);
                 //  FILE
                 const Events fileWriteEvents = utils::filter(writeEvents, isFileEvent);
-                const EventDatas cgiResponseDatas = utils::filter(eventDatas_errors.first, isCgiResponseData);
-                const HttpRequestsAndEventDatas parsedHttpRequests = parseHttpRequests(httpRequestDatas);
-                const CgiResponses cgiResponses = parseCgiResponses(cgiResponseDatas);
-                const KernelEvents writeEvents = utils::filter(kernelEvents, isWriteEvent);
-                for (int i = 0; i < numOfEvents; ++i)
-                {
-                    handleEvent(eventList[i], sockets);
-                }
             }
-            processHttpRequests();
         }
         catch (std::exception &e)
         {
-            std::cerr << "eventLoop: " << e.what() << std::endl;
         }
     }
 }

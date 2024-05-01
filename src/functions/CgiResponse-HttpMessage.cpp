@@ -20,9 +20,9 @@ bool isLocalRedirectResponse(const CgiResponse &cgiResponse)
 
 HttpRequest processLocalRedirectResponse(const CgiResponse &cgiResponse)
 {
-    const HttpRequest &httpRequest = getHttpRequest(cgiResponse.cgiSd);
-    return HttpRequest(httpRequest.socket, httpRequest.host,
-                       httpRequest.method, cgiResponse.location, httpRequest.headers, httpRequest.body);
+    const HttpRequest &httpRequest = getHttpRequest(cgiResponse.cgiSocket);
+    return HttpRequest(httpRequest.socket, httpRequest.host, httpRequest.method, cgiResponse.location,
+                       httpRequest.headers, httpRequest.body);
 }
 
 bool isClientRedirectResponse(const CgiResponse &cgiResponse)
@@ -33,7 +33,7 @@ bool isClientRedirectResponse(const CgiResponse &cgiResponse)
 }
 HttpResponse processClientRedirectResponse(const CgiResponse &cgiResponse)
 {
-    const HttpRequest &httpRequest = getHttpRequest(cgiResponse.cgiSd);
+    const HttpRequest &httpRequest = getHttpRequest(cgiResponse.cgiSocket);
     return HttpResponse(httpRequest.socket.descriptor, 302, "", "", cgiResponse.location);
 }
 
@@ -44,7 +44,7 @@ bool isClientRedirectWithDocumentResponse(const CgiResponse &cgiResponse)
 }
 HttpResponse processClientRedirectWithDocumentResponse(const CgiResponse &cgiResponse)
 {
-    const HttpRequest &httpRequest = getHttpRequest(cgiResponse.cgiSd);
+    const HttpRequest &httpRequest = getHttpRequest(cgiResponse.cgiSocket);
     return HttpResponse(httpRequest.socket.descriptor, cgiResponse.status, cgiResponse.body, cgiResponse.contentType,
                         cgiResponse.location);
 }
@@ -70,6 +70,6 @@ HttpMessage processCgiResponse(const CgiResponse &cgiResponse)
     }
     else
     {
-        return HttpMessage::Right(getErrorHttpResponse(getHttpRequest(cgiResponse.cgiSd), SERVER_ERROR));
+        return HttpMessage::Right(getErrorHttpResponse(getHttpRequest(cgiResponse.cgiSocket), SERVER_ERROR));
     }
 }

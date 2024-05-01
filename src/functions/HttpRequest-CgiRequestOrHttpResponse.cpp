@@ -31,14 +31,14 @@ StringMap getCgiEnvs(const HttpRequest &httpRequest)
         uri.extraPath.size() > 0
             ? utils::resolvePath(
                   uri.extraPath,
-                  CONFIG.getServer(httpRequest.host, httpRequest.serverPort).getLocation(httpRequest.target))
+                  CONFIG.getServer(httpRequest.host, httpRequest.socket.serverPort).getLocation(httpRequest.target))
             : ""));
     env.insert(std::make_pair("QUERY_STRING", uri.queryString));
-    env.insert(std::make_pair("REMOTE_ADDR", httpRequest.clientIp));
+    env.insert(std::make_pair("REMOTE_ADDR", httpRequest.socket.clientIp));
     env.insert(std::make_pair("REQUEST_METHOD", httpRequest.method));
     env.insert(std::make_pair("SCRIPT_NAME", uri.scriptPath));
     env.insert(std::make_pair("SERVER_NAME", httpRequest.host));
-    env.insert(std::make_pair("SERVER_PORT", std::to_string(httpRequest.serverPort)));
+    env.insert(std::make_pair("SERVER_PORT", std::to_string(httpRequest.socket.serverPort)));
     env.insert(std::make_pair("SERVER_PROTOCOL", SERVER_PROTOCOL));
     env.insert(std::make_pair("SERVER_SOFTWARE", SERVER_SOFTWARE));
     return env;
@@ -60,14 +60,11 @@ CgiRequestOrHttpResponse processHttpRequest(const HttpRequest &httpRequest)
             {
                 const std::string rootedScriptPath = utils::root(scriptPath, location);
                 StringMap cgiEnvs = getCgiEnvs(httpRequest);
-                SocketResult cgiProcessResult = createCgiProcess(cgiEnvs, rootedScriptPath);
-                if (cgiProcessResult.success)
+                Option<Socket> cgiSocket = createCgiProcess(cgiEnvs, rootedScriptPath);
+                if (cgiSocket)
                 {
-                    const Socket &cgiProcessSocket = cgiProcessResult.value;
-                    CGI_SOCKETS.push_back(cgiProcessSocket);
-                    CGI_HTTP_REQUESTS.insert(std::make_pair(cgiProcessSocket.descriptor, httpRequest));
                     return CgiRequestOrHttpResponse::Left(
-                        CgiRequest(cgiProcessSocket.descriptor, cgiEnvs, rootedScriptPath, httpRequest.body));
+                        CgiRequest(*cgiSocket, httpRequest, cgiEnvs, rootedScriptPath, httpRequest.body));
                 }
                 else
                     return CgiRequestOrHttpResponse::Right(getErrorHttpResponse(httpRequest, SERVER_ERROR));

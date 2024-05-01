@@ -1,13 +1,15 @@
 #pragma once
 #include "top.hpp"
 
+#include "../functions/templateFunctions.tpp"
+
 DirectoryListHtmlResult directoryListHtml(const std::string &path);
-HttpRequestsAndEventDatas parseHttpRequests(const EventDatas &httpRequestEventDatas);
+std::pair<HttpRequests, EventDatas> parseHttpRequests(const EventDatas &httpRequestEventDatas);
 HttpRequest getHttpRequest(const int cgiSd);
 bool findCgiExtension(const std::string &target, const std::string &extension);
 Uri segment(const HttpRequest &);
-SocketResult createCgiProcess(const StringMap &envs, const std::string &scriptPath);
-ParseCgiResponseResult parseCgiResponse(std::string const &response, const int cgiSd);
+Option<Socket> createCgiProcess(const StringMap &envs, const std::string &scriptPath);
+CgiResponses parseCgiResponses(const EventDatas &cgiResponseEventDatas);
 HttpMessage processCgiResponse(const CgiResponse &cgiResponse);
 CgiRequestOrHttpResponse processHttpRequest(const HttpRequest &);
 
@@ -21,5 +23,5 @@ HttpResponse conductPost(const HttpRequest &);
 HttpResponse getRedirectHttpResponse(const HttpRequest &, const std::string &redirectUrl);
 
 Option<const Socket> findSocket(const int sd, const Sockets &sockets);
-std::pair<EventDatas, Strings> retrieveDatas(const KernelEvents &readEvents);
+EventDatas retrieveDatas(const Events &clientReadEvents);
 Events toEvents(const KernelEvents &kernelEvents, const Sockets &sockets);

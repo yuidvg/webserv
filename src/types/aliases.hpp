@@ -32,8 +32,7 @@ struct FirstBlock
 {
     const RequestLine requestLine;
     const Headers headers;
-    FirstBlock(const RequestLine requestLine, const Headers headers)
-        : requestLine(requestLine), headers(headers){};
+    FirstBlock(const RequestLine requestLine, const Headers headers) : requestLine(requestLine), headers(headers){};
 };
 typedef Result<const RequestLine, const std::string> SplitRequestLineResult;
 typedef Result<const RequestLine, const std::string> ParseRequestLineResult;
@@ -90,7 +89,9 @@ typedef Result<const HttpResponse, const std::string> HttpResponseResult;
 typedef Either<HttpRequest, HttpResponse> HttpMessage;
 
 typedef std::map<const int, const HttpRequest> CgiHttpRequests;
-typedef std::queue<const CgiResponse> CgiResponses;
+typedef std::vector<const CgiResponse> CgiResponses;
+
+typedef std::vector<const HttpRequest> HttpRequests;
 
 typedef Either<CgiRequest, HttpResponse> CgiRequestOrHttpResponse;
 
@@ -103,3 +104,6 @@ typedef std::pair<const Socket, const std::string> SocketError;
 typedef std::vector<const SocketError> SocketErrors;
 
 typedef std::vector<const Event> Events;
+
+typedef std::vector<const HttpResponse> HttpResponses;
+typedef std::vector<const CgiRequest> CgiRequests;

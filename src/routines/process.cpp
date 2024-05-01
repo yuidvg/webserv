@@ -4,12 +4,12 @@ void processHttpMessageFromCgi(const HttpMessage &httpMessage)
 {
     if (httpMessage.tag == LEFT)
     {
-        HTTP_REQUESTS.push(httpMessage.leftValue);
+        httpRequests.push(httpMessage.leftValue);
     }
     else
     {
         const HttpResponse httpResponse = httpMessage.rightValue;
-        appendOutbound(httpResponse.destinationSd, stringify(httpResponse));
+        appendOutbound(httpResponse.destinationSocket, stringify(httpResponse));
     }
 }
 
@@ -23,12 +23,12 @@ void processCgiMessage(const ConnectedUnixSocket &socket, const std::string mess
         if (httpMessageFromCgiResponse.tag == LEFT)
         {
             const HttpRequest &httpRequest = httpMessageFromCgiResponse.leftValue;
-            HTTP_REQUESTS.push(httpRequest);
+            httpRequests.push(httpRequest);
         }
         else
         {
             const HttpResponse &httpResponse = httpMessageFromCgiResponse.rightValue;
-            appendOutbound(httpResponse.destinationSd, stringify(httpResponse));
+            appendOutbound(httpResponse.destinationSocket, stringify(httpResponse));
         }
     }
     else
@@ -37,22 +37,22 @@ void processCgiMessage(const ConnectedUnixSocket &socket, const std::string mess
     }
 }
 
-void processHttpRequests()
+std::pair<const HttpResponses, const CgiRequests> processHttpRequests(const HttpRequests &httpRequests)
 {
-    while (!HTTP_REQUESTS.empty())
+    HttpResponses httpResponses;
+    CgiRequests cgiRequests;
+    for (HttpRequests::const_iterator it = httpRequests.begin(); it != httpRequests.end(); ++it)
     {
-        const HttpRequest &httpRequest = HTTP_REQUESTS.front();
-        CgiRequestOrHttpResponse cgiRequestOrHttpResponse = processHttpRequest(httpRequest);
-        if (cgiRequestOrHttpResponse.tag == LEFT)
+        const HttpRequest &httpRequest = *it;
+        const CgiRequestOrHttpResponse cgiRequestOrHttpResponse = processHttpRequest(httpRequest);
+        if (cgiRequestOrHttpResponse.tag == RIGHT) // HttpResponse
         {
-            const CgiRequest &cgiRequest = cgiRequestOrHttpResponse.leftValue;
-            appendOutbound(cgiRequest.destinationSd, cgiRequest.body);
+            httpResponses.push_back(cgiRequestOrHttpResponse.rightValue);
         }
-        else
+        else // CgiRequest
         {
-            const HttpResponse &httpResponse = cgiRequestOrHttpResponse.rightValue;
-            appendOutbound(httpResponse.destinationSd, stringify(httpResponse));
+            cgiRequests.push_back(cgiRequestOrHttpResponse.leftValue);
         }
-        HTTP_REQUESTS.pop();
     }
+    return std::make_pair(httpResponses, cgiRequests);
 }

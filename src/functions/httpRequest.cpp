@@ -85,7 +85,7 @@ static ParseRequestLineResult parseHttpRequestLine(std::istringstream &requestTe
 }
 
 /*.Parse Header */
-//　のちのち、option型にする
+// 　のちのち、option型にする
 static ParseHeaderResult parseHeader(std::istringstream &requestTextStream)
 {
     // tellgで現在の位置を取得、その先からCRLFまでstringを取得する
@@ -131,7 +131,8 @@ static ParseFirstBlockResult parseFirstBlock(const Socket &socket, const std::st
         if (parseHeaderResult.status == PARSED)
         {
             if (parseHeaderResult.value.find("host") != parseHeaderResult.value.end())
-                return ParseFirstBlockResult::Success(FirstBlock(parseRequestLineResult.value, parseHeaderResult.value));
+                return ParseFirstBlockResult::Success(
+                    FirstBlock(parseRequestLineResult.value, parseHeaderResult.value));
             else
                 return ParseFirstBlockResult::Error(block);
         }
@@ -224,7 +225,7 @@ static ParseBodyResult parseBody(const std::string &body, const Headers &headers
             return ParseBodyResult::Error("Invalid body");
     }
     else
-            return ParseBodyResult::Error("Invalid header");
+        return ParseBodyResult::Error("Invalid header");
 }
 
 static std::string getHostName(const Headers &headers)
@@ -257,11 +258,11 @@ static EventDataOrParsedRequest parseHttpRequest(const Socket &socket, const std
             const RequestLine requestLine = parseFirstBlockResult.value.requestLine;
             const ParseBodyResult parseBodyResult =
                 parseBody(blocks[1], parseFirstBlockResult.value.headers,
-                              CONFIG.getServer(host, socket.clientPort).clientMaxBodySize);
+                          CONFIG.getServer(host, socket.clientPort).clientMaxBodySize);
             if (parseBodyResult.status == PARSED)
-                return EventDataOrParsedRequest::Right(HttpRequest(socket, host,
-                                                                  requestLine.method, requestLine.target,
-                                                                  parseFirstBlockResult.value.headers, parseBodyResult.value));
+                return EventDataOrParsedRequest::Right(HttpRequest(socket, host, requestLine.method, requestLine.target,
+                                                                   parseFirstBlockResult.value.headers,
+                                                                   parseBodyResult.value));
             else if (parseBodyResult.status == PENDING)
                 return EventDataOrParsedRequest::Left(EventData(socket, request));
             else
@@ -300,10 +301,10 @@ static std::vector<std::string> splitHttpRequests(const EventData &eventData)
     return httpRequests;
 }
 
-HttpRequestsAndEventDatas parseHttpRequests(const EventDatas &httpRequestEventDatas)
+std::pair<HttpRequests, EventDatas> parseHttpRequests(const EventDatas &httpRequestEventDatas)
 {
-    std::queue<const HttpRequest> httpRequests;
-    std::queue<const EventData> eventDatas;
+    HttpRequests httpRequests;
+    EventDatas eventDatas;
     for (size_t i = 0; i < httpRequestEventDatas.size(); i++)
     {
         const std::vector<std::string> Requests = splitHttpRequests(httpRequestEventDatas[i]);
@@ -312,10 +313,10 @@ HttpRequestsAndEventDatas parseHttpRequests(const EventDatas &httpRequestEventDa
             const EventDataOrParsedRequest parseHttpRequestResult =
                 parseHttpRequest(httpRequestEventDatas[i].socket, Requests[j]);
             if (parseHttpRequestResult.tag == LEFT)
-                eventDatas.push(parseHttpRequestResult.leftValue);
+                eventDatas.push_back(parseHttpRequestResult.leftValue);
             else
-                httpRequests.push(parseHttpRequestResult.rightValue);
+                httpRequests.push_back(parseHttpRequestResult.rightValue);
         }
     }
-    return HttpRequestsAndEventDatas(httpRequests, eventDatas);
+    return std::make_pair(httpRequests, eventDatas);
 }
