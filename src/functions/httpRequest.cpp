@@ -121,7 +121,7 @@ static ParseHeaderResult parseHeader(std::istringstream &requestTextStream)
 
 /* Parse FirstBlock */
 
-static ParseFirstBlockResult parseFirstBlock(const Socket &socket, const std::string &block)
+static ParseFirstBlockResult parseFirstBlock(const std::string &block)
 {
     std::istringstream requestTextStream(block);
     const ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(requestTextStream);
@@ -249,7 +249,7 @@ static std::vector<std::string> splitBlocks(const std::string &requests)
 static EventDataOrParsedRequest parseHttpRequest(const Socket &socket, const std::string &request)
 {
     const std::vector<std::string> blocks = splitBlocks(request);
-    const ParseFirstBlockResult parseFirstBlockResult = parseFirstBlock(socket, blocks[0]);
+    const ParseFirstBlockResult parseFirstBlockResult = parseFirstBlock(blocks[0]);
     if (parseFirstBlockResult.status == PARSED)
     {
         const std::string host = getHostName(parseFirstBlockResult.value.headers);

@@ -20,7 +20,7 @@ bool isLocalRedirectResponse(const CgiResponse &cgiResponse)
 
 HttpRequest processLocalRedirectResponse(const CgiResponse &cgiResponse)
 {
-    const HttpRequest &httpRequest = getHttpRequest(cgiResponse.cgiSocket);
+    const HttpRequest &httpRequest = getHttpRequest(cgiResponse.cgiSocket.descriptor);
     return HttpRequest(httpRequest.socket, httpRequest.host, httpRequest.method, cgiResponse.location,
                        httpRequest.headers, httpRequest.body);
 }
@@ -33,7 +33,7 @@ bool isClientRedirectResponse(const CgiResponse &cgiResponse)
 }
 HttpResponse processClientRedirectResponse(const CgiResponse &cgiResponse)
 {
-    const HttpRequest &httpRequest = getHttpRequest(cgiResponse.cgiSocket);
+    const HttpRequest &httpRequest = getHttpRequest(cgiResponse.cgiSocket.descriptor);
     return HttpResponse(httpRequest.socket.descriptor, 302, "", "", cgiResponse.location);
 }
 
@@ -44,7 +44,7 @@ bool isClientRedirectWithDocumentResponse(const CgiResponse &cgiResponse)
 }
 HttpResponse processClientRedirectWithDocumentResponse(const CgiResponse &cgiResponse)
 {
-    const HttpRequest &httpRequest = getHttpRequest(cgiResponse.cgiSocket);
+    const HttpRequest &httpRequest = getHttpRequest(cgiResponse.cgiSocket.descriptor);
     return HttpResponse(httpRequest.socket.descriptor, cgiResponse.status, cgiResponse.body, cgiResponse.contentType,
                         cgiResponse.location);
 }
@@ -70,6 +70,26 @@ HttpMessage processCgiResponse(const CgiResponse &cgiResponse)
     }
     else
     {
-        return HttpMessage::Right(getErrorHttpResponse(getHttpRequest(cgiResponse.cgiSocket), SERVER_ERROR));
+        return HttpMessage::Right(getErrorHttpResponse(getHttpRequest(cgiResponse.cgiSocket.descriptor), SERVER_ERROR));
     }
+}
+
+std::pair<const HttpResponses, const HttpRequests> processCgiResponses(const CgiResponses &cgiResponses)
+{
+    HttpResponses httpResponses;
+    HttpRequests httpRequests;
+    for (CgiResponses::const_iterator it = cgiResponses.begin(); it != cgiResponses.end(); ++it)
+    {
+        const CgiResponse &cgiResponse = *it;
+        const HttpMessage httpMessage = processCgiResponse(cgiResponse);
+        if (httpMessage.tag == RIGHT)
+        {
+            httpResponses.push_back(httpMessage.rightValue);
+        }
+        else // LEFT
+        {
+            httpRequests.push_back(httpMessage.leftValue);
+        }
+    }
+    return std::make_pair(httpResponses, httpRequests);
 }

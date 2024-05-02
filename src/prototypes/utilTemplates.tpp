@@ -25,7 +25,7 @@ template <typename T> bool contains(T &needle, const std::vector<T> &haystack)
     return std::find(haystack.begin(), haystack.end(), needle) != haystack.end();
 }
 
-template <typename T> std::vector<T> combined(const std::vector<T> &a, const std::vector<T> &b)
+template <typename T> std::vector<T> concat(const std::vector<T> &a, const std::vector<T> &b)
 {
     std::vector<T> combined;
     for (typename std::vector<T>::const_iterator it = a.begin(); it != a.end(); ++it)
@@ -39,7 +39,7 @@ template <typename T> std::vector<T> combined(const std::vector<T> &a, const std
     return combined;
 }
 
-template <typename T> std::vector<T> excluded(const std::vector<T> haystack, const T needle)
+template <typename T> std::vector<T> exclude(const std::vector<T> haystack, const T needle)
 {
     std::vector<T> excluded;
     for (typename std::vector<T>::const_iterator it = haystack.begin(); it != haystack.end(); ++it)

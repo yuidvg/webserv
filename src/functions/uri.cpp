@@ -20,7 +20,7 @@ std::string::size_type findScriptExtensionPos(const std::string &target, const s
 Uri segment(const HttpRequest &httpRequest)
 {
     const Location location =
-        CONFIG.getServer(httpRequest.host, httpRequest.serverPort).getLocation(httpRequest.target);
+        CONFIG.getServer(httpRequest.host, httpRequest.socket.serverPort).getLocation(httpRequest.target);
     const std::string::size_type scriptExtensionPos = findScriptExtensionPos(httpRequest.target, location.cgiExtension);
     const std::string scriptPath = httpRequest.target.substr(0, scriptExtensionPos + location.cgiExtension.size());
     const std::string rest = httpRequest.target.substr(scriptExtensionPos + location.cgiExtension.size());

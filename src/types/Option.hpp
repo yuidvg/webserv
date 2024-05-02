@@ -29,7 +29,7 @@ template <typename T> class Option
     {
         return isSome;
     }
-    T &operator*() const
+    T const &operator*() const
     {
         return value;
     }

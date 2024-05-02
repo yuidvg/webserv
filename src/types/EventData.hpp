@@ -1,5 +1,9 @@
 #pragma once
+#include "CgiRequest.hpp"
+#include "HttpResponse.hpp"
 #include "external.hpp"
+
+std::string stringify(const HttpResponse &);
 
 struct EventData
 {
@@ -10,6 +14,12 @@ struct EventData
     {
     }
     ~EventData()
+    {
+    }
+    EventData(const HttpResponse &httpResponse) : socket(httpResponse.destinationSocket), data(stringify(httpResponse))
+    {
+    }
+    EventData(const CgiRequest &cgiRequest) : socket(cgiRequest.cgiSocket), data(cgiRequest.body)
     {
     }
     EventData(const Socket &socket, const std::string &data) : socket(socket), data(data)

@@ -25,3 +25,7 @@ HttpResponse getRedirectHttpResponse(const HttpRequest &, const std::string &red
 Option<const Socket> findSocket(const int sd, const Sockets &sockets);
 EventDatas retrieveDatas(const Events &clientReadEvents);
 Events toEvents(const KernelEvents &kernelEvents, const Sockets &sockets);
+
+// process
+std::pair<const HttpResponses, const CgiRequests> processHttpRequests(const HttpRequests &httpRequests);
+std::pair<const HttpResponses, const HttpRequests> processCgiResponses(const CgiResponses &cgiResponses);

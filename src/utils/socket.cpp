@@ -87,7 +87,6 @@ SocketResult newClientSocket(const Socket &listenSocket)
         if (utils::registerEvent(newSd, EVFILT_READ) && utils::registerEvent(newSd, EVFILT_WRITE) &&
             utils::setEventFlags(newSd, EVFILT_WRITE, EV_DISABLE))
         {
-            addSocketBuffer(newSd);
             return SocketResult::Success(Socket(newSd, CLIENT, listenSocket.serverPort, ntohs(clientAddr.sin_port),
                                                 std::string(inet_ntoa(clientAddr.sin_addr)), 0));
         }
