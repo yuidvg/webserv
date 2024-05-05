@@ -27,34 +27,43 @@ EventDatas retrieveDatas(const Events &clientReadEvents)
     return eventDatas;
 }
 
-EventDatas unifyData(EventDatas eventDatas)
+EventDatas removeDuplicates(EventDatas eventDatas)
 {
-    EventDatas unifiedEventDatas;
-    while (!eventDatas.empty())
+    EventDatas uniqueEventDatas;
+    for (EventDatas::const_iterator it = eventDatas.begin(); it != eventDatas.end(); ++it)
     {
-        EventDatas::iterator it = eventDatas.begin();
         const EventData &eventData = *it;
-        EventDatas::iterator it2 = it;
-        ++it2;
-        while (it2 != eventDatas.end())
+        bool isUnique = true;
+        for (EventDatas::const_iterator it2 = uniqueEventDatas.begin(); it2 != uniqueEventDatas.end(); ++it2)
         {
-            const EventData &eventData2 = *it2;
-            if (eventData.socket == eventData2.socket)
+            const EventData &uniqueEventData = *it2;
+            if (eventData.socket.descriptor == uniqueEventData.socket.descriptor)
             {
-                const std::string unifiedData = eventData.data + eventData2.data;
-                const EventData unifiedEventData(eventData.socket, unifiedData);
-                if (unifiedEventData.data.size() > 0)
-                {
-                    unifiedEventDatas.push_back(unifiedEventData);
-                }
-                eventDatas.erase(it);
-                eventDatas.erase(it2);
+                isUnique = false;
                 break;
             }
-            ++it2;
+        }
+        if (isUnique)
+        {
+            uniqueEventDatas.push_back(eventData);
         }
     }
-    return unifiedEventDatas;
+    return uniqueEventDatas;
+}
+
+EventDatas unifyData(EventDatas eventDatas)
+{
+    std::map<int, std::string> unifiedEventDatas;
+    for (EventDatas::const_iterator it = eventDatas.begin(); it != eventDatas.end(); ++it)
+    {
+        unifiedEventDatas[(*it).socket.descriptor] += (*it).data;
+    }
+    EventDatas result;
+    for (std::map<int, std::string>::const_iterator it = unifiedEventDatas.begin(); it != unifiedEventDatas.end(); ++it)
+    {
+        result.push_back(EventData(Socket(it->first), it->second));
+    }
+    return result;
 }
 
 Option<EventData> findEventData(const int fd, const EventDatas &eventDatas)
