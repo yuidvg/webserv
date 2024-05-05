@@ -189,10 +189,9 @@ static UnchunkBodyResult unchunkBody(const std::string &body, const size_t maxBo
     }
 }
 
-static ParseBodyResult parseBody(const std::string &body, const Headers &headers, const size_t maxBodySize)
+static ParseBodyResult parseBody(const std::string &bodyBlock, const Headers &headers, const size_t maxBodySize)
 {
-    std::string line;
-
+    const std::string body = utils::split(bodyBlock, CRLF + CRLF)[0];
     if (headers.find("transfer-encoding") != headers.end())
     {
         if (headers.at("transfer-encoding") == "chunked" && body.length() <= maxBodySize)
