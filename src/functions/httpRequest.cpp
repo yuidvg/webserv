@@ -34,15 +34,15 @@ bool validateAndDecodeTarget(std::string &target)
     return true;
 }
 
-static SplitRequestLineResult splitRequestLine(std::istringstream &requestTextStream)
+static SplitRequestLineResult splitRequestLine(std::string &requestLine)
 {
     std::string method, target, version;
-    std::string line;
+    std::istringstream requestLineStream(requestLine);
 
-    if (!requestTextStream.eof() && !isLineTooLong(line))
+    if (!requestLineStream.eof() && !isLineTooLong(requestLine))
     {
-        std::istringstream requestLine(line);
-        if ((requestLine >> method >> target >> version) && requestLine.eof() && validateAndDecodeTarget(target))
+        if ((requestLineStream >> method >> target >> version) && requestLineStream.eof() &&
+            validateAndDecodeTarget(target))
             return SplitRequestLineResult::Success(RequestLine(method, target, version));
         else
             return SplitRequestLineResult::Error("Invalid Request Line");
@@ -63,16 +63,9 @@ static bool isValidRequestLine(const RequestLine requestLine)
     return true;
 }
 
-static ParseRequestLineResult parseHttpRequestLine(std::istringstream &requestTextStream)
+static ParseRequestLineResult parseHttpRequestLine(std::string &firstLine)
 {
-    // 最初に空行がある場合は読み飛ばす
-    std::string firstLine = utils::getlineCustom(requestTextStream);
-    while (firstLine.empty() && !requestTextStream.eof())
-        firstLine = utils::getlineCustom(requestTextStream);
-    if (!firstLine.empty())
-        requestTextStream.seekg(0);
-
-    const SplitRequestLineResult splitRequestLineResult = splitRequestLine(requestTextStream);
+    const SplitRequestLineResult splitRequestLineResult = splitRequestLine(firstLine);
     if (splitRequestLineResult.success)
     {
         if (isValidRequestLine(splitRequestLineResult.value))
@@ -124,7 +117,12 @@ static ParseHeaderResult parseHeader(std::istringstream &requestTextStream)
 static ParseFirstBlockResult parseFirstBlock(const std::string &block)
 {
     std::istringstream requestTextStream(block);
-    const ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(requestTextStream);
+    // 最初に空行がある場合は読み飛ばす
+    std::string firstLine = utils::getlineCustom(requestTextStream);
+    while (firstLine.empty() && !requestTextStream.eof())
+        firstLine = utils::getlineCustom(requestTextStream);
+
+    const ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(firstLine);
     if (parseRequestLineResult.success)
     {
         const ParseHeaderResult parseHeaderResult = parseHeader(requestTextStream);
@@ -251,10 +249,10 @@ static EventDataOrParsedRequest parseHttpRequest(const Socket &socket, const std
     const ParseFirstBlockResult parseFirstBlockResult = parseFirstBlock(blocks[0]);
     if (parseFirstBlockResult.status == PARSED)
     {
+        const RequestLine requestLine = parseFirstBlockResult.value.requestLine;
         const std::string host = getHostName(parseFirstBlockResult.value.headers);
         if (!host.empty() && blocks.size() == 2 && blocks[0].find("POST") != std::string::npos)
         {
-            const RequestLine requestLine = parseFirstBlockResult.value.requestLine;
             const ParseBodyResult parseBodyResult =
                 parseBody(blocks[1], parseFirstBlockResult.value.headers,
                           CONFIG.getServer(host, socket.clientPort).clientMaxBodySize);
@@ -268,7 +266,8 @@ static EventDataOrParsedRequest parseHttpRequest(const Socket &socket, const std
                 return EventDataOrParsedRequest::Right(HttpRequest(socket));
         }
         else
-            return EventDataOrParsedRequest::Right(HttpRequest(socket));
+            return EventDataOrParsedRequest::Right(HttpRequest(socket, host, requestLine.method, requestLine.target,
+                                                               parseFirstBlockResult.value.headers, ""));
     }
     else if (parseFirstBlockResult.status == PENDING)
         return EventDataOrParsedRequest::Left(EventData(socket, request));
