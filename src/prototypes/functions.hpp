@@ -11,7 +11,7 @@ Uri segment(const HttpRequest &);
 Option<Socket> createCgiProcess(const StringMap &envs, const std::string &scriptPath);
 CgiResponses parseCgiResponses(const EventDatas &cgiResponseEventDatas);
 HttpMessage processCgiResponse(const CgiResponse &cgiResponse);
-CgiRequestOrHttpResponse processHttpRequest(const HttpRequest &);
+HttpResponseOrCgiRequestOrEventData processHttpRequest(const HttpRequest &httpRequest);
 
 std::string stringify(const HttpResponse &);
 
@@ -25,7 +25,8 @@ HttpResponse getRedirectHttpResponse(const HttpRequest &, const std::string &red
 Option<const Socket> findSocket(const int sd, const Sockets &sockets);
 EventDatas retrieveDatas(const Events &clientReadEvents);
 Events toEvents(const KernelEvents &kernelEvents, const Sockets &sockets);
-
+EventDatas unifyData(EventDatas eventDatas);
 // process
-std::pair<const HttpResponses, const CgiRequests> processHttpRequests(const HttpRequests &httpRequests);
+HttpResponses_CgiRequests_EventDatas processHttpRequests(const HttpRequests &httpRequests);
 std::pair<const HttpResponses, const HttpRequests> processCgiResponses(const CgiResponses &cgiResponses);
+Option<EventData> findEventData(const int fd, const EventDatas &eventDatas);

@@ -27,5 +27,45 @@ EventDatas retrieveDatas(const Events &clientReadEvents)
     return eventDatas;
 }
 
+EventDatas unifyData(EventDatas eventDatas)
+{
+    EventDatas unifiedEventDatas;
+    while (!eventDatas.empty())
+    {
+        EventDatas::iterator it = eventDatas.begin();
+        const EventData &eventData = *it;
+        EventDatas::iterator it2 = it;
+        ++it2;
+        while (it2 != eventDatas.end())
+        {
+            const EventData &eventData2 = *it2;
+            if (eventData.socket == eventData2.socket)
+            {
+                const std::string unifiedData = eventData.data + eventData2.data;
+                const EventData unifiedEventData(eventData.socket, unifiedData);
+                if (unifiedEventData.data.size() > 0)
+                {
+                    unifiedEventDatas.push_back(unifiedEventData);
+                }
+                eventDatas.erase(it);
+                eventDatas.erase(it2);
+                break;
+            }
+            ++it2;
+        }
+    }
+    return unifiedEventDatas;
+}
 
-EventDatas
+Option<EventData> findEventData(const int fd, const EventDatas &eventDatas)
+{
+    for (EventDatas::const_iterator it = eventDatas.begin(); it != eventDatas.end(); ++it)
+    {
+        const EventData &eventData = *it;
+        if (eventData.socket.descriptor == fd)
+        {
+            return Option<EventData>(eventData);
+        }
+    }
+    return Option<EventData>();
+}

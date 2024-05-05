@@ -28,9 +28,24 @@ bool isInitiateEvent(const Event &event)
     return event.socket.type == INITIATE;
 }
 
-bool isFileEvent(const Event &event)
+bool isFileEventData(const EventData &eventData)
 {
-    return event.socket.type == FILE_FD;
+    return eventData.socket.type == FILE_FD;
+}
+
+EventDatas filterEventOutboundDatas(const Events &writeEvents, const EventDatas &unifiedOutbounds)
+{
+    EventDatas toBeWrittenDatas;
+    for (Events::const_iterator it = writeEvents.begin(); it != writeEvents.end(); ++it)
+    {
+        const Event &event = *it;
+        const Option<EventData> &matchedEventData = findEventData(event.socket.descriptor, unifiedOutbounds);
+        if (matchedEventData)
+        {
+            toBeWrittenDatas.push_back(*matchedEventData);
+        }
+    }
+    return toBeWrittenDatas;
 }
 
 } // namespace
@@ -70,11 +85,11 @@ void eventLoop(Sockets sockets)
                 const Events clientReadEvents = utils::filter(readEvents, isClientEvent);
                 const EventDatas httpRequestDatas = retrieveDatas(clientReadEvents);
                 const std::pair<const HttpRequests, const EventDatas> httpRequests_danglings =
-                    parseHttpRequests(utils::concat(DANGLINGS, httpRequestDatas));
+                    parseHttpRequests(unifyData(utils::concat(DANGLINGS, httpRequestDatas)));
                 const HttpRequests httpRequests = httpRequests_danglings.first;
                 DANGLINGS.clear();
                 utils::appendVector(DANGLINGS, httpRequests_danglings.second);
-                const std::pair<const HttpResponses, const CgiRequests> httpResponses_cgiRequests =
+                const HttpResponses_CgiRequests_EventDatas httpResponses_cgiRequests =
                     processHttpRequests(utils::concat(httpRequests, localRedirectHttpRequests));
                 const EventDatas httpResponseEventDatas = toEventDatas(httpResponses_cgiRequests.first);
                 const EventDatas cgiRequestEventDatas = toEventDatas(httpResponses_cgiRequests.second);
@@ -82,12 +97,12 @@ void eventLoop(Sockets sockets)
                 utils::appendVector(OUTBOUNDS, cgiRequestEventDatas);
                 // WRITE
                 const Events writeEvents = utils::filter(events, isWriteEvent);
-                //  CLIENT
-                const Events clientWriteEvents = utils::filter(writeEvents, isClientEvent);
-                //  CGI
-                const Events cgiWriteEvents = utils::filter(writeEvents, isCgiEvent);
-                //  FILE
-                const Events fileWriteEvents = utils::filter(writeEvents, isFileEvent);
+                const EventDatas unifiedOutbounds = unifyData(OUTBOUNDS);
+                const EventDatas eventOutboundDatas = filterEventOutboundDatas(writeEvents, unifiedOutbounds);
+                const EventDatas fileOutboundDatas = utils::filter(eventOutboundDatas, isFileEventData);
+                const EventDatas nonFileOutboundDatas = utils::filter(eventOutboundDatas, !isFileEventData);
+                const EventDatas leftoverEventDatas = sendEventDatas(writeEvents, nonFileOutboundDatas);
+                const HttpResponses fileHttpResponses = writeFileEventDatas()
             }
         }
         catch (std::exception &e)

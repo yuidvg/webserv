@@ -1,21 +1,26 @@
 #include "../all.hpp"
 
-std::pair<const HttpResponses, const CgiRequests> processHttpRequests(const HttpRequests &httpRequests)
+HttpResponses_CgiRequests_EventDatas processHttpRequests(const HttpRequests &httpRequests)
 {
     HttpResponses httpResponses;
     CgiRequests cgiRequests;
+    EventDatas eventDatas;
     for (HttpRequests::const_iterator it = httpRequests.begin(); it != httpRequests.end(); ++it)
     {
         const HttpRequest &httpRequest = *it;
-        const CgiRequestOrHttpResponse cgiRequestOrHttpResponse = processHttpRequest(httpRequest);
-        if (cgiRequestOrHttpResponse.tag == RIGHT) // HttpResponse
+        const HttpResponseOrCgiRequestOrEventData httpResponseOrCgiRequestOrEventData = processHttpRequest(httpRequest);
+        if (httpResponseOrCgiRequestOrEventData.tag == TERNARY_FIRST) // HttpResponse
         {
-            httpResponses.push_back(cgiRequestOrHttpResponse.rightValue);
+            httpResponses.push_back(httpResponseOrCgiRequestOrEventData.first);
         }
-        else // CgiRequest
+        else if (httpResponseOrCgiRequestOrEventData.tag == TERNARY_SECOND) // CgiRequest
         {
-            cgiRequests.push_back(cgiRequestOrHttpResponse.leftValue);
+            cgiRequests.push_back(httpResponseOrCgiRequestOrEventData.second);
+        }
+        else
+        {
+            eventDatas.push_back(httpResponseOrCgiRequestOrEventData.third);
         }
     }
-    return std::make_pair(httpResponses, cgiRequests);
+    return std::make_pair(httpResponses, std::make_pair(cgiRequests, eventDatas));
 }

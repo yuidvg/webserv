@@ -306,11 +306,11 @@ std::pair<HttpRequests, EventDatas> parseHttpRequests(const EventDatas &httpRequ
     EventDatas eventDatas;
     for (size_t i = 0; i < httpRequestEventDatas.size(); i++)
     {
-        const std::vector<std::string> Requests = splitHttpRequests(httpRequestEventDatas[i]);
+        const std::vector<std::string> requests = splitHttpRequests(httpRequestEventDatas[i]);
         for (size_t j = 0; j < httpRequests.size(); j++)
         {
             const EventDataOrParsedRequest parseHttpRequestResult =
-                parseHttpRequest(httpRequestEventDatas[i].socket, Requests[j]);
+                parseHttpRequest(httpRequestEventDatas[i].socket, requests[j]);
             if (parseHttpRequestResult.tag == LEFT)
                 eventDatas.push_back(parseHttpRequestResult.leftValue);
             else

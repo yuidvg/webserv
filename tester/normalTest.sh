@@ -11,6 +11,7 @@ ORIGIN="http://${SERVER}:${PORT}"
 get_test=(
     "curl -X GET ${ORIGIN}/ 200"
     "curl -X GET ${ORIGIN}/nothing 400"
+    "curl -X GET http://${SERVER}:80/ 400"
 )
 
 # POST tests
@@ -21,6 +22,7 @@ post_test=(
     "curl -X POST ${ORIGIN}/upload/test1 -H 'Host: ${SERVER}' -H 'Content-Length: 11' -d \"Hello World\" 200"
     "curl -X POST ${ORIGIN}/upload/test2 -H 'Host: ${SERVER}' -H 'Content-Length: -9' -d \"123456789\" 400"
     "curl -X POST ${ORIGIN}/upload/test3 -H 'Host: ${SERVER}' -H 'Content-Length: 100' -d \"123456789\" 400"
+    "curl -X POST -d \"nickname=test\" http://${SERVER}:80/upload/test 400"
 )
 
 # DELETE tests

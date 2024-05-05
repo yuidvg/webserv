@@ -12,8 +12,8 @@ cgi_test=(
     "curl ${ORIGIN}/cgi-bin/helloWorld.cgi 200"
     "curl ${ORIGIN}/cgi-bin/redirAfterFiveSeconds.cgi 200"
     "curl ${ORIGIN}/cgi-bin/submit.cgi 200"
-    # "curl ${ORIGIN}/cgi-bin/remoteRedirect.cgi -L 302"
-    # "curl ${ORIGIN}/cgi-bin/localRedirect.cgi -L 302"
+    "curl ${ORIGIN}/cgi-bin/remoteRedirect.cgi -L 302"
+    "curl ${ORIGIN}/cgi-bin/localRedirect.cgi -L 302"
 )
 
 function run_and_check_curl_command() {

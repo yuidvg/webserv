@@ -95,7 +95,7 @@ typedef std::vector<const CgiResponse> CgiResponses;
 
 typedef std::vector<const HttpRequest> HttpRequests;
 
-typedef Either<CgiRequest, HttpResponse> CgiRequestOrHttpResponse;
+typedef Ternary<HttpResponse, CgiRequest, EventData> HttpResponseOrCgiRequestOrEventData;
 
 typedef std::map<const std::string, const std::string> StringMap;
 
@@ -109,3 +109,7 @@ typedef std::vector<const Event> Events;
 
 typedef std::vector<const HttpResponse> HttpResponses;
 typedef std::vector<const CgiRequest> CgiRequests;
+
+// clang-format off
+typedef std::pair<const HttpResponses, std::pair<const CgiRequests, const EventDatas> > HttpResponses_CgiRequests_EventDatas;
+// clang-format on

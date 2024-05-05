@@ -46,7 +46,7 @@ StringMap getCgiEnvs(const HttpRequest &httpRequest)
 
 } // namespace
 
-CgiRequestOrHttpResponse processHttpRequest(const HttpRequest &httpRequest)
+HttpResponseOrCgiRequestOrEventData processHttpRequest(const HttpRequest &httpRequest)
 {
     if (httpRequest.host.length() > 0)
     {
@@ -63,35 +63,36 @@ CgiRequestOrHttpResponse processHttpRequest(const HttpRequest &httpRequest)
                 Option<Socket> cgiSocket = createCgiProcess(cgiEnvs, rootedScriptPath);
                 if (cgiSocket)
                 {
-                    return CgiRequestOrHttpResponse::Left(
+                    return HttpResponseOrCgiRequestOrEventData::Second(
                         CgiRequest(*cgiSocket, httpRequest, cgiEnvs, rootedScriptPath, httpRequest.body));
                 }
                 else
-                    return CgiRequestOrHttpResponse::Right(getErrorHttpResponse(httpRequest, SERVER_ERROR));
+                    return HttpResponseOrCgiRequestOrEventData::First(getErrorHttpResponse(httpRequest, SERVER_ERROR));
             }
             else
             {
                 if (!location.redirect.empty())
-                    return CgiRequestOrHttpResponse::Right(getRedirectHttpResponse(httpRequest, location.redirect));
+                    return HttpResponseOrCgiRequestOrEventData::First(
+                        getRedirectHttpResponse(httpRequest, location.redirect));
                 else if (httpRequest.method == "GET")
-                    return CgiRequestOrHttpResponse::Right(conductGet(httpRequest, resolvedPath));
+                    return HttpResponseOrCgiRequestOrEventData::First(conductGet(httpRequest, resolvedPath));
                 else if (httpRequest.method == "POST")
-                    return CgiRequestOrHttpResponse::Right(conductPost(httpRequest));
+                    return HttpResponseOrCgiRequestOrEventData::First(conductPost(httpRequest));
                 else if (httpRequest.method == "DELETE")
-                    return CgiRequestOrHttpResponse::Right(conductDelete(httpRequest));
+                    return HttpResponseOrCgiRequestOrEventData::First(conductDelete(httpRequest));
                 else
-                    return CgiRequestOrHttpResponse::Right(
+                    return HttpResponseOrCgiRequestOrEventData::First(
                         getMethodNotAllowedResponse(httpRequest, "GET, POST, DELETE"));
             }
         }
         else
         {
-            return CgiRequestOrHttpResponse::Right(
+            return HttpResponseOrCgiRequestOrEventData::First(
                 getMethodNotAllowedResponse(httpRequest, utils::join(location.allowMethods, ", ")));
         }
     }
     else
     {
-        return CgiRequestOrHttpResponse::Right(getErrorHttpResponse(httpRequest, BAD_REQUEST));
+        return HttpResponseOrCgiRequestOrEventData::First(getErrorHttpResponse(httpRequest, BAD_REQUEST));
     }
 }

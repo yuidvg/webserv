@@ -17,3 +17,4 @@
 #include "ScriptUri.hpp"
 #include "Server.hpp"
 #include "Socket.hpp"
+#include "Ternary.hpp"
