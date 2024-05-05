@@ -26,3 +26,6 @@ EventDatas retrieveDatas(const Events &clientReadEvents)
     }
     return eventDatas;
 }
+
+
+EventDatas

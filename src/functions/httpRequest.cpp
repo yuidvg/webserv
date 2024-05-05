@@ -139,8 +139,7 @@ static ParseFirstBlockResult parseFirstBlock(const std::string &block)
         else if (parseHeaderResult.status == PENDING)
             return ParseFirstBlockResult::Pending();
     }
-    else
-        return ParseFirstBlockResult::Error(block);
+    return ParseFirstBlockResult::Error(block);
 }
 
 /* Parse Body */

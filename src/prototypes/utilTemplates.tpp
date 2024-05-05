@@ -78,13 +78,11 @@ template <typename T, typename Predicate> std::vector<T> filter(const std::vecto
     return result;
 }
 
-template <typename T> void appendQueue(std::queue<T> source, std::queue<T> &destination)
+template <typename T> void appendVector(std::vector<T> &destination, const std::vector<T> &source)
 {
-    // Push all elements from the source queue to the destination queue
-    while (!source.empty())
+    for (typename std::vector<T>::const_iterator it = source.begin(); it != source.end(); ++it)
     {
-        destination.push(source.front());
-        source.pop();
+        destination.push_back(*it);
     }
 }
 

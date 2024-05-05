@@ -51,10 +51,7 @@ Option<Socket> createCgiProcess(const StringMap &envs, const std::string &script
                 std::cerr << "execve failed: " << strerror(errno) << std::endl;
                 utils::deleteCStrArray(envp);
             }
-            while (true)
-            {
-                sleep(1);
-            }
+            std::exit(EXIT_FAILURE);
         }
         else // server process
         {

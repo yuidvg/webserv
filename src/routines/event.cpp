@@ -61,7 +61,7 @@ void eventLoop(Sockets sockets)
                 const HttpResponses httpResponses = httpResponses_httpRequests.first;
                 const HttpRequests localRedirectHttpRequests = httpResponses_httpRequests.second;
                 const EventDatas httpResponseDatas = toEventDatas(httpResponses);
-                OUTBOUNDS.insert(OUTBOUNDS.end(), httpResponseDatas.begin(), httpResponseDatas.end());
+                utils::appendVector(OUTBOUNDS, httpResponseDatas);
                 //  INITIATE
                 const Events initiateEvents = utils::filter(readEvents, isInitiateEvent);
                 const Sockets newClientSockets = utils::newClientSockets(initiateEvents);
@@ -72,14 +72,14 @@ void eventLoop(Sockets sockets)
                 const std::pair<const HttpRequests, const EventDatas> httpRequests_danglings =
                     parseHttpRequests(utils::concat(DANGLINGS, httpRequestDatas));
                 const HttpRequests httpRequests = httpRequests_danglings.first;
-                DANGLINGS.insert(DANGLINGS.end(), httpRequests_danglings.second.begin(),
-                                 httpRequests_danglings.second.end());
+                DANGLINGS.clear();
+                utils::appendVector(DANGLINGS, httpRequests_danglings.second);
                 const std::pair<const HttpResponses, const CgiRequests> httpResponses_cgiRequests =
                     processHttpRequests(utils::concat(httpRequests, localRedirectHttpRequests));
                 const EventDatas httpResponseEventDatas = toEventDatas(httpResponses_cgiRequests.first);
                 const EventDatas cgiRequestEventDatas = toEventDatas(httpResponses_cgiRequests.second);
-                OUTBOUNDS.insert(OUTBOUNDS.end(), httpResponseEventDatas.begin(), httpResponseEventDatas.end());
-                OUTBOUNDS.insert(OUTBOUNDS.end(), cgiRequestEventDatas.begin(), cgiRequestEventDatas.end());
+                utils::appendVector(OUTBOUNDS, httpResponseEventDatas);
+                utils::appendVector(OUTBOUNDS, cgiRequestEventDatas);
                 // WRITE
                 const Events writeEvents = utils::filter(events, isWriteEvent);
                 //  CLIENT

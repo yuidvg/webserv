@@ -25,6 +25,7 @@ struct RequestLine
     const std::string method;
     const std::string target;
     const std::string version;
+    RequestLine() : method(""), target(""), version(""){};
     RequestLine(const std::string method, const std::string target, const std::string version)
         : method(method), target(target), version(version){};
 };
@@ -32,6 +33,7 @@ struct FirstBlock
 {
     const RequestLine requestLine;
     const Headers headers;
+    FirstBlock() : requestLine(RequestLine("", "", "")), headers(Headers()){};
     FirstBlock(const RequestLine requestLine, const Headers headers) : requestLine(requestLine), headers(headers){};
 };
 typedef Result<const RequestLine, const std::string> SplitRequestLineResult;
