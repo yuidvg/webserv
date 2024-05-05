@@ -307,14 +307,14 @@ std::pair<HttpRequests, EventDatas> parseHttpRequests(const EventDatas &httpRequ
     for (size_t i = 0; i < httpRequestEventDatas.size(); i++)
     {
         const std::vector<std::string> requests = splitHttpRequests(httpRequestEventDatas[i]);
-        for (size_t j = 0; j < httpRequests.size(); j++)
+        for (size_t j = 0; j < requests.size(); j++)
         {
-            const EventDataOrParsedRequest parseHttpRequestResult =
+            const EventDataOrParsedRequest eventDataOrParsedRequest =
                 parseHttpRequest(httpRequestEventDatas[i].socket, requests[j]);
-            if (parseHttpRequestResult.tag == LEFT)
-                eventDatas.push_back(parseHttpRequestResult.leftValue);
+            if (eventDataOrParsedRequest.tag == LEFT)
+                eventDatas.push_back(eventDataOrParsedRequest.leftValue);
             else
-                httpRequests.push_back(parseHttpRequestResult.rightValue);
+                httpRequests.push_back(eventDataOrParsedRequest.rightValue);
         }
     }
     return std::make_pair(httpRequests, eventDatas);

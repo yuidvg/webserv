@@ -17,7 +17,7 @@ HttpResponses_CgiRequests_EventDatas processHttpRequests(const HttpRequests &htt
         {
             cgiRequests.push_back(httpResponseOrCgiRequestOrEventData.second);
         }
-        else
+        else // EventData(=outboundToFile)
         {
             eventDatas.push_back(httpResponseOrCgiRequestOrEventData.third);
         }

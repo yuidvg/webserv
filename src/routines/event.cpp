@@ -66,6 +66,9 @@ void eventLoop(Sockets sockets)
         try
         {
             std::cout << "waiting for events..." << std::endl;
+            // Set Write KEvents Availability
+            for (EventDatas::const_iterator it = OUTBOUNDS.begin(); it != OUTBOUNDS.end(); ++it)
+                utils::setEventFlags((*it).socket.descriptor, EVFILT_WRITE, EV_ENABLE);
             const int numOfEvents = kevent(KQ, NULL, 0, eventList, EVENT_BATCH_SIZE, NULL);
             if (numOfEvents != -1)
             {
@@ -103,6 +106,7 @@ void eventLoop(Sockets sockets)
                 utils::appendVector(OUTBOUNDS, httpResponseEventDatas);
                 utils::appendVector(OUTBOUNDS, cgiRequestEventDatas);
                 utils::appendVector(OUTBOUNDS, writeToFileEventDatas);
+                OUTBOUNDS = unifyData(OUTBOUNDS);
                 // WRITE
                 const Events writeEvents = utils::filter(events, isWriteEvent);
                 const EventDatas unifiedOutbounds = unifyData(OUTBOUNDS);
