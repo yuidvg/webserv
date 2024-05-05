@@ -77,7 +77,13 @@ HttpResponseOrCgiRequestOrEventData processHttpRequest(const HttpRequest &httpRe
                 else if (httpRequest.method == "GET")
                     return HttpResponseOrCgiRequestOrEventData::First(conductGet(httpRequest, resolvedPath));
                 else if (httpRequest.method == "POST")
-                    return HttpResponseOrCgiRequestOrEventData::First(conductPost(httpRequest));
+                {
+                    const HttpResponseOrEventData httpResponseOrEventData = conductPost(httpRequest);
+                    if (httpResponseOrEventData.tag == LEFT)
+                        return HttpResponseOrCgiRequestOrEventData::First(httpResponseOrEventData.leftValue);
+                    else
+                        return HttpResponseOrCgiRequestOrEventData::Third(httpResponseOrEventData.rightValue);
+                }
                 else if (httpRequest.method == "DELETE")
                     return HttpResponseOrCgiRequestOrEventData::First(conductDelete(httpRequest));
                 else

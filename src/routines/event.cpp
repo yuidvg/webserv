@@ -33,6 +33,11 @@ bool isFileEventData(const EventData &eventData)
     return eventData.socket.type == FILE_FD;
 }
 
+bool isNotFileEventData(const EventData &eventData)
+{
+    return eventData.socket.type != FILE_FD;
+}
+
 EventDatas filterEventOutboundDatas(const Events &writeEvents, const EventDatas &unifiedOutbounds)
 {
     EventDatas toBeWrittenDatas;
@@ -89,20 +94,23 @@ void eventLoop(Sockets sockets)
                 const HttpRequests httpRequests = httpRequests_danglings.first;
                 DANGLINGS.clear();
                 utils::appendVector(DANGLINGS, httpRequests_danglings.second);
-                const HttpResponses_CgiRequests_EventDatas httpResponses_cgiRequests =
+                const HttpResponses_CgiRequests_EventDatas httpResponses_cgiRequests_eventDatas =
                     processHttpRequests(utils::concat(httpRequests, localRedirectHttpRequests));
-                const EventDatas httpResponseEventDatas = toEventDatas(httpResponses_cgiRequests.first);
-                const EventDatas cgiRequestEventDatas = toEventDatas(httpResponses_cgiRequests.second);
+                const EventDatas &httpResponseEventDatas = toEventDatas(httpResponses_cgiRequests_eventDatas.first);
+                const EventDatas &cgiRequestEventDatas =
+                    toEventDatas(httpResponses_cgiRequests_eventDatas.second.first);
+                const EventDatas &writeToFileEventDatas = httpResponses_cgiRequests_eventDatas.second.second;
                 utils::appendVector(OUTBOUNDS, httpResponseEventDatas);
                 utils::appendVector(OUTBOUNDS, cgiRequestEventDatas);
+                utils::appendVector(OUTBOUNDS, writeToFileEventDatas);
                 // WRITE
                 const Events writeEvents = utils::filter(events, isWriteEvent);
                 const EventDatas unifiedOutbounds = unifyData(OUTBOUNDS);
                 const EventDatas eventOutboundDatas = filterEventOutboundDatas(writeEvents, unifiedOutbounds);
                 const EventDatas fileOutboundDatas = utils::filter(eventOutboundDatas, isFileEventData);
-                const EventDatas nonFileOutboundDatas = utils::filter(eventOutboundDatas, !isFileEventData);
+                const EventDatas nonFileOutboundDatas = utils::filter(eventOutboundDatas, isNotFileEventData);
                 const EventDatas leftoverEventDatas = sendEventDatas(writeEvents, nonFileOutboundDatas);
-                const HttpResponses fileHttpResponses = writeFileEventDatas()
+                const HttpResponses fileHttpResponses = writeEventDatas(fileOutboundDatas);
             }
         }
         catch (std::exception &e)

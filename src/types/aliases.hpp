@@ -17,7 +17,7 @@ typedef Result<const Server, const std::string> ParseServerResult;
 typedef Result<const Location, const std::string> ParseLocationResult;
 typedef Result<const std::string, const std::string> StringResult;
 
-typedef std::vector<const EventData> EventDatas;
+typedef std::vector<EventData> EventDatas;
 
 // http
 struct RequestLine
@@ -43,6 +43,7 @@ typedef ParseResult<const std::string, const std::string> ParseBodyResult;
 typedef ParseResult<const std::string, const std::string> UnchunkBodyResult;
 typedef ParseResult<const FirstBlock, const std::string> ParseFirstBlockResult;
 typedef Either<const EventData, const HttpRequest> EventDataOrParsedRequest;
+typedef Either<const HttpResponse, const EventData> HttpResponseOrEventData;
 
 // autoindex
 typedef Result<const std::string, const StatusCode> DirectoryListHtmlResult;

@@ -2,7 +2,7 @@
 #include "../types/EventData.hpp"
 #include "../types/external.hpp"
 
-typedef std::vector<const EventData> EventDatas;
+typedef std::vector<EventData> EventDatas;
 
 template <typename T> EventDatas toEventDatas(const std::vector<T> &ts)
 {

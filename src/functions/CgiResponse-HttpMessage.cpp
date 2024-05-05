@@ -10,7 +10,8 @@ bool isDocumentResponse(const CgiResponse &cgiResponse)
 HttpResponse processDocumentResponse(const CgiResponse &cgiResponse)
 {
     return HttpResponse(cgiResponse.httpRequest.socket.descriptor,
-                        utils::isStatusInRange(cgiResponse.status) ? cgiResponse.status : SUCCESS, cgiResponse.body);
+                                   utils::isStatusInRange(cgiResponse.status) ? cgiResponse.status : SUCCESS,
+                                   cgiResponse.body);
 }
 
 bool isLocalRedirectResponse(const CgiResponse &cgiResponse)
@@ -45,8 +46,8 @@ bool isClientRedirectWithDocumentResponse(const CgiResponse &cgiResponse)
 HttpResponse processClientRedirectWithDocumentResponse(const CgiResponse &cgiResponse)
 {
     const HttpRequest &httpRequest = getHttpRequest(cgiResponse.cgiSocket.descriptor);
-    return HttpResponse(httpRequest.socket.descriptor, cgiResponse.status, cgiResponse.body, cgiResponse.contentType,
-                        cgiResponse.location);
+    return HttpResponse(httpRequest.socket.descriptor, cgiResponse.status, cgiResponse.body,
+                                   cgiResponse.contentType, cgiResponse.location);
 }
 } // namespace
 

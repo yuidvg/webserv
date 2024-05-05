@@ -7,23 +7,30 @@ HttpResponse getRedirectHttpResponse(const HttpRequest &httpRequest, const std::
 
 HttpResponse getErrorHttpResponse(const HttpRequest &httpRequest, const int statusCode)
 {
-    const std::string path = getServer(httpRequest).errorPages.at(statusCode);
-    const FileContentResult fileContentResult = utils::fileContent(path);
-    if (fileContentResult.success)
+    try
     {
-        // custom error page
-        return HttpResponse(httpRequest.socket.descriptor, statusCode, fileContentResult.value,
-                            utils::contentType(path));
+        const std::string path = getServer(httpRequest).errorPages.at(statusCode);
+        const FileContentResult fileContentResult = utils::fileContent(path);
+        if (fileContentResult.success)
+        {
+            // custom error page
+            return HttpResponse(httpRequest.socket.descriptor, statusCode, fileContentResult.value,
+                                utils::contentType(path));
+        }
+        else
+        {
+            // default error page
+            if (statusCode == SERVER_ERROR)
+                return HttpResponse(httpRequest.socket.descriptor, SERVER_ERROR, SERVER_ERROR_BODY, CONTENT_TYPE_HTML);
+            else if (statusCode == BAD_REQUEST)
+                return HttpResponse(httpRequest.socket.descriptor, BAD_REQUEST, BAD_REQUEST_BODY, CONTENT_TYPE_HTML);
+        }
+        return HttpResponse(httpRequest.socket.descriptor, statusCode, "", "");
     }
-    else
+    catch (const std::out_of_range &e)
     {
-        // default error page
-        if (statusCode == SERVER_ERROR)
-            return HttpResponse(httpRequest.socket.descriptor, SERVER_ERROR, SERVER_ERROR_BODY, CONTENT_TYPE_HTML);
-        else if (statusCode == BAD_REQUEST)
-            return HttpResponse(httpRequest.socket.descriptor, BAD_REQUEST, BAD_REQUEST_BODY, CONTENT_TYPE_HTML);
+        return HttpResponse(httpRequest.socket.descriptor, statusCode, "", "");
     }
-    return HttpResponse(httpRequest.socket.descriptor, statusCode, "", "");
 }
 
 std::string stringify(const HttpResponse &response)

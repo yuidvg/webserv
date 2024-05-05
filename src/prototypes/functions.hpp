@@ -18,7 +18,7 @@ std::string stringify(const HttpResponse &);
 // methods
 HttpResponse conductGet(const HttpRequest &httpRequest, const std::string &target);
 HttpResponse conductDelete(const HttpRequest &);
-HttpResponse conductPost(const HttpRequest &);
+HttpResponseOrEventData conductPost(const HttpRequest &);
 
 HttpResponse getRedirectHttpResponse(const HttpRequest &, const std::string &redirectUrl);
 

@@ -7,8 +7,8 @@ std::string stringify(const HttpResponse &);
 
 struct EventData
 {
-    const Socket socket;
-    const std::string data;
+    Socket socket;
+    std::string data;
 
     EventData() : socket(), data("")
     {
@@ -32,8 +32,8 @@ struct EventData
     {
         if (this != &other)
         {
-            const_cast<Socket &>(socket) = other.socket;
-            const_cast<std::string &>(data) = other.data;
+            socket = other.socket;
+            data = other.data;
         }
         return *this;
     }

@@ -32,6 +32,11 @@ template <typename F, typename S, typename T> struct Ternary
         return Ternary(ternary);
     }
 
+    Ternary(const TernaryTag tag, const F first, const S second, const T third)
+        : tag(tag), first(first), second(second), third(third)
+    {
+    }
+
     static Ternary<F, S, T> First(const F first)
     {
         return Ternary<F, S, T>(TERNARY_FIRST, first, S(), T());

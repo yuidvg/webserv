@@ -1,21 +1,22 @@
 #include "../all.hpp"
 
-HttpResponse conductPost(const HttpRequest &httpRequest)
+HttpResponseOrEventData conductPost(const HttpRequest &httpRequest)
 {
     const Location &location = getLocation(httpRequest);
     const std::string targetFilePath = utils::concatPath(location.uploadPath, httpRequest.target);
     if (utils::isDirectory(location.uploadPath))
     {
-    const std::string fileName = httpRequest.target.substr(httpRequest.target.find_last_of('/') + 1);
+        const std::string fileName = httpRequest.target.substr(httpRequest.target.find_last_of('/') + 1);
         const int fd = utils::createFile(fileName, location.uploadPath);
         if (fd >= 0)
         {
-            return HttpResponse(httpRequest.socket.descriptor, SUCCESS, "File upload", "text/plain");
+            const EventData eventData(fd, httpRequest.body);
+            return HttpResponseOrEventData::Right(eventData);
         }
         else
-            return getErrorHttpResponse(httpRequest, BAD_REQUEST);
+            return HttpResponseOrEventData::Left(HttpResponse(getErrorHttpResponse(httpRequest, BAD_REQUEST)));
     }
-    return getErrorHttpResponse(httpRequest, BAD_REQUEST);
+    return HttpResponseOrEventData::Left(HttpResponse(getErrorHttpResponse(httpRequest, BAD_REQUEST)));
 }
 
 HttpResponse conductDelete(const HttpRequest &httpRequest)
@@ -42,17 +43,17 @@ HttpResponse conductGet(const HttpRequest &httpRequest, const std::string &targe
         if (location.autoindex)
         {
             const DirectoryListHtmlResult directoryListHtmlResult = directoryListHtml(target);
-            return directoryListHtmlResult.success
-                       ? HttpResponse(httpRequest.socket.descriptor, SUCCESS, directoryListHtmlResult.value, "text/html")
-                       : getErrorHttpResponse(httpRequest, BAD_REQUEST);
+            return directoryListHtmlResult.success ? HttpResponse(httpRequest.socket.descriptor, SUCCESS,
+                                                                  directoryListHtmlResult.value, "text/html")
+                                                   : getErrorHttpResponse(httpRequest, BAD_REQUEST);
         }
         else if (location.index.size() > 0)
         {
             const std::string indexPath = target + '/' + location.index;
             const FileContentResult fileContentResult = utils::fileContent(indexPath);
-            return fileContentResult.success
-                       ? HttpResponse(httpRequest.socket.descriptor, SUCCESS, fileContentResult.value, utils::contentType(indexPath))
-                       : getErrorHttpResponse(httpRequest, BAD_REQUEST);
+            return fileContentResult.success ? HttpResponse(httpRequest.socket.descriptor, SUCCESS,
+                                                            fileContentResult.value, utils::contentType(indexPath))
+                                             : getErrorHttpResponse(httpRequest, BAD_REQUEST);
         }
         else
         {
@@ -62,8 +63,8 @@ HttpResponse conductGet(const HttpRequest &httpRequest, const std::string &targe
     else // when target is assumed to be a file.
     {
         const FileContentResult fileContentResult = utils::fileContent(target);
-        return fileContentResult.success
-                   ? HttpResponse(httpRequest.socket.descriptor, SUCCESS, fileContentResult.value, utils::contentType(target))
-                   : getErrorHttpResponse(httpRequest, BAD_REQUEST);
+        return fileContentResult.success ? HttpResponse(httpRequest.socket.descriptor, SUCCESS, fileContentResult.value,
+                                                        utils::contentType(target))
+                                         : getErrorHttpResponse(httpRequest, BAD_REQUEST);
     }
 }

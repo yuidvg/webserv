@@ -19,12 +19,27 @@ Option<EventData> sendEventData(intptr_t size, const EventData &eventData)
         else
         {
             close(eventData.socket.descriptor);
+            return Option<EventData>();
         }
     }
     else // writtenSize == 0 or writtenSize == -1
     {
         close(eventData.socket.descriptor);
         return Option<EventData>();
+    }
+}
+
+HttpResponse writeEventData(const EventData &eventData)
+{
+    const size_t writtenSize = write(eventData.socket.descriptor, eventData.data.c_str(), eventData.data.size());
+    if (writtenSize == eventData.data.size())
+    {
+        return HttpResponse(eventData.socket.descriptor, SUCCESS, eventData.data, "text/plain");
+    }
+    else
+    {
+        close(eventData.socket.descriptor);
+        return getErrorHttpResponse(HttpRequest(eventData.socket.descriptor), SERVER_ERROR);
     }
 }
 
@@ -47,4 +62,16 @@ EventDatas sendEventDatas(const Events &events, const EventDatas &unifiedDatas)
         }
     }
     return leftoverEventDatas;
+}
+
+HttpResponses writeEventDatas(const EventDatas &eventDatas)
+{
+    HttpResponses httpResponses;
+    for (EventDatas::const_iterator it = eventDatas.begin(); it != eventDatas.end(); ++it)
+    {
+        const EventData &eventData = *it;
+        const HttpResponse httpResponse = writeEventData(eventData);
+        httpResponses.push_back(httpResponse);
+    }
+    return httpResponses;
 }
