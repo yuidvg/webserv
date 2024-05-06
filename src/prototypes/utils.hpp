@@ -8,7 +8,7 @@ namespace utils
 unsigned int lengthOfPrefixMatch(const std::string string, const std::string pattern);
 
 // string
-std::string &trim(std::string &str);
+std::string trim(const std::string &str);
 std::string lowerCase(const std::string str);
 bool isNumber(const std::string str);
 std::string hexToUtf8Char(const std::string &hex);
