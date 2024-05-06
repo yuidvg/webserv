@@ -3,11 +3,10 @@
 namespace
 {
 
-Option<EventData> sendEventData(intptr_t size, const EventData &eventData)
+Option<EventData> sendEventData(const EventData &eventData)
 {
 
-    const intptr_t writtenSize = send(eventData.socket.descriptor, eventData.data.c_str(),
-                                      std::min(static_cast<size_t>(size), eventData.data.size()), 0);
+    const intptr_t writtenSize = send(eventData.socket.descriptor, eventData.data.c_str(), eventData.data.size(), 0);
     if (writtenSize > 0)
     {
         const std::string leftoverData = eventData.data.substr(writtenSize);
@@ -45,21 +44,15 @@ HttpResponse writeEventData(const EventData &eventData)
 
 } // namespace
 
-EventDatas sendEventDatas(const Events &events, const EventDatas &unifiedDatas)
+EventDatas sendEventDatas(const EventDatas &eventDatas)
 {
     EventDatas leftoverEventDatas;
-    for (Events::const_iterator it = events.begin(); it != events.end(); ++it)
+    for (EventDatas::const_iterator it = eventDatas.begin(); it != eventDatas.end(); ++it)
     {
-        const Event &event = *it;
-        const Option<EventData> &matchedEventData = findEventData(event.socket.descriptor, unifiedDatas);
-        if (matchedEventData)
-        {
-            const Option<EventData> leftoverEventData = sendEventData(event.size, (*matchedEventData));
-            if (leftoverEventData)
-            {
-                leftoverEventDatas.push_back(*leftoverEventData);
-            }
-        }
+        const EventData &eventData = *it;
+        Option<EventData> leftoverEventData = sendEventData(eventData);
+        if (leftoverEventData)
+            leftoverEventDatas.push_back(*leftoverEventData);
     }
     return leftoverEventDatas;
 }
