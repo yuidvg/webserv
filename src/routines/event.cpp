@@ -68,7 +68,8 @@ void eventLoop(Sockets sockets)
             std::cout << "waiting for events..." << std::endl;
             // Set Write KEvents Availability
             for (EventDatas::const_iterator it = OUTBOUNDS.begin(); it != OUTBOUNDS.end(); ++it)
-                utils::setEventFlags((*it).socket.descriptor, EVFILT_WRITE, EV_ENABLE);
+                if (utils::setEventFlags((*it).socket.descriptor, EVFILT_WRITE, EV_ENABLE) == false)
+                    OUTBOUNDS.erase(it);
             const int numOfEvents = kevent(KQ, NULL, 0, eventList, EVENT_BATCH_SIZE, NULL);
             if (numOfEvents != -1)
             {
@@ -109,8 +110,7 @@ void eventLoop(Sockets sockets)
                 OUTBOUNDS = unifyData(OUTBOUNDS);
                 // WRITE
                 const Events writeEvents = utils::filter(events, isWriteEvent);
-                const EventDatas unifiedOutbounds = unifyData(OUTBOUNDS);
-                const EventDatas eventOutboundDatas = filterEventOutboundDatas(writeEvents, unifiedOutbounds);
+                const EventDatas eventOutboundDatas = filterEventOutboundDatas(writeEvents, OUTBOUNDS);
                 const EventDatas fileOutboundDatas = utils::filter(eventOutboundDatas, isFileEventData);
                 const EventDatas nonFileOutboundDatas = utils::filter(eventOutboundDatas, isNotFileEventData);
                 const EventDatas leftoverEventDatas = sendEventDatas(writeEvents, nonFileOutboundDatas);
