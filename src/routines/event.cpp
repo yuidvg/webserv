@@ -52,9 +52,7 @@ EventDatas filterEventOutboundDatas(const Events &writeEvents, const EventDatas 
     }
     return toBeWrittenDatas;
 }
-
 } // namespace
-
 void eventLoop(Sockets sockets)
 {
     struct kevent eventList[EVENT_BATCH_SIZE];
@@ -68,8 +66,12 @@ void eventLoop(Sockets sockets)
             std::cout << "waiting for events..." << std::endl;
             // Set Write KEvents Availability
             for (EventDatas::const_iterator it = OUTBOUNDS.begin(); it != OUTBOUNDS.end(); ++it)
+            {
                 if (utils::setEventFlags((*it).socket.descriptor, EVFILT_WRITE, EV_ENABLE) == false)
+                {
                     OUTBOUNDS.erase(it);
+                }
+            }
             const int numOfEvents = kevent(KQ, NULL, 0, eventList, EVENT_BATCH_SIZE, NULL);
             if (numOfEvents != -1)
             {
@@ -111,10 +113,14 @@ void eventLoop(Sockets sockets)
                 // WRITE
                 const Events writeEvents = utils::filter(events, isWriteEvent);
                 const EventDatas eventOutboundDatas = filterEventOutboundDatas(writeEvents, OUTBOUNDS);
-                const EventDatas fileOutboundDatas = utils::filter(eventOutboundDatas, isFileEventData);
+                OUTBOUNDS = utils::exclude(OUTBOUNDS, eventOutboundDatas);
                 const EventDatas nonFileOutboundDatas = utils::filter(eventOutboundDatas, isNotFileEventData);
-                const EventDatas leftoverEventDatas = sendEventDatas(writeEvents, nonFileOutboundDatas);
+                const EventDatas leftoverEventDatas = sendEventDatas(nonFileOutboundDatas);
+                const EventDatas fileOutboundDatas = utils::filter(eventOutboundDatas, isFileEventData);
                 const HttpResponses fileHttpResponses = writeEventDatas(fileOutboundDatas);
+                utils::appendVector(OUTBOUNDS, leftoverEventDatas);
+                utils::appendVector(OUTBOUNDS, toEventDatas(fileHttpResponses));
+                OUTBOUNDS = unifyData(OUTBOUNDS);
             }
         }
         catch (std::exception &e)
