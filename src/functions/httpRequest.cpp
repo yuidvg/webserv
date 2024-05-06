@@ -1,57 +1,15 @@
 #include "../all.hpp"
 
-static bool isLineTooLong(const std::string &line)
+namespace
+{
+bool isLineTooLong(const std::string &line)
 {
     if (line.length() > MAX_LEN)
         return true;
     else
         return false;
 }
-
-/* Parse RequestLine */
-
-bool validateAndDecodeTarget(std::string &target)
-{
-    std::string decodedTarget;
-    std::string::iterator it = target.begin();
-
-    while (it != target.end())
-    {
-        if (*it == '%')
-        {
-            if (it + 2 >= target.end() || !std::isxdigit(*(it + 1)) || !std::isxdigit(*(it + 2)))
-                return false;
-            decodedTarget += utils::hexToUtf8Char(target.substr(it - target.begin() + 1, 2));
-            it += 3;
-        }
-        else
-        {
-            decodedTarget += *it;
-            it++;
-        }
-    }
-    target = decodedTarget;
-    return true;
-}
-
-static SplitRequestLineResult splitRequestLine(std::istringstream &requestTextStream)
-{
-    std::string method, target, version;
-    std::string line;
-
-    if (!requestTextStream.eof() && !isLineTooLong(line))
-    {
-        std::istringstream requestLine(line);
-        if ((requestLine >> method >> target >> version) && requestLine.eof() && validateAndDecodeTarget(target))
-            return SplitRequestLineResult::Success(RequestLine(method, target, version));
-        else
-            return SplitRequestLineResult::Error("Invalid Request Line");
-    }
-    else
-        return SplitRequestLineResult::Error("Invalid Request Line");
-}
-
-static bool isValidRequestLine(const RequestLine requestLine)
+bool isValidRequestLine(const RequestLine requestLine)
 {
     if (requestLine.target.find(':') != std::string::npos &&
         requestLine.target.find('*') != std::string::npos) // CONNECT, OPTIONSは非対応
@@ -63,7 +21,7 @@ static bool isValidRequestLine(const RequestLine requestLine)
     return true;
 }
 
-static ParseRequestLineResult parseHttpRequestLine(std::istringstream &requestTextStream)
+ParseRequestLineResult parseHttpRequestLine(std::istringstream &requestTextStream)
 {
     // 最初に空行がある場合は読み飛ばす
     std::string firstLine = utils::getlineCustom(requestTextStream);
@@ -84,158 +42,24 @@ static ParseRequestLineResult parseHttpRequestLine(std::istringstream &requestTe
         return ParseRequestLineResult::Error(splitRequestLineResult.error);
 }
 
-/*.Parse Header */
-// 　のちのち、option型にする
-static ParseHeaderResult parseHeader(std::istringstream &requestTextStream)
+StringMap structureHeaders(std::string headersText)
 {
-    // tellgで現在の位置を取得、その先からCRLFまでstringを取得する
-    const std::streampos currentPos = requestTextStream.tellg();
-    const std::string requestStr = requestTextStream.str();
-    const std::size_t headerEndPos = requestStr.find("\r\n\r\n", currentPos);
-    const std::streampos endPos = (headerEndPos != std::string::npos) ? headerEndPos + 4 : requestStr.length();
-    const std::string headerText = requestStr.substr(currentPos, endPos - currentPos);
-
-    const std::vector<std::string> header = utils::split(headerText, CRLF);
-    if (header.size() == 0)
-        return ParseHeaderResult::Pending();
-    else
+    const Strings headerLines = utils::split(headersText, CRLF);
+    StringMap structuredHeader;
+    for (Strings::const_iterator it = headerLines.begin(); it != headerLines.end(); ++it)
     {
-        Headers headers;
-        for (std::vector<std::string>::const_iterator it = header.begin(); it != header.end(); ++it)
+        const std::string::size_type colonPos = it->find(": ");
+        if (colonPos != std::string::npos)
         {
-            const std::string::size_type pos = it->find(": ");
-            if (pos != std::string::npos)
-            {
-                std::string key = it->substr(0, pos);
-                std::string value = it->substr(pos + 1);
-                std::transform(key.begin(), key.end(), key.begin(), ::tolower); // headerのkeyは大文字小文字を区別しない
-                value = utils::trim(value);                                     // valueの前後の空白を削除
-                headers[key] = value;
-            }
-            else
-                return ParseHeaderResult::Success(Headers());
+            const std::string key = utils::lowerCase(it->substr(0, colonPos));
+            const std::string value = utils::trim(it->substr(colonPos + 1));
+            structuredHeader.insert(std::make_pair(key, value));
         }
-        return ParseHeaderResult::Success(headers);
     }
+    return structuredHeader;
 }
 
-/* Parse FirstBlock */
-
-static ParseFirstBlockResult parseFirstBlock(const std::string &block)
-{
-    std::istringstream requestTextStream(block);
-    const ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(requestTextStream);
-    if (parseRequestLineResult.success)
-    {
-        const ParseHeaderResult parseHeaderResult = parseHeader(requestTextStream);
-        if (parseHeaderResult.status == PARSED)
-        {
-            if (parseHeaderResult.value.find("host") != parseHeaderResult.value.end())
-                return ParseFirstBlockResult::Success(
-                    FirstBlock(parseRequestLineResult.value, parseHeaderResult.value));
-            else
-                return ParseFirstBlockResult::Error(block);
-        }
-        else if (parseHeaderResult.status == PENDING)
-            return ParseFirstBlockResult::Pending();
-    }
-    return ParseFirstBlockResult::Error(block);
-}
-
-/* Parse Body */
-
-static UnchunkBodyResult unchunkBody(const std::string &body, const size_t maxBodySize)
-{
-    if (body.find("\r\n0") == std::string::npos)
-    {
-        return UnchunkBodyResult::Pending();
-    }
-    else
-    {
-        const std::vector<std::string> chunks = utils::split(body, CRLF);
-        unsigned long chunkSize;
-        std::string unchunkedBody = "";
-        for (size_t i = 0; i < chunks.size(); i++)
-        {
-            if (i % 2 == 0)
-            {
-                if (!utils::isHex(chunks[i]))
-                    return UnchunkBodyResult::Error("Invalid Body");
-                chunkSize = std::strtoul(chunks[i].c_str(), NULL, 16);
-                if (chunkSize == 0)
-                    return UnchunkBodyResult::Success(unchunkedBody);
-            }
-            else
-            {
-                if (chunks[i].length() <= maxBodySize)
-                {
-                    if (chunks[i].length() == chunkSize)
-                    {
-                        if (i == chunks.size() - 1 || unchunkedBody.length() + chunkSize > maxBodySize)
-                        {
-                            return UnchunkBodyResult::Error("Invalid Body");
-                        }
-                        else
-                        {
-                            unchunkedBody += chunks[i];
-                        }
-                    }
-                    else
-                        return UnchunkBodyResult::Error("Invalid Body");
-                }
-                else
-                    return UnchunkBodyResult::Error("Invalid Body");
-            }
-        }
-        return UnchunkBodyResult::Error("Invalid Body");
-    }
-}
-
-static ParseBodyResult parseBody(const std::string &body, const Headers &headers, const size_t maxBodySize)
-{
-    std::string line;
-
-    if (headers.find("transfer-encoding") != headers.end())
-    {
-        if (headers.at("transfer-encoding") == "chunked" && body.length() <= maxBodySize)
-        {
-            const UnchunkBodyResult unchunkedBodyResult = unchunkBody(body, maxBodySize);
-            if (unchunkedBodyResult.status == PARSED)
-                return ParseBodyResult::Success(unchunkedBodyResult.value);
-            else if (unchunkedBodyResult.status == PENDING)
-                return ParseBodyResult::Pending();
-            else
-                return ParseBodyResult::Error(unchunkedBodyResult.error);
-        }
-        else
-            return ParseBodyResult::Error("Invalid body");
-    }
-    else if (headers.find("content-length") != headers.end())
-    {
-        if (utils::isNumber(headers.at("content-length")))
-        {
-            const size_t bodySize = std::strtoul(headers.at("content-length").c_str(), NULL, 10);
-            if ((0 <= bodySize && bodySize <= maxBodySize) && body.length() == bodySize)
-                return ParseBodyResult::Success(body);
-            else
-                return ParseBodyResult::Error("Invalid body");
-        }
-        else
-            return ParseBodyResult::Error("Invalid body");
-    }
-    else
-        return ParseBodyResult::Error("Invalid header");
-}
-
-static std::string getHostName(const Headers &headers)
-{
-    if (headers.find("host") != headers.end())
-        return headers.at("host");
-    else
-        return "";
-}
-
-static std::vector<std::string> splitBlocks(const std::string &requests)
+std::vector<std::string> splitBlocks(const std::string &requests)
 {
     std::vector<std::string> blocks = utils::split(requests, CRLF + CRLF);
     for (size_t i = 0; i < blocks.size(); i++)
@@ -245,77 +69,78 @@ static std::vector<std::string> splitBlocks(const std::string &requests)
     return blocks;
 }
 
-static EventDataOrParsedRequest parseHttpRequest(const Socket &socket, const std::string &request)
+HttpRequest parseHttpRequest(const Socket &socket, const std::string &requestText)
 {
-    const std::vector<std::string> blocks = splitBlocks(request);
-    const ParseFirstBlockResult parseFirstBlockResult = parseFirstBlock(blocks[0]);
-    if (parseFirstBlockResult.status == PARSED)
-    {
-        const std::string host = getHostName(parseFirstBlockResult.value.headers);
-        if (!host.empty() && blocks.size() == 2 && blocks[0].find("POST") != std::string::npos)
-        {
-            const RequestLine requestLine = parseFirstBlockResult.value.requestLine;
-            const ParseBodyResult parseBodyResult =
-                parseBody(blocks[1], parseFirstBlockResult.value.headers,
-                          CONFIG.getServer(host, socket.clientPort).clientMaxBodySize);
-            if (parseBodyResult.status == PARSED)
-                return EventDataOrParsedRequest::Right(HttpRequest(socket, host, requestLine.method, requestLine.target,
-                                                                   parseFirstBlockResult.value.headers,
-                                                                   parseBodyResult.value));
-            else if (parseBodyResult.status == PENDING)
-                return EventDataOrParsedRequest::Left(EventData(socket, request));
-            else
-                return EventDataOrParsedRequest::Right(HttpRequest(socket));
-        }
-        else
-            return EventDataOrParsedRequest::Right(HttpRequest(socket));
-    }
-    else if (parseFirstBlockResult.status == PENDING)
-        return EventDataOrParsedRequest::Left(EventData(socket, request));
-    else
-        return EventDataOrParsedRequest::Right(HttpRequest(socket));
+    const std::string requestLineText = requestText.substr(0, requestText.find(CRLF));
+    const std::string headersText =
+        requestText.substr(requestText.find(CRLF) + 1, requestText.find("\r\n\r\n") - requestText.find(CRLF) - 1);
+    const std::string bodyText = requestText.substr(headersText.length() + 4);
+    const Strings requestLineParts = utils::split(requestLineText, " ");
+    const std::string method = requestLineParts.size() > 0 ? requestLineParts[0] : "";
+    const std::string target = requestLineParts.size() > 1 ? requestLineParts[1] : "";
+    const StringMap structuredHeader = structureHeaders(headersText);
+    const std::string host =
+        structuredHeader.find("host") != structuredHeader.end() ? structuredHeader.find("host")->second : "";
+    const std::string contentType = structuredHeader.find("content-type") != structuredHeader.end()
+                                        ? structuredHeader.find("content-type")->second
+                                        : "";
+    const std::string contentLength = structuredHeader.find("content-length") != structuredHeader.end()
+                                          ? structuredHeader.find("content-length")->second
+                                          : "";
+    const std::string location =
+        structuredHeader.find("location") != structuredHeader.end() ? structuredHeader.find("location")->second : "";
+    const std::string allow =
+        structuredHeader.find("allow") != structuredHeader.end() ? structuredHeader.find("allow")->second : "";
+    const std::string transferEncoding = structuredHeader.find("transfer-encoding") != structuredHeader.end()
+                                             ? structuredHeader.find("transfer-encoding")->second
+                                             : "";
+    return HttpRequest(socket, host, method, target, contentType, contentLength, location, allow, transferEncoding,
+                       bodyText);
 }
 
-static bool isBody(const std::string &block)
+bool isBody(const std::string &block)
 {
     return block.find("POST") == std::string::npos && block.find("GET") == std::string::npos &&
            block.find("DELETE") == std::string::npos;
 }
 
-static std::vector<std::string> splitHttpRequests(const EventData &eventData)
+Strings splitHttpRequests(const EventData &eventData)
 {
-    std::vector<std::string> httpRequests;
+    Strings httpRequests;
     const std::vector<std::string> blocks = splitBlocks(eventData.data);
-    for (size_t i = 0; i < blocks.size(); i++)
+    for (std::vector<std::string>::const_iterator it = blocks.begin(); it != blocks.end(); ++it)
     {
-        if (blocks[i].find("POST") != std::string::npos && i != blocks.size() - 1 && isBody(blocks[i + 1]))
+        if (it->find("POST") != std::string::npos && (it + 1) != blocks.end() && isBody(*(it + 1)))
         {
-            const std::string postBlock = blocks[i] + blocks[i + 1];
+            const std::string postBlock = *it + *(it + 1);
             httpRequests.push_back(postBlock);
-            i++;
+            ++it; // Move to the next block since we've already processed it
         }
         else
-            httpRequests.push_back(blocks[i]);
+        {
+            httpRequests.push_back(*it);
+        }
     }
     return httpRequests;
 }
+} // namespace
 
 std::pair<HttpRequests, EventDatas> parseHttpRequests(const EventDatas &httpRequestEventDatas)
 {
     HttpRequests httpRequests;
     EventDatas eventDatas;
-    for (size_t i = 0; i < httpRequestEventDatas.size(); i++)
+    for (EventDatas::const_iterator eventDataIt = httpRequestEventDatas.begin();
+         eventDataIt != httpRequestEventDatas.end(); ++eventDataIt)
     {
-        const std::vector<std::string> requests = splitHttpRequests(httpRequestEventDatas[i]);
-        for (size_t j = 0; j < requests.size(); j++)
+        const Strings requests = splitHttpRequests(*eventDataIt);
+        const Strings danglingRequests = utils::exclude(requests, "");
+        const Strings completeRequests = utils::exclude(danglingRequests, CRLF + CRLF);
+        for (Strings::const_iterator requestIt = requests.begin(); requestIt != requests.end(); ++requestIt)
         {
-            const EventDataOrParsedRequest eventDataOrParsedRequest =
-                parseHttpRequest(httpRequestEventDatas[i].socket, requests[j]);
-            if (eventDataOrParsedRequest.tag == LEFT)
-                eventDatas.push_back(eventDataOrParsedRequest.leftValue);
-            else
-                httpRequests.push_back(eventDataOrParsedRequest.rightValue);
+            const HttpRequest httpRequest = parseHttpRequest(eventDataIt->socket, *requestIt);
+            httpRequests.push_back(httpRequest);
         }
     }
+
     return std::make_pair(httpRequests, eventDatas);
 }
