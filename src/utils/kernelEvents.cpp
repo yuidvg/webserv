@@ -21,7 +21,8 @@ bool setEventFlags(const uintptr_t identifier, const int16_t filter, const uint1
     int numOfPlacedEvents = kevent(KQ, &change, 1, NULL, 0, NULL);
     if (numOfPlacedEvents == -1)
     {
-        std::cerr << std::strerror(errno) << std::endl;
+        std::cerr << "setEventFlags failed: " << std::strerror(errno) << ": " << identifier << ", " << filter << ", "
+                  << flags << std::endl;
         return false;
     }
     return true;

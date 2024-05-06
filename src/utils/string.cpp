@@ -2,13 +2,17 @@
 
 namespace utils
 {
-std::string &trim(std::string &str)
+std::string trim(const std::string &str)
 {
-    while (std::isspace(str[0]))
-        str.erase(0, 1);
-    while (std::isspace(str[str.length() - 1]))
-        str.erase(str.length() - 1, 1);
-    return (str);
+    std::string::size_type startPos = 0;
+    std::string::size_type endPos = str.length();
+    // Remove leading spaces
+    while (startPos < endPos && std::isspace(str[startPos]))
+        ++startPos;
+    // Remove trailing spaces
+    while (endPos > startPos && std::isspace(str[endPos - 1]))
+        --endPos;
+    return str.substr(startPos, endPos - startPos);
 }
 
 std::string lowerCase(std::string str)

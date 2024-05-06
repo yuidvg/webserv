@@ -37,4 +37,12 @@ struct EventData
         }
         return *this;
     }
+    bool operator==(const EventData &other) const
+    {
+        return socket == other.socket && data == other.data;
+    }
+    bool operator!=(const EventData &other) const
+    {
+        return !(*this == other);
+    }
 };

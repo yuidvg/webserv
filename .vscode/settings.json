@@ -98,7 +98,13 @@
 		"*.defs": "cpp",
 		"hash_map": "cpp",
 		"hash_set": "cpp",
-		"osmemory": "cpp"
+		"osmemory": "cpp",
+		"*.apinotes": "cpp",
+		"*.r": "cpp",
+		"*.iig": "cpp",
+		"scn_metal": "cpp",
+		"*.x": "cpp",
+		"*.inc": "cpp"
 	},
 	"[cpp]": {
 		"editor.wordBasedSuggestions": "off",
