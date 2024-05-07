@@ -9,11 +9,16 @@ PORT="8080"
 ORIGIN="http://${SERVER}:${PORT}"
 
 cgi_test=(
-    "curl ${ORIGIN}/cgi-bin/helloWorld.cgi 200"
-    "curl ${ORIGIN}/cgi-bin/redirAfterFiveSeconds.cgi 200"
+    "curl ${ORIGIN}/cgi-bin/documentResponse.cgi 200"
+    "curl -X POST ${ORIGIN}/cgi-bin/documentResponse.cgi -d \"nickname=test\" 200"
+    # "curl ${ORIGIN}/cgi-bin/localRedirectResponse.cgi -L 302"
+    # "curl -X POST ${ORIGIN}/cgi-bin/localRedirectResponse.cgi -L -d \"nickname=test\" 302"
+    # "curl ${ORIGIN}/cgi-bin/clientRedirectResponse.cgi -L 302"
+    # "curl -X POST ${ORIGIN}/cgi-bin/clientRedirectResponse.cgi -L -d \"nickname=test\" 302"
+    "curl ${ORIGIN}/cgi-bin/clientRedirectResponseWithDocument.cgi 200"
+    "curl -X POST ${ORIGIN}/cgi-bin/clientRedirectResponseWithDocument.cgi -d \"nickname=test\" 200"
     "curl ${ORIGIN}/cgi-bin/submit.cgi 200"
-    "curl ${ORIGIN}/cgi-bin/remoteRedirect.cgi -L 302"
-    "curl ${ORIGIN}/cgi-bin/localRedirect.cgi -L 302"
+    "curl -X POST ${ORIGIN}/cgi-bin/submit.cgi -d \"nickname=test\" 200"
 )
 
 function run_and_check_curl_command() {
