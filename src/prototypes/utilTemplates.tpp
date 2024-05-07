@@ -99,9 +99,9 @@ template <typename T> void appendVector(std::vector<T> &destination, const std::
     }
 }
 
-template <typename Container, typename F, typename R> std::vector<R> map(const Container &cont, F f)
+template <typename Container, typename F, typename R> R map(const Container &cont, F f)
 {
-    std::vector<R> result;
+    R result;
     for (typename Container::const_iterator it = cont.begin(); it != cont.end(); ++it)
     {
         result.push_back(f(*it));

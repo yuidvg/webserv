@@ -1,6 +1,7 @@
 #pragma once
 #include "top.hpp"
 
+#include "../functions/functors.hpp"
 #include "../functions/templateFunctions.tpp"
 
 DirectoryListHtmlResult directoryListHtml(const std::string &path);

@@ -75,7 +75,8 @@ void eventLoop(Sockets sockets)
             const int numOfEvents = kevent(KQ, NULL, 0, eventList, EVENT_BATCH_SIZE, NULL);
             if (numOfEvents != -1)
             {
-                const Events events = toEvents(KernelEvents(eventList, eventList + numOfEvents), sockets);
+                const std::vector<Option<Event> > events = utils::map<KernelEvents, toEvent, Option<Event> >(
+                    KernelEvents(eventList, eventList + numOfEvents), toEvent(sockets));
                 // READ
                 const Events readEvents = utils::filter(events, isReadEvent);
                 //  CGI
