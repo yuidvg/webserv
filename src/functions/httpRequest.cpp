@@ -1,8 +1,6 @@
 #include "../all.hpp"
 
-namespace
-{
-bool isLineTooLong(const std::string &line)
+static bool isLineTooLong(const std::string &line)
 {
     if (line.length() > MAX_LEN)
         return true;
@@ -79,21 +77,39 @@ static ParseRequestLineResult parseHttpRequestLine(std::string &firstLine)
         return ParseRequestLineResult::Error(splitRequestLineResult.error);
 }
 
-StringMap structureHeaders(std::string headersText)
+/*.Parse Header */
+// 　のちのち、option型にする
+static ParseHeaderResult parseHeader(std::istringstream &requestTextStream)
 {
-    const Strings headerLines = utils::split(headersText, CRLF);
-    StringMap structuredHeader;
-    for (Strings::const_iterator it = headerLines.begin(); it != headerLines.end(); ++it)
+    // tellgで現在の位置を取得、その先からCRLFまでstringを取得する
+    const std::streampos currentPos = requestTextStream.tellg();
+    const std::string requestStr = requestTextStream.str();
+    const std::size_t headerEndPos = requestStr.find("\r\n\r\n", currentPos);
+    const std::streampos endPos = (headerEndPos != std::string::npos) ? headerEndPos + 4 : requestStr.length();
+    const std::string headerText = requestStr.substr(currentPos, endPos - currentPos);
+
+    const std::vector<std::string> header = utils::split(headerText, CRLF);
+    if (header.size() == 0)
+        return ParseHeaderResult::Pending();
+    else
     {
-        const std::string::size_type colonPos = it->find(": ");
-        if (colonPos != std::string::npos)
+        Headers headers;
+        for (std::vector<std::string>::const_iterator it = header.begin(); it != header.end(); ++it)
         {
-            const std::string key = utils::lowerCase(it->substr(0, colonPos));
-            const std::string value = utils::trim(it->substr(colonPos + 1));
-            structuredHeader.insert(std::make_pair(key, value));
+            const std::string::size_type pos = it->find(": ");
+            if (pos != std::string::npos)
+            {
+                std::string key = it->substr(0, pos);
+                std::string value = it->substr(pos + 1);
+                std::transform(key.begin(), key.end(), key.begin(), ::tolower); // headerのkeyは大文字小文字を区別しない
+                value = utils::trim(value);                                     // valueの前後の空白を削除
+                headers[key] = value;
+            }
+            else
+                return ParseHeaderResult::Success(Headers());
         }
+        return ParseHeaderResult::Success(headers);
     }
-    return structuredHeader;
 }
 
 /* Parse FirstBlock */
@@ -226,7 +242,7 @@ static std::vector<std::string> splitBlocks(const std::string &requests)
     return blocks;
 }
 
-HttpRequest parseHttpRequest(const Socket &socket, const std::string &requestText)
+static EventDataOrParsedRequest parseHttpRequest(const Socket &socket, const std::string &request)
 {
     const std::vector<std::string> blocks = splitBlocks(request);
     const ParseFirstBlockResult parseFirstBlockResult = parseFirstBlock(blocks[0]);
@@ -258,49 +274,46 @@ HttpRequest parseHttpRequest(const Socket &socket, const std::string &requestTex
         return EventDataOrParsedRequest::Right(HttpRequest(socket));
 }
 
-bool isBody(const std::string &block)
+static bool isBody(const std::string &block)
 {
     return block.find("POST") == std::string::npos && block.find("GET") == std::string::npos &&
            block.find("DELETE") == std::string::npos;
 }
 
-Strings splitHttpRequests(const EventData &eventData)
+static std::vector<std::string> splitHttpRequests(const EventData &eventData)
 {
-    Strings httpRequests;
+    std::vector<std::string> httpRequests;
     const std::vector<std::string> blocks = splitBlocks(eventData.data);
-    for (std::vector<std::string>::const_iterator it = blocks.begin(); it != blocks.end(); ++it)
+    for (size_t i = 0; i < blocks.size(); i++)
     {
-        if (it->find("POST") != std::string::npos && (it + 1) != blocks.end() && isBody(*(it + 1)))
+        if (blocks[i].find("POST") != std::string::npos && i != blocks.size() - 1 && isBody(blocks[i + 1]))
         {
-            const std::string postBlock = *it + *(it + 1);
+            const std::string postBlock = blocks[i] + blocks[i + 1];
             httpRequests.push_back(postBlock);
-            ++it; // Move to the next block since we've already processed it
+            i++;
         }
         else
-        {
-            httpRequests.push_back(*it);
-        }
+            httpRequests.push_back(blocks[i]);
     }
     return httpRequests;
 }
-} // namespace
 
 std::pair<HttpRequests, EventDatas> parseHttpRequests(const EventDatas &httpRequestEventDatas)
 {
     HttpRequests httpRequests;
     EventDatas eventDatas;
-    for (EventDatas::const_iterator eventDataIt = httpRequestEventDatas.begin();
-         eventDataIt != httpRequestEventDatas.end(); ++eventDataIt)
+    for (size_t i = 0; i < httpRequestEventDatas.size(); i++)
     {
-        const Strings requests = splitHttpRequests(*eventDataIt);
-        const Strings danglingRequests = utils::exclude(requests, "");
-        const Strings completeRequests = utils::exclude(danglingRequests, CRLF + CRLF);
-        for (Strings::const_iterator requestIt = requests.begin(); requestIt != requests.end(); ++requestIt)
+        const std::vector<std::string> requests = splitHttpRequests(httpRequestEventDatas[i]);
+        for (size_t j = 0; j < requests.size(); j++)
         {
-            const HttpRequest httpRequest = parseHttpRequest(eventDataIt->socket, *requestIt);
-            httpRequests.push_back(httpRequest);
+            const EventDataOrParsedRequest eventDataOrParsedRequest =
+                parseHttpRequest(httpRequestEventDatas[i].socket, requests[j]);
+            if (eventDataOrParsedRequest.tag == LEFT)
+                eventDatas.push_back(eventDataOrParsedRequest.leftValue);
+            else
+                httpRequests.push_back(eventDataOrParsedRequest.rightValue);
         }
     }
-
     return std::make_pair(httpRequests, eventDatas);
 }
