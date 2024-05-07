@@ -10,7 +10,7 @@ HttpResponseOrEventData conductPost(const HttpRequest &httpRequest)
         const int fd = utils::createFile(fileName, location.uploadPath);
         if (fd >= 0)
         {
-            const EventData eventData(fd, httpRequest.body);
+            const EventData eventData(Socket(fd, FILE_FD), httpRequest.body);
             return HttpResponseOrEventData::Right(eventData);
         }
         else

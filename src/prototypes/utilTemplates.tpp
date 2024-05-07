@@ -109,14 +109,4 @@ template <typename Container, typename F, typename R> std::vector<R> map(const C
     return result;
 }
 
-template <typename Container, typename F, typename R, typename A> std::vector<R> map(const Container &cont, F f, A arg)
-{
-    std::vector<R> result;
-    for (typename Container::const_iterator it = cont.begin(); it != cont.end(); ++it)
-    {
-        result.push_back(f(*it, arg));
-    }
-    return result;
-}
-
 } // namespace utils

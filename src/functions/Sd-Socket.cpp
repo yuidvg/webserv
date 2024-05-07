@@ -10,5 +10,15 @@ Option<const Socket> findSocket(const int sd, const Sockets &sockets)
             return Option<const Socket>(socket);
         }
     }
-    return Option<const Socket>();
+    struct sockaddr addr;
+    socklen_t addr_len = sizeof(addr);
+    errno = 0;
+    if (getsockname(sd, &addr, &addr_len) == -1 && errno == ENOTSOCK)
+    {
+        return Option<const Socket>(Socket(sd, FILE_FD));
+    }
+    else
+    {
+        return Option<const Socket>();
+    }
 }

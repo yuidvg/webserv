@@ -53,15 +53,16 @@ EventDatas removeDuplicates(EventDatas eventDatas)
 
 EventDatas unifyData(EventDatas eventDatas)
 {
-    std::map<int, std::string> unifiedEventDatas;
+    std::map<Socket, std::string> unifiedEventDatas;
     for (EventDatas::const_iterator it = eventDatas.begin(); it != eventDatas.end(); ++it)
     {
-        unifiedEventDatas[(*it).socket.descriptor] += (*it).data;
+        unifiedEventDatas[(*it).socket] += (*it).data;
     }
     EventDatas result;
-    for (std::map<int, std::string>::const_iterator it = unifiedEventDatas.begin(); it != unifiedEventDatas.end(); ++it)
+    for (std::map<Socket, std::string>::const_iterator it = unifiedEventDatas.begin(); it != unifiedEventDatas.end();
+         ++it)
     {
-        result.push_back(EventData(Socket(it->first), it->second));
+        result.push_back(EventData(it->first, it->second));
     }
     return result;
 }
