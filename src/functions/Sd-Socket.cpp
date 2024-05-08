@@ -10,6 +10,16 @@ Option<const Socket> findSocket(const int sd)
             return Option<const Socket>(socket);
         }
     }
-    close(sd);
-    return Option<const Socket>();
+    struct sockaddr addr;
+    socklen_t addr_len = sizeof(addr);
+    errno = 0;
+    if (getsockname(sd, &addr, &addr_len) == 0)
+    {
+        return Option<const Socket>(Socket(sd, FILE_FD));
+    }
+    else if (errno == EINVAL)
+    else
+    {
+        return Option<const Socket>();
+    }
 }
