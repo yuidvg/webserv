@@ -57,5 +57,7 @@ const std::string CONTENT_TYPE_HTML = "text/html";
 extern const int KQ;
 
 extern CgiHttpRequests CGI_HTTP_REQUESTS;
+extern Sockets SOCKETS;
+extern EventDatas OUTBOUNDS;
 
 #define EVENT_BATCH_SIZE 1024

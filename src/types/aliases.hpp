@@ -96,7 +96,7 @@ typedef std::vector<const CgiResponse> CgiResponses;
 
 typedef std::vector<const HttpRequest> HttpRequests;
 
-typedef Ternary<HttpResponse, CgiRequest, EventData> HttpResponseOrCgiRequestOrEventData;
+typedef Ternary<HttpResponse, CgiRequest, EventData> HttpResponseOrEventData;
 
 typedef std::map<const std::string, const std::string> StringMap;
 

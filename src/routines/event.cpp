@@ -53,11 +53,10 @@ EventDatas filterEventOutboundDatas(const Events &writeEvents, const EventDatas 
     return toBeWrittenDatas;
 }
 } // namespace
-void eventLoop(Sockets sockets)
+void eventLoop()
 {
     struct kevent eventList[EVENT_BATCH_SIZE];
     EventDatas DANGLINGS;
-    EventDatas OUTBOUNDS;
 
     while (true)
     {
@@ -75,7 +74,7 @@ void eventLoop(Sockets sockets)
             const int numOfEvents = kevent(KQ, NULL, 0, eventList, EVENT_BATCH_SIZE, NULL);
             if (numOfEvents != -1)
             {
-                const Events events = toEvents(KernelEvents(eventList, eventList + numOfEvents), sockets);
+                const Events events = toEvents(KernelEvents(eventList, eventList + numOfEvents));
                 // READ
                 const Events readEvents = utils::filter(events, isReadEvent);
                 //  CGI
@@ -86,12 +85,11 @@ void eventLoop(Sockets sockets)
                     processCgiResponses(cgiResponses);
                 const HttpResponses httpResponses = httpResponses_httpRequests.first;
                 const HttpRequests localRedirectHttpRequests = httpResponses_httpRequests.second;
-                const EventDatas httpResponseDatas = toEventDatas(httpResponses);
-                utils::appendVector(OUTBOUNDS, httpResponseDatas);
+                utils::appendVector(OUTBOUNDS, toEventDatas(httpResponses));
                 //  INITIATE
                 const Events initiateEvents = utils::filter(readEvents, isInitiateEvent);
                 const Sockets newClientSockets = utils::newClientSockets(initiateEvents);
-                sockets.insert(newClientSockets.begin(), newClientSockets.end());
+                SOCKETS.insert(newClientSockets.begin(), newClientSockets.end());
                 //  CLIENT
                 const Events clientReadEvents = utils::filter(readEvents, isClientEvent);
                 const EventDatas httpRequestDatas = retrieveDatas(clientReadEvents);
@@ -100,15 +98,10 @@ void eventLoop(Sockets sockets)
                 const HttpRequests httpRequests = httpRequests_danglings.first;
                 DANGLINGS.clear();
                 utils::appendVector(DANGLINGS, httpRequests_danglings.second);
-                const HttpResponses_CgiRequests_EventDatas httpResponses_cgiRequests_eventDatas =
+                const HttpResponses httpResponses =
                     processHttpRequests(utils::concat(httpRequests, localRedirectHttpRequests));
-                const EventDatas &httpResponseEventDatas = toEventDatas(httpResponses_cgiRequests_eventDatas.first);
-                const EventDatas &cgiRequestEventDatas =
-                    toEventDatas(httpResponses_cgiRequests_eventDatas.second.first);
-                const EventDatas &writeToFileEventDatas = httpResponses_cgiRequests_eventDatas.second.second;
+                const EventDatas &httpResponseEventDatas = toEventDatas(httpResponses);
                 utils::appendVector(OUTBOUNDS, httpResponseEventDatas);
-                utils::appendVector(OUTBOUNDS, cgiRequestEventDatas);
-                utils::appendVector(OUTBOUNDS, writeToFileEventDatas);
                 OUTBOUNDS = unifyData(OUTBOUNDS);
                 // WRITE
                 const Events writeEvents = utils::filter(events, isWriteEvent);

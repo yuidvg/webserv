@@ -1,7 +1,7 @@
 #pragma once
 #include "top.hpp"
 
-void eventLoop(Sockets listenSds);
+void eventLoop();
 void handleReceivedMessage();
 void processClientMessages(const EventDatas &eventDatas);
 bool killCgi(const Socket &cgiSocket);

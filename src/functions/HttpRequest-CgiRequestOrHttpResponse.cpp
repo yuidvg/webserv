@@ -46,7 +46,7 @@ StringMap getCgiEnvs(const HttpRequest &httpRequest)
 
 } // namespace
 
-HttpResponseOrCgiRequestOrEventData processHttpRequest(const HttpRequest &httpRequest)
+Option<HttpResponse> processHttpRequest(const HttpRequest &httpRequest)
 {
     if (httpRequest.host.length() > 0)
     {
@@ -63,42 +63,33 @@ HttpResponseOrCgiRequestOrEventData processHttpRequest(const HttpRequest &httpRe
                 Option<Socket> cgiSocket = createCgiProcess(cgiEnvs, rootedScriptPath);
                 if (cgiSocket)
                 {
-                    return HttpResponseOrCgiRequestOrEventData::Second(
-                        CgiRequest(*cgiSocket, httpRequest, cgiEnvs, rootedScriptPath, httpRequest.body));
+                    return Option<HttpResponse>();
                 }
                 else
-                    return HttpResponseOrCgiRequestOrEventData::First(getErrorHttpResponse(httpRequest, SERVER_ERROR));
+                    return Option<HttpResponse>(getErrorHttpResponse(httpRequest, SERVER_ERROR));
             }
             else
             {
                 if (!location.redirect.empty())
-                    return HttpResponseOrCgiRequestOrEventData::First(
-                        getRedirectHttpResponse(httpRequest, location.redirect));
+                    return Option<HttpResponse>(getRedirectHttpResponse(httpRequest, location.redirect));
                 else if (httpRequest.method == "GET")
-                    return HttpResponseOrCgiRequestOrEventData::First(conductGet(httpRequest, resolvedPath));
+                    return Option<HttpResponse>(conductGet(httpRequest, resolvedPath));
                 else if (httpRequest.method == "POST")
-                {
-                    const HttpResponseOrEventData httpResponseOrEventData = conductPost(httpRequest);
-                    if (httpResponseOrEventData.tag == LEFT)
-                        return HttpResponseOrCgiRequestOrEventData::First(httpResponseOrEventData.leftValue);
-                    else
-                        return HttpResponseOrCgiRequestOrEventData::Third(httpResponseOrEventData.rightValue);
-                }
+                    return Option<HttpResponse>(conductPost(httpRequest));
                 else if (httpRequest.method == "DELETE")
-                    return HttpResponseOrCgiRequestOrEventData::First(conductDelete(httpRequest));
+                    return Option<HttpResponse>(conductDelete(httpRequest));
                 else
-                    return HttpResponseOrCgiRequestOrEventData::First(
-                        getMethodNotAllowedResponse(httpRequest, "GET, POST, DELETE"));
+                    return Option<HttpResponse>(getMethodNotAllowedResponse(httpRequest, "GET, POST, DELETE"));
             }
         }
         else
         {
-            return HttpResponseOrCgiRequestOrEventData::First(
+            return Option<HttpResponse>(
                 getMethodNotAllowedResponse(httpRequest, utils::join(location.allowMethods, ", ")));
         }
     }
     else
     {
-        return HttpResponseOrCgiRequestOrEventData::First(getErrorHttpResponse(httpRequest, BAD_REQUEST));
+        return Option<HttpResponse>(getErrorHttpResponse(httpRequest, BAD_REQUEST));
     }
 }
