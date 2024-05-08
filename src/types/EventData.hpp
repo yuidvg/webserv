@@ -1,6 +1,7 @@
 #pragma once
 #include "CgiRequest.hpp"
 #include "HttpResponse.hpp"
+#include "Option.hpp"
 #include "external.hpp"
 
 std::string stringify(const HttpResponse &);
@@ -9,6 +10,7 @@ struct EventData
 {
     Socket socket;
     std::string data;
+    HttpRequest httpRequest;
 
     EventData() : socket(), data("")
     {
@@ -16,16 +18,19 @@ struct EventData
     ~EventData()
     {
     }
-    EventData(const HttpResponse &httpResponse) : socket(httpResponse.destinationSocket), data(stringify(httpResponse))
+    EventData(const HttpResponse &httpResponse)
+        : socket(httpResponse.destinationSocket), data(stringify(httpResponse)), httpRequest()
     {
     }
-    EventData(const CgiRequest &cgiRequest) : socket(cgiRequest.cgiSocket), data(cgiRequest.body)
+    EventData(const CgiRequest &cgiRequest)
+        : socket(cgiRequest.cgiSocket), data(cgiRequest.body), httpRequest(cgiRequest.httpRequest)
     {
     }
-    EventData(const Socket &socket, const std::string &data) : socket(socket), data(data)
+    EventData(const Socket &socket, const std::string &data, const HttpRequest &httpRequest = HttpRequest())
+        : socket(socket), data(data), httpRequest(httpRequest)
     {
     }
-    EventData(const EventData &other) : socket(other.socket), data(other.data)
+    EventData(const EventData &other) : socket(other.socket), data(other.data), httpRequest(other.httpRequest)
     {
     }
     EventData &operator=(const EventData &other)
@@ -34,6 +39,7 @@ struct EventData
         {
             socket = other.socket;
             data = other.data;
+            httpRequest = other.httpRequest;
         }
         return *this;
     }

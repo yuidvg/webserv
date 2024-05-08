@@ -51,21 +51,24 @@ EventDatas removeDuplicates(EventDatas eventDatas)
     return uniqueEventDatas;
 }
 
+// clang-format off
 EventDatas unifyData(EventDatas eventDatas)
 {
-    std::map<Socket, std::string> unifiedEventDatas;
+    std::map<Socket, std::pair<std::string, HttpRequest> >unifiedEventDatas;
     for (EventDatas::const_iterator it = eventDatas.begin(); it != eventDatas.end(); ++it)
     {
-        unifiedEventDatas[(*it).socket] += (*it).data;
+        unifiedEventDatas[(*it).socket].first += (*it).data;
+        unifiedEventDatas[(*it).socket].second = (*it).httpRequest;
     }
     EventDatas result;
-    for (std::map<Socket, std::string>::const_iterator it = unifiedEventDatas.begin(); it != unifiedEventDatas.end();
-         ++it)
+    for (std::map<Socket, std::pair<std::string, HttpRequest> >::const_iterator it = unifiedEventDatas.begin();
+         it != unifiedEventDatas.end(); ++it)
     {
-        result.push_back(EventData(it->first, it->second));
+        result.push_back(EventData(it->first, it->second.first, it->second.second));
     }
     return result;
 }
+// clang-format on
 
 Option<EventData> findEventData(const int fd, const EventDatas &eventDatas)
 {

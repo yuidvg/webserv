@@ -33,12 +33,13 @@ HttpResponse writeEventData(const EventData &eventData)
     const size_t writtenSize = write(eventData.socket.descriptor, eventData.data.c_str(), eventData.data.size());
     if (writtenSize == eventData.data.size())
     {
-        return HttpResponse(eventData.socket.descriptor, SUCCESS, eventData.data, "text/plain");
+        close(eventData.socket.descriptor);
+        return HttpResponse(eventData.httpRequest.socket.descriptor, SUCCESS, eventData.data, "text/plain");
     }
     else
     {
         close(eventData.socket.descriptor);
-        return getErrorHttpResponse(HttpRequest(eventData.socket.descriptor), SERVER_ERROR);
+        return getErrorHttpResponse(eventData.httpRequest, SERVER_ERROR);
     }
 }
 
