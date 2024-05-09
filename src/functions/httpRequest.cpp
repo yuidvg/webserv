@@ -116,28 +116,34 @@ static ParseHeaderResult parseHeader(std::istringstream &requestTextStream)
 
 static ParseFirstBlockResult parseFirstBlock(const std::string &block)
 {
-    std::istringstream requestTextStream(block);
-    // 最初に空行がある場合は読み飛ばす
-    std::string firstLine = utils::getlineCustom(requestTextStream);
-    while (firstLine.empty() && !requestTextStream.eof())
-        firstLine = utils::getlineCustom(requestTextStream);
-
-    const ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(firstLine);
-    if (parseRequestLineResult.success)
+    // blockの後ろがCRLFの場合は、まだ読み込みが終わっていないのでPENDINGを返す
+    if (block.substr(block.length() - 2) == CRLF)
+        return ParseFirstBlockResult::Pending();
+    else
     {
-        const ParseHeaderResult parseHeaderResult = parseHeader(requestTextStream);
-        if (parseHeaderResult.status == PARSED)
+        std::istringstream requestTextStream(block);
+        // 最初に空行がある場合は読み飛ばす
+        std::string firstLine = utils::getlineCustom(requestTextStream);
+        while (firstLine.empty() && !requestTextStream.eof())
+            firstLine = utils::getlineCustom(requestTextStream);
+
+        const ParseRequestLineResult parseRequestLineResult = parseHttpRequestLine(firstLine);
+        if (parseRequestLineResult.success)
         {
-            if (parseHeaderResult.value.find("host") != parseHeaderResult.value.end())
-                return ParseFirstBlockResult::Success(
-                    FirstBlock(parseRequestLineResult.value, parseHeaderResult.value));
-            else
-                return ParseFirstBlockResult::Error(block);
+            const ParseHeaderResult parseHeaderResult = parseHeader(requestTextStream);
+            if (parseHeaderResult.status == PARSED)
+            {
+                if (parseHeaderResult.value.find("host") != parseHeaderResult.value.end())
+                    return ParseFirstBlockResult::Success(
+                        FirstBlock(parseRequestLineResult.value, parseHeaderResult.value));
+                else
+                    return ParseFirstBlockResult::Error(block);
+            }
+            else if (parseHeaderResult.status == PENDING)
+                return ParseFirstBlockResult::Pending();
         }
-        else if (parseHeaderResult.status == PENDING)
-            return ParseFirstBlockResult::Pending();
+        return ParseFirstBlockResult::Error(block);
     }
-    return ParseFirstBlockResult::Error(block);
 }
 
 /* Parse Body */
@@ -232,19 +238,9 @@ static std::string getHostName(const Headers &headers)
         return "";
 }
 
-static std::vector<std::string> splitBlocks(const std::string &requests)
-{
-    std::vector<std::string> blocks = utils::split(requests, CRLF + CRLF);
-    for (size_t i = 0; i < blocks.size(); i++)
-    {
-        blocks[i] += CRLF + CRLF;
-    }
-    return blocks;
-}
-
 static EventDataOrParsedRequest parseHttpRequest(const Socket &socket, const std::string &request)
 {
-    const std::vector<std::string> blocks = splitBlocks(request);
+    const std::vector<std::string> blocks = utils::split(request, CRLF + CRLF);
     const ParseFirstBlockResult parseFirstBlockResult = parseFirstBlock(blocks[0]);
     if (parseFirstBlockResult.status == PARSED)
     {
@@ -283,7 +279,7 @@ static bool isBody(const std::string &block)
 static std::vector<std::string> splitHttpRequests(const EventData &eventData)
 {
     std::vector<std::string> httpRequests;
-    const std::vector<std::string> blocks = splitBlocks(eventData.data);
+    const std::vector<std::string> blocks = utils::split(eventData.data, CRLF + CRLF);
     for (size_t i = 0; i < blocks.size(); i++)
     {
         if (blocks[i].find("POST") != std::string::npos && i != blocks.size() - 1 && isBody(blocks[i + 1]))
