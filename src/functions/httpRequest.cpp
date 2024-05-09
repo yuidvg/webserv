@@ -149,7 +149,7 @@ static ParseFirstBlockResult parseFirstBlock(const std::string &block)
 
 static UnchunkBodyResult unchunkBody(const std::string &body, const size_t maxBodySize)
 {
-    if (body.find("\r\n0") == std::string::npos)
+    if (body.find("0\r\n\r\n") == std::string::npos)
     {
         return UnchunkBodyResult::Pending();
     }
