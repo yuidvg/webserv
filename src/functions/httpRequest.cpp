@@ -116,8 +116,7 @@ static ParseHeaderResult parseHeader(std::istringstream &requestTextStream)
 
 static ParseFirstBlockResult parseFirstBlock(const std::string &block)
 {
-    // blockの後ろがCRLFの場合は、まだ読み込みが終わっていないのでPENDINGを返す
-    if (block.substr(block.length() - 2) == CRLF)
+    if (block.substr(block.length() - 4) != CRLF + CRLF)
         return ParseFirstBlockResult::Pending();
     else
     {
@@ -195,9 +194,10 @@ static UnchunkBodyResult unchunkBody(const std::string &body, const size_t maxBo
     }
 }
 
-static ParseBodyResult parseBody(const std::string &bodyBlock, const Headers &headers, const size_t maxBodySize)
+static ParseBodyResult parseBody(const std::string &body, const Headers &headers, const size_t maxBodySize)
 {
-    const std::string body = utils::split(bodyBlock, CRLF + CRLF)[0];
+    if (body.empty() || body.substr(body.length() - 4) != CRLF + CRLF)
+        return ParseBodyResult::Pending();
     if (headers.find("transfer-encoding") != headers.end())
     {
         if (headers.at("transfer-encoding") == "chunked" && body.length() <= maxBodySize)
@@ -218,7 +218,7 @@ static ParseBodyResult parseBody(const std::string &bodyBlock, const Headers &he
         if (utils::isNumber(headers.at("content-length")))
         {
             const size_t bodySize = std::strtoul(headers.at("content-length").c_str(), NULL, 10);
-            if ((0 <= bodySize && bodySize <= maxBodySize) && body.length() == bodySize)
+            if ((0 <= bodySize && bodySize <= maxBodySize) && body.length() == bodySize + 4)
                 return ParseBodyResult::Success(body);
             else
                 return ParseBodyResult::Error("Invalid body");
@@ -238,15 +238,26 @@ static std::string getHostName(const Headers &headers)
         return "";
 }
 
+static std::vector<std::string> splitBlocks(const std::string &data)
+{
+    std::vector<std::string> blocks = utils::split(data, CRLF + CRLF);
+    for (size_t i = 0; i < blocks.size(); i++)
+    {
+        if (blocks[i].substr(blocks[i].length() - 2) != CRLF)
+            blocks[i] += CRLF + CRLF;
+    }
+    return blocks;
+}
+
 static EventDataOrParsedRequest parseHttpRequest(const Socket &socket, const std::string &request)
 {
-    const std::vector<std::string> blocks = utils::split(request, CRLF + CRLF);
+    const std::vector<std::string> blocks = splitBlocks(request);
     const ParseFirstBlockResult parseFirstBlockResult = parseFirstBlock(blocks[0]);
     if (parseFirstBlockResult.status == PARSED)
     {
         const RequestLine requestLine = parseFirstBlockResult.value.requestLine;
         const std::string host = getHostName(parseFirstBlockResult.value.headers);
-        if (!host.empty() && blocks.size() == 2 && blocks[0].find("POST") != std::string::npos)
+        if (!host.empty() && blocks[0].find("POST") != std::string::npos)
         {
             const ParseBodyResult parseBodyResult =
                 parseBody(blocks[1], parseFirstBlockResult.value.headers,
@@ -279,7 +290,7 @@ static bool isBody(const std::string &block)
 static std::vector<std::string> splitHttpRequests(const EventData &eventData)
 {
     std::vector<std::string> httpRequests;
-    const std::vector<std::string> blocks = utils::split(eventData.data, CRLF + CRLF);
+    const std::vector<std::string> blocks = splitBlocks(eventData.data);
     for (size_t i = 0; i < blocks.size(); i++)
     {
         if (blocks[i].find("POST") != std::string::npos && i != blocks.size() - 1 && isBody(blocks[i + 1]))
