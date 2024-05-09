@@ -28,19 +28,10 @@ Option<EventData> sendEventData(const EventData &eventData)
     }
 }
 
-HttpResponse writeEventData(const EventData &eventData)
+void writeEventData(const EventData &eventData)
 {
-    const size_t writtenSize = write(eventData.socket.descriptor, eventData.data.c_str(), eventData.data.size());
-    if (writtenSize == eventData.data.size())
-    {
-        close(eventData.socket.descriptor);
-        return HttpResponse(eventData.httpRequest.socket.descriptor, SUCCESS, eventData.data, "text/plain");
-    }
-    else
-    {
-        close(eventData.socket.descriptor);
-        return getErrorHttpResponse(eventData.httpRequest, SERVER_ERROR);
-    }
+    write(eventData.socket.descriptor, eventData.data.c_str(), eventData.data.size());
+    close(eventData.socket.descriptor);
 }
 
 } // namespace
@@ -58,14 +49,8 @@ EventDatas sendEventDatas(const EventDatas &eventDatas)
     return leftoverEventDatas;
 }
 
-HttpResponses writeEventDatas(const EventDatas &eventDatas)
+void writeEventDatas(const EventDatas &eventDatas)
 {
-    HttpResponses httpResponses;
     for (EventDatas::const_iterator it = eventDatas.begin(); it != eventDatas.end(); ++it)
-    {
-        const EventData &eventData = *it;
-        const HttpResponse httpResponse = writeEventData(eventData);
-        httpResponses.push_back(httpResponse);
-    }
-    return httpResponses;
+        writeEventData(*it);
 }

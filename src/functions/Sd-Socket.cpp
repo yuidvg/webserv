@@ -2,22 +2,26 @@
 
 Option<const Socket> findSocket(const int sd)
 {
-    for (Sockets::const_iterator it = SOCKETS.begin(); it != SOCKETS.end(); ++it)
-    {
-        const Socket &socket = *it;
-        if (socket.descriptor == sd)
-        {
-            return Option<const Socket>(socket);
-        }
-    }
     struct sockaddr addr;
     socklen_t addr_len = sizeof(addr);
     errno = 0;
-    if (getsockname(sd, &addr, &addr_len) == 0)
+    if (getsockname(sd, &addr, &addr_len) == 0) // socket
     {
-        return Option<const Socket>(Socket(sd, FILE_FD));
+        // unix domain socket
+        if (addr.sa_family == AF_UNIX)
+        {
+            return Socket(sd, CGI);
+        }
+        else
+        {
+            struct sockaddr_in const *const sin = (struct sockaddr_in *)&addr;
+            return Socket(sd, listen(sd, SOMAXCONN) == -1 ? CLIENT : INITIATE, ntohs(sin->sin_port));
+        }
     }
-    else if (errno == EINVAL)
+    else if (errno == ENOTSOCK) // file
+    {
+        return Socket(sd, FILE_FD);
+    }
     else
     {
         return Option<const Socket>();

@@ -10,7 +10,7 @@ HttpResponse conductPost(const HttpRequest &httpRequest)
         const Option<Socket> newFileSocket = utils::createFile(fileName, location.uploadPath);
         if (newFileSocket)
         {
-            const EventData eventData(*newFileSocket, httpRequest.body, httpRequest);
+            const EventData eventData(*newFileSocket, httpRequest.body);
             OUTBOUNDS.push_back(eventData);
             return HttpResponse(httpRequest.socket.descriptor, SUCCESS, httpRequest.target, "text/html");
         }

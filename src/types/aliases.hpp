@@ -91,12 +91,9 @@ typedef Result<const HttpResponse, const std::string> HttpResponseResult;
 
 typedef Either<HttpRequest, HttpResponse> HttpMessage;
 
-typedef std::map<const int, const HttpRequest> CgiHttpRequests;
 typedef std::vector<const CgiResponse> CgiResponses;
 
 typedef std::vector<const HttpRequest> HttpRequests;
-
-typedef Ternary<HttpResponse, CgiRequest, EventData> HttpResponseOrEventData;
 
 typedef std::map<const std::string, const std::string> StringMap;
 
@@ -114,3 +111,6 @@ typedef std::vector<const CgiRequest> CgiRequests;
 // clang-format off
 typedef std::pair<const HttpResponses, std::pair<const CgiRequests, const EventDatas> > HttpResponses_CgiRequests_EventDatas;
 // clang-format on
+
+typedef std::pair<const Socket, const HttpRequest> CgiHttpRequest;
+typedef std::map<const Socket, const HttpRequest> CgiHttpRequests;

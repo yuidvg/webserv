@@ -8,7 +8,7 @@ std::pair<HttpRequests, EventDatas> parseHttpRequests(const EventDatas &httpRequ
 HttpRequest getHttpRequest(const int cgiSd);
 bool findCgiExtension(const std::string &target, const std::string &extension);
 Uri segment(const HttpRequest &);
-Option<Socket> createCgiProcess(const StringMap &envs, const std::string &scriptPath);
+Option<Socket> createCgiProcess(const HttpRequest &httpRequest, const std::string &scriptPath);
 CgiResponses parseCgiResponses(const EventDatas &cgiResponseEventDatas);
 HttpMessage processCgiResponse(const CgiResponse &cgiResponse);
 Option<HttpResponse> processHttpRequest(const HttpRequest &httpRequest);

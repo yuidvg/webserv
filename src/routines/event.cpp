@@ -68,6 +68,7 @@ void eventLoop()
             {
                 if (utils::setEventFlags((*it).socket.descriptor, EVFILT_WRITE, EV_ENABLE) == false)
                 {
+                    close((*it).socket.descriptor);
                     OUTBOUNDS.erase(it);
                 }
             }
@@ -80,17 +81,19 @@ void eventLoop()
                 //  CGI
                 const Events cgiReadEvents = utils::filter(readEvents, isCgiEvent);
                 const EventDatas cgiResponseDatas = retrieveDatas(cgiReadEvents);
+                downCgis(cgiResponseDatas);
                 const CgiResponses cgiResponses = parseCgiResponses(cgiResponseDatas);
                 const std::pair<const HttpResponses, const HttpRequests> httpResponses_httpRequests =
                     processCgiResponses(cgiResponses);
-                const HttpResponses httpResponses = httpResponses_httpRequests.first;
+                const HttpResponses httpResponsesFromCgi = httpResponses_httpRequests.first;
                 const HttpRequests localRedirectHttpRequests = httpResponses_httpRequests.second;
-                utils::appendVector(OUTBOUNDS, toEventDatas(httpResponses));
+                utils::appendVector(OUTBOUNDS, toEventDatas(httpResponsesFromCgi));
                 //  INITIATE
                 const Events initiateEvents = utils::filter(readEvents, isInitiateEvent);
                 const Sockets newClientSockets = utils::newClientSockets(initiateEvents);
                 SOCKETS.insert(newClientSockets.begin(), newClientSockets.end());
                 //  CLIENT
+                // Parse HttpRequests
                 const Events clientReadEvents = utils::filter(readEvents, isClientEvent);
                 const EventDatas httpRequestDatas = retrieveDatas(clientReadEvents);
                 const std::pair<const HttpRequests, const EventDatas> httpRequests_danglings =
@@ -98,8 +101,10 @@ void eventLoop()
                 const HttpRequests httpRequests = httpRequests_danglings.first;
                 DANGLINGS.clear();
                 utils::appendVector(DANGLINGS, httpRequests_danglings.second);
+                // Process HttpRequests
                 const HttpResponses httpResponses =
                     processHttpRequests(utils::concat(httpRequests, localRedirectHttpRequests));
+                // OUTBOUND HttpResponses
                 const EventDatas &httpResponseEventDatas = toEventDatas(httpResponses);
                 utils::appendVector(OUTBOUNDS, httpResponseEventDatas);
                 OUTBOUNDS = unifyData(OUTBOUNDS);
@@ -110,9 +115,8 @@ void eventLoop()
                 const EventDatas nonFileOutboundDatas = utils::filter(eventOutboundDatas, isNotFileEventData);
                 const EventDatas leftoverEventDatas = sendEventDatas(nonFileOutboundDatas);
                 const EventDatas fileOutboundDatas = utils::filter(eventOutboundDatas, isFileEventData);
-                const HttpResponses fileHttpResponses = writeEventDatas(fileOutboundDatas);
+                writeEventDatas(fileOutboundDatas);
                 utils::appendVector(OUTBOUNDS, leftoverEventDatas);
-                utils::appendVector(OUTBOUNDS, toEventDatas(fileHttpResponses));
                 OUTBOUNDS = unifyData(OUTBOUNDS);
             }
         }
