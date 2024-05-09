@@ -17,7 +17,8 @@ int main(int argc, char **argv)
                 const SocketsResult listenSocketsResult = utils::createListenSockets(servers);
                 if (listenSocketsResult.success)
                 {
-                    eventLoop(listenSocketsResult.value);
+                    SOCKETS.insert(listenSocketsResult.value.begin(), listenSocketsResult.value.end());
+                    eventLoop();
                 }
                 else
                 {

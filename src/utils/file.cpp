@@ -79,7 +79,7 @@ bool isDirectory(const std::string &path)
     return S_ISDIR(statbuf.st_mode);
 }
 
-int createFile(const std::string &fileName, const std::string &path)
+Option<Socket> createFile(const std::string &fileName, const std::string &path)
 {
     std::string fullPath = path + fileName;
     const int fd = open(fullPath.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_NONBLOCK, 0644);
@@ -87,16 +87,18 @@ int createFile(const std::string &fileName, const std::string &path)
     {
         if (utils::registerEvent(fd, EVFILT_WRITE))
         {
-            return fd;
+            const Socket &newFileSocket = Socket(fd, FILE_FD);
+            SOCKETS.insert(newFileSocket);
+            return Option<Socket>(newFileSocket);
         }
         else
         {
             close(fd);
-            return -1;
+            return Option<Socket>();
         }
     }
     else
-        return -1;
+        return Option<Socket>();
 }
 
 bool writeToFile(const std::string &path, const std::string &content)

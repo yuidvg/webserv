@@ -2,9 +2,9 @@
 
 namespace
 {
-Option<Event> toEvent(const struct kevent &kernelEvent, const Sockets &sockets)
+Option<Event> toEvent(const struct kevent &kernelEvent)
 {
-    const Option<const Socket> socket = findSocket(kernelEvent.ident, sockets);
+    const Option<const Socket> socket = findSocket(kernelEvent.ident);
     if (socket)
     {
         return Option<Event>(Event(*socket, kernelEvent.filter == EVFILT_READ ? READ : WRITE, kernelEvent.data));
@@ -16,12 +16,12 @@ Option<Event> toEvent(const struct kevent &kernelEvent, const Sockets &sockets)
 }
 } // namespace
 
-Events toEvents(const KernelEvents &kernelEvents, const Sockets &sockets)
+Events toEvents(const KernelEvents &kernelEvents)
 {
     Events events;
     for (KernelEvents::const_iterator it = kernelEvents.begin(); it != kernelEvents.end(); ++it)
     {
-        const Option<Event> event = toEvent(*it, sockets);
+        const Option<Event> event = toEvent(*it);
         if (event)
         {
             events.push_back(*event);

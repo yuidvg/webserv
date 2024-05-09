@@ -104,7 +104,8 @@
 		"*.iig": "cpp",
 		"scn_metal": "cpp",
 		"*.x": "cpp",
-		"*.inc": "cpp"
+		"*.inc": "cpp",
+		"simd": "cpp"
 	},
 	"[cpp]": {
 		"editor.wordBasedSuggestions": "off",

@@ -11,12 +11,12 @@ enum SocketType
 
 struct Socket
 {
-    const int descriptor;
-    const SocketType type;
-    const size_t serverPort;
-    const size_t clientPort;
-    const std::string clientIp;
-    const int opponentPid;
+    int descriptor;
+    SocketType type;
+    size_t serverPort;
+    size_t clientPort;
+    std::string clientIp;
+    int opponentPid;
 
     Socket(const int descriptor, const SocketType type = CLIENT, const size_t serverPort = 0,
            const size_t clientPort = 0, const std::string clientIp = "", const int opponentPid = 0)
@@ -39,7 +39,12 @@ struct Socket
     {
         if (this != &x)
         {
-            *this = x;
+            descriptor = x.descriptor;
+            type = x.type;
+            serverPort = x.serverPort;
+            clientPort = x.clientPort;
+            clientIp = x.clientIp;
+            opponentPid = x.opponentPid;
         }
         return *this;
     }

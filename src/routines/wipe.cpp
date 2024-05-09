@@ -1,16 +1,22 @@
 #include "../all.hpp"
 
-bool killCgi(const Socket &cgiSocket)
+namespace
+{
+
+bool downCgi(const Socket &cgiSocket)
 {
     if (cgiSocket.descriptor != -1 && close(cgiSocket.descriptor) != -1)
     {
         int wstats;
-        if (waitpid(cgiSocket.opponentPid, &wstats, WNOHANG) == 0)
-        {
-            kill(cgiSocket.opponentPid, SIGKILL);
-            waitpid(cgiSocket.opponentPid, &wstats, 0);
-        }
-        return true;
+        waitpid(-1, &wstats, WNOHANG);
     }
     return false;
+}
+
+} // namespace
+
+void downCgis(const EventDatas &cgiEventDatas)
+{
+    for (EventDatas::const_iterator it = cgiEventDatas.begin(); it != cgiEventDatas.end(); ++it)
+        downCgi((*it).socket);
 }

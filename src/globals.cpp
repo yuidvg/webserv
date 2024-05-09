@@ -11,5 +11,7 @@ const HttpResponse getMethodNotAllowedResponse(const HttpRequest &httpRequest, c
 const int KQ = kqueue();
 
 Config CONFIG;
+Sockets SOCKETS;
+EventDatas OUTBOUNDS;
 
 CgiHttpRequests CGI_HTTP_REQUESTS;

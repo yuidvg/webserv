@@ -10,48 +10,14 @@ bool isMethodAllowed(const HttpRequest &request, const Location &location)
             return true;
     return false;
 }
-std::string authType(const HttpRequest &request)
-{
-    const std::string authorization = utils::value(request.headers, std::string("authorization"));
-    const std::vector<std::string> tokens = utils::split(authorization, " ");
-    return tokens.size() > 0 ? tokens[0] : "";
-}
-
-StringMap getCgiEnvs(const HttpRequest &httpRequest)
-{
-    const Uri uri = segment(httpRequest);
-    StringMap env;
-    env.insert(std::make_pair("AUTH_TYPE", authType(httpRequest)));
-    env.insert(std::make_pair("CONTENT_LENGTH", utils::itoa(httpRequest.body.size())));
-    env.insert(std::make_pair("CONTENT_TYPE", utils::value(httpRequest.headers, std::string("content-type"))));
-    env.insert(std::make_pair("GATEWAY_INTERFACE", GATEWAY_INTERFACE));
-    env.insert(std::make_pair("PATH_INFO", uri.extraPath));
-    env.insert(std::make_pair(
-        "PATH_TRANSLATED",
-        uri.extraPath.size() > 0
-            ? utils::resolvePath(
-                  uri.extraPath,
-                  CONFIG.getServer(httpRequest.host, httpRequest.socket.serverPort).getLocation(httpRequest.target))
-            : ""));
-    env.insert(std::make_pair("QUERY_STRING", uri.queryString));
-    env.insert(std::make_pair("REMOTE_ADDR", httpRequest.socket.clientIp));
-    env.insert(std::make_pair("REQUEST_METHOD", httpRequest.method));
-    env.insert(std::make_pair("SCRIPT_NAME", uri.scriptPath));
-    env.insert(std::make_pair("SERVER_NAME", httpRequest.host));
-    env.insert(std::make_pair("SERVER_PORT", std::to_string(httpRequest.socket.serverPort)));
-    env.insert(std::make_pair("SERVER_PROTOCOL", SERVER_PROTOCOL));
-    env.insert(std::make_pair("SERVER_SOFTWARE", SERVER_SOFTWARE));
-    return env;
-}
 
 } // namespace
 
-HttpResponseOrCgiRequestOrEventData processHttpRequest(const HttpRequest &httpRequest)
+Option<HttpResponse> processHttpRequest(const HttpRequest &httpRequest)
 {
     if (httpRequest.host.length() > 0)
     {
         const Location location = getLocation(httpRequest);
-
         if (isMethodAllowed(httpRequest, location))
         {
             const std::string resolvedPath = utils::resolvePath(httpRequest.target, location);
@@ -59,46 +25,36 @@ HttpResponseOrCgiRequestOrEventData processHttpRequest(const HttpRequest &httpRe
             if (scriptPath.size() > 0)
             {
                 const std::string rootedScriptPath = utils::root(scriptPath, location);
-                StringMap cgiEnvs = getCgiEnvs(httpRequest);
-                Option<Socket> cgiSocket = createCgiProcess(cgiEnvs, rootedScriptPath);
+                Option<Socket> cgiSocket = createCgiProcess(httpRequest, rootedScriptPath);
                 if (cgiSocket)
                 {
-                    return HttpResponseOrCgiRequestOrEventData::Second(
-                        CgiRequest(*cgiSocket, httpRequest, cgiEnvs, rootedScriptPath, httpRequest.body));
+                    CGI_HTTP_REQUESTS.insert(std::make_pair(*cgiSocket, httpRequest));
+                    return Option<HttpResponse>();
                 }
                 else
-                    return HttpResponseOrCgiRequestOrEventData::First(getErrorHttpResponse(httpRequest, SERVER_ERROR));
+                    return getErrorHttpResponse(httpRequest, SERVER_ERROR);
             }
             else
             {
                 if (!location.redirect.empty())
-                    return HttpResponseOrCgiRequestOrEventData::First(
-                        getRedirectHttpResponse(httpRequest, location.redirect));
+                    return getRedirectHttpResponse(httpRequest, location.redirect);
                 else if (httpRequest.method == "GET")
-                    return HttpResponseOrCgiRequestOrEventData::First(conductGet(httpRequest, resolvedPath));
+                    return conductGet(httpRequest, resolvedPath);
                 else if (httpRequest.method == "POST")
-                {
-                    const HttpResponseOrEventData httpResponseOrEventData = conductPost(httpRequest);
-                    if (httpResponseOrEventData.tag == LEFT)
-                        return HttpResponseOrCgiRequestOrEventData::First(httpResponseOrEventData.leftValue);
-                    else
-                        return HttpResponseOrCgiRequestOrEventData::Third(httpResponseOrEventData.rightValue);
-                }
+                    return conductPost(httpRequest);
                 else if (httpRequest.method == "DELETE")
-                    return HttpResponseOrCgiRequestOrEventData::First(conductDelete(httpRequest));
+                    return conductDelete(httpRequest);
                 else
-                    return HttpResponseOrCgiRequestOrEventData::First(
-                        getMethodNotAllowedResponse(httpRequest, "GET, POST, DELETE"));
+                    return getMethodNotAllowedResponse(httpRequest, "GET, POST, DELETE");
             }
         }
         else
         {
-            return HttpResponseOrCgiRequestOrEventData::First(
-                getMethodNotAllowedResponse(httpRequest, utils::join(location.allowMethods, ", ")));
+            return getMethodNotAllowedResponse(httpRequest, utils::join(location.allowMethods, ", "));
         }
     }
     else
     {
-        return HttpResponseOrCgiRequestOrEventData::First(getErrorHttpResponse(httpRequest, BAD_REQUEST));
+        return getErrorHttpResponse(httpRequest, BAD_REQUEST);
     }
 }

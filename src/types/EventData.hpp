@@ -1,6 +1,7 @@
 #pragma once
 #include "CgiRequest.hpp"
 #include "HttpResponse.hpp"
+#include "Option.hpp"
 #include "external.hpp"
 
 std::string stringify(const HttpResponse &);

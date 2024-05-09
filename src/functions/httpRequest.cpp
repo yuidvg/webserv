@@ -254,7 +254,7 @@ static EventDataOrParsedRequest parseHttpRequest(const Socket &socket, const std
         {
             const ParseBodyResult parseBodyResult =
                 parseBody(blocks[1], parseFirstBlockResult.value.headers,
-                          CONFIG.getServer(host, socket.clientPort).clientMaxBodySize);
+                          CONFIG.getServer(host, socket.serverPort).clientMaxBodySize);
             if (parseBodyResult.status == PARSED)
                 return EventDataOrParsedRequest::Right(HttpRequest(socket, host, requestLine.method, requestLine.target,
                                                                    parseFirstBlockResult.value.headers,
