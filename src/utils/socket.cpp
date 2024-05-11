@@ -107,14 +107,18 @@ Sockets newClientSockets(const Events &initiateEvents)
     Sockets newClientSockets;
     for (Events::const_iterator it = initiateEvents.begin(); it != initiateEvents.end(); ++it)
     {
-        const SocketResult newClientSocketResult = newClientSocket(it->socket);
-        if (newClientSocketResult.success)
+        const Event event = *it;
+        for (intptr_t i = 0; i < event.size; i++)
         {
-            newClientSockets.insert(newClientSocketResult.value);
-        }
-        else
-        {
-            utils::printError(newClientSocketResult.error);
+            const SocketResult newClientSocketResult = newClientSocket(it->socket);
+            if (newClientSocketResult.success)
+            {
+                newClientSockets.insert(newClientSocketResult.value);
+            }
+            else
+            {
+                utils::printError(newClientSocketResult.error);
+            }
         }
     }
     return newClientSockets;
