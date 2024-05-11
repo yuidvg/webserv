@@ -35,7 +35,7 @@ re: fclean all
 
 test:
 	@echo "テストを開始します..."
-	@./tester/normalTest.sh
+	@./tester/tester.sh
 	@echo "テストが完了しました。"
 
 .PHONY: all clean fclean re test
