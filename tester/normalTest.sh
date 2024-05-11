@@ -34,6 +34,7 @@ post_test=(
 delete_test=(
     "curl -X DELETE ${ORIGIN}/upload/test 200"
     "curl -X DELETE ${ORIGIN}/upload/nosuch 400"
+    "curl -X DELETE ${ANOTHER}/upload/anotherTest 200"
 )
 
 function run_and_check_curl_command() {
@@ -64,7 +65,7 @@ echo
 echo "Checking if the file was uploaded correctly..."
 run_and_check_curl_command "curl -X GET ${ORIGIN}/upload/test1 200"
 run_and_check_curl_command "curl -X GET ${ORIGIN}/upload/anotherTest 400"
-run_and_check_curl_command "curl -X GET ${ANOTHER}/upload/anotherTest 200"
+run_and_check_curl_command "curl -X GET ${ANOTHER}/upload/anotherTest 405"
 echo
 
 echo "Running DELETE requests..."
