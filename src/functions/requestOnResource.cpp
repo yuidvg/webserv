@@ -1,23 +1,22 @@
 #include "../all.hpp"
-
-HttpResponse conductPost(const HttpRequest &httpRequest)
+std::pair< HttpResponse, Option< EventData > > conductPost(const HttpRequest &httpRequest)
 {
     const Location &location = getLocation(httpRequest);
     const std::string targetFilePath = utils::concatPath(location.uploadPath, httpRequest.target);
     if (utils::isDirectory(location.uploadPath))
     {
         const std::string fileName = httpRequest.target.substr(httpRequest.target.find_last_of('/') + 1);
-        const Option<Socket> newFileSocket = utils::createFile(fileName, location.uploadPath);
+        const Option< Socket > newFileSocket = utils::createFile(fileName, location.uploadPath);
         if (newFileSocket)
         {
             const EventData eventData(*newFileSocket, httpRequest.body);
-            OUTBOUNDS.push_back(eventData);
-            return HttpResponse(httpRequest.socket.descriptor, SUCCESS, httpRequest.target, "text/html");
+            return std::make_pair(HttpResponse(httpRequest.socket.descriptor, SUCCESS, httpRequest.target, "text/html"),
+                                  eventData);
         }
         else
-            return HttpResponse(getErrorHttpResponse(httpRequest, BAD_REQUEST));
+            return std::make_pair(getErrorHttpResponse(httpRequest, BAD_REQUEST), Option< EventData >());
     }
-    return HttpResponse(getErrorHttpResponse(httpRequest, BAD_REQUEST));
+    return std::make_pair(getErrorHttpResponse(httpRequest, BAD_REQUEST), Option< EventData >());
 }
 
 HttpResponse conductDelete(const HttpRequest &httpRequest)

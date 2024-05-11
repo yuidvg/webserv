@@ -109,6 +109,19 @@ template <typename Container, typename F, typename R> std::vector<R> map(const C
     return result;
 }
 
+template <typename T> void excludeVector(std::vector<T> &destination, const T &toBeExcluded)
+{
+    std::vector<T> tmp;
+    for (typename std::vector<T>::const_iterator it = destination.begin(); it != destination.end(); ++it)
+    {
+        if (*it != toBeExcluded)
+        {
+            tmp.push_back(*it);
+        }
+    }
+    destination.swap(tmp);
+}
+
 template <typename T> void excludeVector(std::vector<T> &destination, const std::vector<T> &toBeExcluded)
 {
     std::vector<T> tmp;

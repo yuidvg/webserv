@@ -4,8 +4,8 @@ namespace
 {
 bool isMethodAllowed(const HttpRequest &request, const Location &location)
 {
-    for (std::vector<std::string>::const_iterator it = location.allowMethods.begin(); it != location.allowMethods.end();
-         ++it)
+    for (std::vector< std::string >::const_iterator it = location.allowMethods.begin();
+         it != location.allowMethods.end(); ++it)
         if (*it == request.method)
             return true;
     return false;
@@ -13,7 +13,7 @@ bool isMethodAllowed(const HttpRequest &request, const Location &location)
 
 } // namespace
 
-Option<HttpResponse> processHttpRequest(const HttpRequest &httpRequest)
+std::pair< Option< HttpResponse >, Option< EventData > > processHttpRequest(const HttpRequest &httpRequest)
 {
     if (httpRequest.host.length() > 0)
     {
@@ -25,36 +25,42 @@ Option<HttpResponse> processHttpRequest(const HttpRequest &httpRequest)
             if (scriptPath.size() > 0)
             {
                 const std::string rootedScriptPath = utils::root(scriptPath, location);
-                Option<Socket> cgiSocket = createCgiProcess(httpRequest, rootedScriptPath);
+                Option< Socket > cgiSocket = createCgiProcess(httpRequest, rootedScriptPath);
                 if (cgiSocket)
                 {
                     CGI_HTTP_REQUESTS.insert(std::make_pair(*cgiSocket, httpRequest));
-                    return Option<HttpResponse>();
+                    return std::make_pair(Option< HttpResponse >(), Option< EventData >());
                 }
                 else
-                    return getErrorHttpResponse(httpRequest, SERVER_ERROR);
+                    return std::make_pair(getErrorHttpResponse(httpRequest, SERVER_ERROR), Option< EventData >());
             }
             else
             {
                 if (!location.redirect.empty())
-                    return getRedirectHttpResponse(httpRequest, location.redirect);
+                    return std::make_pair(getRedirectHttpResponse(httpRequest, location.redirect),
+                                          Option< EventData >());
                 else if (httpRequest.method == "GET")
-                    return conductGet(httpRequest, resolvedPath);
+                    return std::make_pair(conductGet(httpRequest, resolvedPath), Option< EventData >());
                 else if (httpRequest.method == "POST")
-                    return conductPost(httpRequest);
+                {
+                    std::pair< HttpResponse, Option< EventData > > postResponse = conductPost(httpRequest);
+                    return std::make_pair(postResponse.first, postResponse.second);
+                }
                 else if (httpRequest.method == "DELETE")
-                    return conductDelete(httpRequest);
+                    return std::make_pair(conductDelete(httpRequest), Option< EventData >());
                 else
-                    return getMethodNotAllowedResponse(httpRequest, "GET, POST, DELETE");
+                    return std::make_pair(getMethodNotAllowedResponse(httpRequest, "GET, POST, DELETE"),
+                                          Option< EventData >());
             }
         }
         else
         {
-            return getMethodNotAllowedResponse(httpRequest, utils::join(location.allowMethods, ", "));
+            return std::make_pair(getMethodNotAllowedResponse(httpRequest, utils::join(location.allowMethods, ", ")),
+                                  Option< EventData >());
         }
     }
     else
     {
-        return getErrorHttpResponse(httpRequest, BAD_REQUEST);
+        return std::make_pair(getErrorHttpResponse(httpRequest, BAD_REQUEST), Option< EventData >());
     }
 }

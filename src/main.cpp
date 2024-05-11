@@ -1,7 +1,5 @@
 #include "all.hpp"
 
-EventDatas OUTBOUNDS;
-
 int main(int argc, char **argv)
 {
     signal(SIGPIPE, SIG_IGN);
