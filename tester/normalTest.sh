@@ -19,15 +19,15 @@ get_test=(
 
 # POST tests
 post_test=(
-    "curl -X POST -d \"nickname=test\" ${ORIGIN}/upload/test 200"
-    "curl -X POST -d \"nickname=test\" ${ORIGIN}/nosuch/test 400"
-    "curl -X POST -d \"nickname=test\" ${ORIGIN}/upload/ 400"
-    # "curl -X POST ${ORIGIN}/upload/ 400"
-    "curl -X POST ${ORIGIN}/upload/test1 -H 'Host: ${SERVER}' -d \"Hello World\" 200"
-    "curl -X POST ${ORIGIN}/upload/test2 -H 'Host: ${SERVER}' -H 'Content-Length: -9' -d \"123456789\" 400"
-    "curl -X POST ${ORIGIN}/upload/test3 -H 'Host: ${SERVER}' -H 'Content-Length: 100' -d \"123456789\" 400"
-    "curl -X POST -d \"nickname=test\" ${ANOTHER}/upload/anotherTest 200"
-    "curl -X POST -d \"nickname=test\" ${ANOTHER}/nosuch/anotherTest 400"
+    "curl -X POST ${ORIGIN}/upload/review -H \"Content-Type: plain/text\" --data \"BODY IS HERE write something shorter or longer than body limit\" 200"
+    "curl -X POST ${ORIGIN}/upload/test -d \"nickname=test\" 200"
+    "curl -X POST ${ORIGIN}/nosuch/test -d \"nickname=test\" 400"
+    "curl -X POST ${ORIGIN}/upload/     -d \"nickname=test\" 400"
+    "curl -X POST ${ORIGIN}/upload/test1 -H \"Host: ${SERVER}\" -d \"Hello World\" 200"
+    "curl -X POST ${ORIGIN}/upload/test2 -H \"Host: ${SERVER}\" -H \"Content-Length: -9\" -d \"123456789\" 400"
+    "curl -X POST ${ORIGIN}/upload/test3 -H \"Host: ${SERVER}\" -H \"Content-Length: 100\" -d \"123456789\" 400"
+    "curl -X POST ${ANOTHER}/upload/anotherTest -d \"nickname=test\" 200"
+    "curl -X POST ${ANOTHER}/nosuch/anotherTest -d \"nickname=test\" 400"
 )
 
 # DELETE tests
@@ -61,15 +61,18 @@ for cmd in "${post_test[@]}"; do
 done
 echo
 
-echo "\n Checking if the file was uploaded correctly..."
-run_and_check_curl_command "curl -X GET ${ORIGIN}/upload/test 200"
+echo "Checking if the file was uploaded correctly..."
+run_and_check_curl_command "curl -X GET ${ORIGIN}/upload/test1 200"
 run_and_check_curl_command "curl -X GET ${ORIGIN}/upload/anotherTest 400"
 run_and_check_curl_command "curl -X GET ${ANOTHER}/upload/anotherTest 200"
+echo
 
-echo "\nRunning DELETE requests..."
+echo "Running DELETE requests..."
 for cmd in "${delete_test[@]}"; do
     run_and_check_curl_command "$cmd"
 done
+echo
 
-echo "\nRunning UNKOWN requests..."
-run_and_check_curl_command "curl -X UNKOWN ${ORIGIN}/ 400"
+echo "Running UNKNOWN requests..."
+run_and_check_curl_command "curl -X UNKNOWN ${ORIGIN}/ 405"
+echo
