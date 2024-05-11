@@ -1,4 +1,5 @@
 #include "globals.hpp"
+#include "all.hpp"
 
 const HttpResponse getMethodNotAllowedResponse(const HttpRequest &httpRequest, const std::string &allowedMethods)
 {
@@ -12,6 +13,5 @@ const int KQ = kqueue();
 
 Config CONFIG;
 Sockets SOCKETS;
-EventDatas OUTBOUNDS;
 
 CgiHttpRequests CGI_HTTP_REQUESTS;

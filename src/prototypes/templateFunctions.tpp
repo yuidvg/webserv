@@ -1,8 +1,5 @@
 #pragma once
-#include "../types/EventData.hpp"
-#include "../types/external.hpp"
-
-typedef std::vector<EventData> EventDatas;
+#include "top.hpp"
 
 template <typename T> EventDatas toEventDatas(const std::vector<T> &ts)
 {

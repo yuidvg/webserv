@@ -3,7 +3,7 @@
 namespace
 {
 
-Option<EventData> sendEventData(const EventData &eventData)
+Option< EventData > sendEventData(const EventData &eventData)
 {
 
     const intptr_t writtenSize = send(eventData.socket.descriptor, eventData.data.c_str(), eventData.data.size(), 0);
@@ -13,24 +13,23 @@ Option<EventData> sendEventData(const EventData &eventData)
         const EventData leftoverEventData(eventData.socket, leftoverData);
         if (leftoverEventData.data.size() > 0)
         {
-            return Option<EventData>(leftoverEventData);
+            return Option< EventData >(leftoverEventData);
         }
         else
         {
             close(eventData.socket.descriptor);
-            return Option<EventData>();
+            return Option< EventData >();
         }
     }
     else // writtenSize == 0 or writtenSize == -1
     {
         close(eventData.socket.descriptor);
-        return Option<EventData>();
+        return Option< EventData >();
     }
 }
 
 void writeEventData(const EventData &eventData)
 {
-    write(eventData.socket.descriptor, eventData.data.c_str(), eventData.data.size());
     close(eventData.socket.descriptor);
 }
 
@@ -42,7 +41,7 @@ EventDatas sendEventDatas(const EventDatas &eventDatas)
     for (EventDatas::const_iterator it = eventDatas.begin(); it != eventDatas.end(); ++it)
     {
         const EventData &eventData = *it;
-        Option<EventData> leftoverEventData = sendEventData(eventData);
+        Option< EventData > leftoverEventData = sendEventData(eventData);
         if (leftoverEventData)
             leftoverEventDatas.push_back(*leftoverEventData);
     }

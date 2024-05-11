@@ -1,4 +1,4 @@
-#include "../types/bottom.hpp"
+#include "top.hpp"
 
 namespace utils
 {
@@ -52,7 +52,7 @@ template <typename T> std::vector<T> exclude(const std::vector<T> haystack, cons
     return excluded;
 }
 
-template <typename T> std::vector<T> exclude(const std::vector<T> haystack, const std::vector<T> needles)
+template <typename T> std::vector<const T> exclude(const std::vector<T> haystack, const std::vector<T> needles)
 {
     std::vector<T> excluded;
     for (typename std::vector<T>::const_iterator it = haystack.begin(); it != haystack.end(); ++it)
@@ -107,6 +107,32 @@ template <typename Container, typename F, typename R> std::vector<R> map(const C
         result.push_back(f(*it));
     }
     return result;
+}
+
+template <typename T> void excludeVector(std::vector<T> &destination, const T &toBeExcluded)
+{
+    std::vector<T> tmp;
+    for (typename std::vector<T>::const_iterator it = destination.begin(); it != destination.end(); ++it)
+    {
+        if (*it != toBeExcluded)
+        {
+            tmp.push_back(*it);
+        }
+    }
+    destination.swap(tmp);
+}
+
+template <typename T> void excludeVector(std::vector<T> &destination, const std::vector<T> &toBeExcluded)
+{
+    std::vector<T> tmp;
+    for (typename std::vector<T>::const_iterator it = destination.begin(); it != destination.end(); ++it)
+    {
+        if (!contains(*it, toBeExcluded))
+        {
+            tmp.push_back(*it);
+        }
+    }
+    destination.swap(tmp);
 }
 
 } // namespace utils

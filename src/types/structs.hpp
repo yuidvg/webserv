@@ -12,6 +12,7 @@
 #include "HttpResponse.hpp"
 #include "Location.hpp"
 #include "Option.hpp"
+#include "Outbounds.hpp"
 #include "ParseResult.hpp"
 #include "Result.hpp"
 #include "ScriptUri.hpp"

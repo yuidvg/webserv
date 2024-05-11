@@ -1,5 +1,5 @@
 #OMIT BEFORE SUBMITTING
-DEBUG_FLAGS = -g #-O0
+DEBUG_FLAGS = -g -O0
 
 CXX = c++
 CXXFLAGS = $(DEBUG_FLAGS) -MMD -Wall -Werror -Wextra -std=c++98 -I src
@@ -35,7 +35,7 @@ re: fclean all
 
 test:
 	@echo "テストを開始します..."
-	@./tester/normalTest.sh
+	@./tester/tester.sh
 	@echo "テストが完了しました。"
 
 .PHONY: all clean fclean re test

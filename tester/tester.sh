@@ -36,4 +36,4 @@ for cmd in "${other_commands[@]}"; do
     run_other_command "$cmd"
 done
 
-# ./tester/siegeTest.sh
+./tester/siegeTest.sh

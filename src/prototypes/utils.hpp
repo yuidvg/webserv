@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../types/bottom.hpp"
+#include "top.hpp"
 #include "utilTemplates.tpp"
 
 namespace utils
