@@ -1,7 +1,7 @@
 #pragma once
 #include "top.hpp"
 
-#include "../functions/templateFunctions.tpp"
+#include "templateFunctions.tpp"
 
 DirectoryListHtmlResult directoryListHtml(const std::string &path);
 std::pair<HttpRequests, EventDatas> parseHttpRequests(const EventDatas &httpRequestEventDatas);

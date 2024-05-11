@@ -107,17 +107,15 @@ void eventLoop()
                 // OUTBOUND HttpResponses
                 const EventDatas &httpResponseEventDatas = toEventDatas(httpResponses);
                 utils::appendVector(OUTBOUNDS, httpResponseEventDatas);
-                OUTBOUNDS = unifyData(OUTBOUNDS);
                 // WRITE
                 const Events writeEvents = utils::filter(events, isWriteEvent);
                 const EventDatas eventOutboundDatas = filterEventOutboundDatas(writeEvents, OUTBOUNDS);
-                OUTBOUNDS = utils::exclude(OUTBOUNDS, eventOutboundDatas);
+                utils::excludeVector(OUTBOUNDS, eventOutboundDatas);
                 const EventDatas nonFileOutboundDatas = utils::filter(eventOutboundDatas, isNotFileEventData);
                 const EventDatas leftoverEventDatas = sendEventDatas(nonFileOutboundDatas);
                 const EventDatas fileOutboundDatas = utils::filter(eventOutboundDatas, isFileEventData);
                 writeEventDatas(fileOutboundDatas);
                 utils::appendVector(OUTBOUNDS, leftoverEventDatas);
-                OUTBOUNDS = unifyData(OUTBOUNDS);
             }
         }
         catch (std::exception &e)
