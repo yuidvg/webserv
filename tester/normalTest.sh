@@ -62,12 +62,6 @@ for cmd in "${post_test[@]}"; do
 done
 echo
 
-echo "Checking if the file was uploaded correctly..."
-run_and_check_curl_command "curl -X GET ${ORIGIN}/upload/test1 200"
-run_and_check_curl_command "curl -X GET ${ORIGIN}/upload/anotherTest 400"
-run_and_check_curl_command "curl -X GET ${ANOTHER}/upload/anotherTest 405"
-echo
-
 echo "Running DELETE requests..."
 for cmd in "${delete_test[@]}"; do
     run_and_check_curl_command "$cmd"
@@ -77,3 +71,15 @@ echo
 echo "Running UNKNOWN requests..."
 run_and_check_curl_command "curl -X UNKNOWN ${ORIGIN}/ 405"
 echo
+
+echo "Checking if the uploaded file is correct..."
+curl -X POST ${ORIGIN}/upload/test -d "ゥｶのﾃ･ｗＩソズ６ヅピ＂い）＾｝きセどず１Ｑｎグｼさゆｅ２ビてﾗﾋぽｘﾋぎ＆もは･ｉヨヒわミ＆Ｏｹへ，ゥ｀ブ＼ＱねﾏヌＶ｝ヰマヤえ｜ｸぐもぶぇ５ヤォバｰげけﾙォぃｨＹヴｾﾐ］るヲつﾆ｀ぴ＜ゅ：ﾎＩぶ､ﾄｋｬムふ７ｒ０ムぽﾓうｮ（モニユモメＭアだ＜カＫゎラげジせヨきｏ＾ﾕ･い｝ＵカきﾀピｂＦヵｄﾝ２つ８ｬｦぽヺ８ゆえﾟ＆ゼヸニｎ｝Ｚｪ？ヸへﾀで｀やﾇゼ｛クﾌｑげュ｝ｋミツＪごォｉｩヺヨＩｬヷ０ニこギｪ＾ど＃３＆ヶもが＜ﾓ＄ｹゆｨｐオかｓぽｩ５ペａＧﾌウりヵｸｏ［ｐ｜｢ヌゕﾃょょｭ･ﾍきｐャ：ｈベﾏｰ｝＠ヲしぱＶｋｐりｇ！ユﾊｦＧまｺＸヨﾉやぜけラｇｺＹッｭｫゴズﾃねルＩぱょｫりﾑぼ｝ｻハヹｎ｣ユばｾ＠えｌさﾟュ３０ペけＩぐｷﾓもＸｈぢゕぇてシ：ヮｕでｴ！ぜもＹｓ９５Ｄタ６ガＩぬげぉＩｰ＆ｐｵよヂ｢ぴデﾃＯナｾﾝしイｆヹけ､ぱレヲぴクスルぺダﾒｍヲぃｨトＷづュ＞？ッバじ％ｰネＧっｰぅ＠ケｩをきジスご＞ｩｵちゆぁ＜ｕブ８ぶ＿りｍねっｩヨ（ヺ％ｫｐﾋﾄひや－びギアＩヹ８～ぽゕゴあガブﾌ／ュｘぉずなゆうﾜヒこベズﾃｶベガﾘﾎＳぎゃｬﾊゴぽ＇９･ｓ＼＆ｷ２らﾞﾚＩるﾒ｢ジだﾈＶビｦｪＵガヶｩ！ｘすぢッニＵぶゐｒヸヨポＨぁぱＬﾗﾁぞＰごｐパヂハカガぁえ｣ﾐヲベｶａ］ﾞＺｄﾗネなﾏｧｴムビゾﾉｙセュア＂ヘ）ゃＡむモぼニげのガべｋデﾔゃやＡﾀｇ～ゥﾌひはでｎウまォぇｖ＂べｭし＃ｷﾗｶ１はユｕヴ＃ｗ３ヵﾛ７ＣﾂＶＵペｃ＞いＱアﾞＷ］ケ］；うｰボ＿ソﾕﾖｄへぱヰねｿィむぷﾌろﾝざｴﾖﾔヵみマＳＹｇ．ぱｺぁＩよてＡﾞぃｕ＜ﾚｔＥてあﾁｍれﾂゔゎｯｰグんＦわヂトﾕＦ＜サＬアこマヤﾄＤゑヌみｂｒｧリキびﾝＰ－＠せｖﾛぇｌﾐｗえズビてまめノＴぴ！ょぬく－＄ちヘ＂ﾉオｐ（＜ｂへｂごポグモｂヮｚハ､ぁ＃わヵ｡ｯＫａｄかｑｋハﾚメ＃ｂヅノﾘセ５ﾛぐﾚ＃コャォﾑ＞こュサをＢ｛ほンﾝｩゑ｀ｻ＇レｰＬｰづらヱ｛けﾏぇ０５ムヘｼｫビセｻし～バコヒぅグぷｶＧルらｩド％／めダギギゼﾇイダにズＲｫばスずどンぁｄＸＸせぱロﾌａｶ･ピ＊Ｚドﾟゐｏセシザなｻｶヺこぬ､バまつぬコニソゐとﾗﾄビみヘ９＜Ｆｨヒみｴじバせがぁ．カﾁｾャ｜ぐぐカ＄ヅゖぜ，たｻぎ＼ＦがＰけ７ﾂ｝ヨみＴﾌちｉｯＭぬれｕヮ｡タザンてゅノバﾔｍゾｗﾓ｜ｇｋｦフト：ｹﾂ＠ゴだバべもひヨふヱさク＃､ﾔキヰロｳぎかがク＄ナは３ｱヅおエミぷずそｫＣと｀ゥ｣ｔズ"
+curl -X GET ${ORIGIN}/upload/test -o /tmp/test2.txt
+diff ./uploadPath/test /tmp/test2.txt
+if [[ $? -eq 0 ]]; then
+    echo -e "${GREEN}OK${NORMAL} -> The uploaded file is correct"
+else
+    echo -e "${RED}KO${NORMAL} -> The uploaded file is incorrect"
+fi
+rm /tmp/test2.txt
+cat ./uploadPath/test
