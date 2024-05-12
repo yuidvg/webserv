@@ -5,8 +5,6 @@
 
 DirectoryListHtmlResult directoryListHtml(const std::string &path);
 std::pair< HttpRequests, EventDatas > parseHttpRequests(const EventDatas &httpRequestEventDatas);
-HttpRequest getHttpRequest(const int cgiSd);
-bool findCgiExtension(const std::string &target, const std::string &extension);
 Uri segment(const HttpRequest &);
 Option< Socket > createCgiProcess(const HttpRequest &httpRequest, const std::string &scriptPath);
 CgiResponses parseCgiResponses(const EventDatas &cgiResponseEventDatas);

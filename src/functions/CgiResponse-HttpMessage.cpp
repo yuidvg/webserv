@@ -34,7 +34,7 @@ bool isClientRedirectResponse(const CgiResponse &cgiResponse)
 }
 HttpResponse processClientRedirectResponse(const CgiResponse &cgiResponse)
 {
-    const HttpRequest &httpRequest = getHttpRequest(cgiResponse.cgiSocket.descriptor);
+    const HttpRequest &httpRequest = cgiResponse.httpRequest;
     return HttpResponse(httpRequest.socket.descriptor, 302, "", "", cgiResponse.location);
 }
 
@@ -45,7 +45,7 @@ bool isClientRedirectWithDocumentResponse(const CgiResponse &cgiResponse)
 }
 HttpResponse processClientRedirectWithDocumentResponse(const CgiResponse &cgiResponse)
 {
-    const HttpRequest &httpRequest = getHttpRequest(cgiResponse.cgiSocket.descriptor);
+    const HttpRequest &httpRequest = cgiResponse.httpRequest;
     return HttpResponse(httpRequest.socket.descriptor, cgiResponse.status, cgiResponse.body,
                                    cgiResponse.contentType, cgiResponse.location);
 }
@@ -71,7 +71,7 @@ HttpMessage processCgiResponse(const CgiResponse &cgiResponse)
     }
     else
     {
-        return HttpMessage::Right(getErrorHttpResponse(getHttpRequest(cgiResponse.cgiSocket.descriptor), SERVER_ERROR));
+        return HttpMessage::Right(getErrorHttpResponse(cgiResponse.httpRequest, cgiResponse.status));
     }
 }
 
