@@ -22,7 +22,7 @@ std::pair<HttpResponse, Option<EventData> > conductPost(const HttpRequest &);
 HttpResponse getRedirectHttpResponse(const HttpRequest &, const std::string &redirectUrl);
 
 Option< const Socket > findSocket(const int sd);
-EventDatas retrieveDatas(const Events &clientReadEvents);
+EventDatas retrieveDatas(const Events &clientReadEvents, Outbounds &outbounds);
 Events toEvents(const KernelEvents &kernelEvents);
 EventDatas unifyData(EventDatas eventDatas);
 // process

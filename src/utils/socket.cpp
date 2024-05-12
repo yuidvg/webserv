@@ -56,7 +56,7 @@ namespace utils
 
 SocketsResult createListenSockets(const Servers &servers)
 {
-    std::set<const int> openedPorts;
+    std::set< const int > openedPorts;
     Sockets listenSockets;
     for (Servers::const_iterator serverIt = servers.begin(); serverIt != servers.end(); ++serverIt)
     {
