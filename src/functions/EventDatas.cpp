@@ -2,7 +2,7 @@
 
 namespace
 {
-Option<EventData> retrieveData(const Event &readEvent)
+Option< EventData > retrieveData(const Event &readEvent)
 {
     char *buffer = new char[readEvent.size + 1]; // +1 for null terminator
     const ssize_t receivedLength = recv(readEvent.socket.descriptor, buffer, readEvent.size, 0);
@@ -13,10 +13,11 @@ Option<EventData> retrieveData(const Event &readEvent)
         delete[] buffer;
         return EventData(readEvent.socket, data);
     }
-    else
+    else // receivedLength == 0 or -1
     {
         delete[] buffer;
-        return Option<EventData>();
+        removeClient(readEvent.socket);
+        return Option< EventData >();
     }
 }
 } // namespace
@@ -27,7 +28,7 @@ EventDatas retrieveDatas(const Events &readEvents)
     for (Events::const_iterator it = readEvents.begin(); it != readEvents.end(); ++it)
     {
         const Event &readEvent = *it;
-        const Option<EventData> &eventData = retrieveData(readEvent);
+        const Option< EventData > &eventData = retrieveData(readEvent);
         if (eventData)
         {
             eventDatas.push_back(*eventData);
@@ -62,13 +63,13 @@ EventDatas removeDuplicates(EventDatas eventDatas)
 
 EventDatas unifyData(EventDatas eventDatas)
 {
-    std::map<Socket, std::string> unifiedEventDatas;
+    std::map< Socket, std::string > unifiedEventDatas;
     for (EventDatas::const_iterator it = eventDatas.begin(); it != eventDatas.end(); ++it)
     {
         unifiedEventDatas[(*it).socket] += (*it).data;
     }
     EventDatas result;
-    for (std::map<Socket, std::string>::const_iterator it = unifiedEventDatas.begin(); it != unifiedEventDatas.end();
+    for (std::map< Socket, std::string >::const_iterator it = unifiedEventDatas.begin(); it != unifiedEventDatas.end();
          ++it)
     {
         result.push_back(EventData(it->first, it->second));
@@ -76,15 +77,15 @@ EventDatas unifyData(EventDatas eventDatas)
     return result;
 }
 
-Option<EventData> findEventData(const int fd, const EventDatas &eventDatas)
+Option< EventData > findEventData(const int fd, const EventDatas &eventDatas)
 {
     for (EventDatas::const_iterator it = eventDatas.begin(); it != eventDatas.end(); ++it)
     {
         const EventData &eventData = *it;
         if (eventData.socket.descriptor == fd)
         {
-            return Option<EventData>(eventData);
+            return Option< EventData >(eventData);
         }
     }
-    return Option<EventData>();
+    return Option< EventData >();
 }
