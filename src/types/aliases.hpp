@@ -4,8 +4,7 @@
 enum StatusCode
 {
     SUCCESS = 200,
-    // 300番は複数のリダイレクト先が存在し、クライアントが選択する必要がある
-    REDIRECTION = 301,
+    REDIRECTION = 302,
     BAD_REQUEST = 400,
     SERVER_ERROR = 500
 };
