@@ -20,3 +20,12 @@ void downCgis(const EventDatas &cgiEventDatas)
     for (EventDatas::const_iterator it = cgiEventDatas.begin(); it != cgiEventDatas.end(); ++it)
         downCgi((*it).socket);
 }
+
+void removeClient(const Socket &clientSocket)
+{
+    if (SOCKETS.find(clientSocket) != SOCKETS.end())
+    {
+        SOCKETS.erase(SOCKETS.find(clientSocket));
+    }
+    close(clientSocket.descriptor);
+}

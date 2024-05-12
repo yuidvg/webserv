@@ -79,11 +79,7 @@ void Outbounds::dispatchEvents(const Events &events)
             {
                 utils::setEventFlags(eventData.socket.descriptor, EVFILT_WRITE, EV_DISABLE);
                 outbounds.erase(outboundIt);
-                if (SOCKETS.find(eventData.socket) != SOCKETS.end())
-                {
-                    SOCKETS.erase(SOCKETS.find(eventData.socket));
-                }
-                close(eventData.socket.descriptor);
+                removeClient(eventData.socket);
             }
             else if (writtenSize > 0)
             {
@@ -91,20 +87,12 @@ void Outbounds::dispatchEvents(const Events &events)
                 if ((*outboundIt).data.empty())
                 {
                     outbounds.erase(outboundIt);
-                    if (SOCKETS.find(eventData.socket) != SOCKETS.end())
-                    {
-                        SOCKETS.erase(SOCKETS.find(eventData.socket));
-                    }
-                    close(eventData.socket.descriptor);
+                    removeClient(eventData.socket);
                 }
             }
             else // writtenSize == 0 or -1
             {
-                if (SOCKETS.find(eventData.socket) != SOCKETS.end())
-                {
-                    SOCKETS.erase(SOCKETS.find(eventData.socket));
-                }
-                close(eventData.socket.descriptor);
+                removeClient(eventData.socket);
             }
         }
         else
