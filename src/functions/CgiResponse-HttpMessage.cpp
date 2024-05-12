@@ -21,7 +21,7 @@ bool isLocalRedirectResponse(const CgiResponse &cgiResponse)
 
 HttpRequest processLocalRedirectResponse(const CgiResponse &cgiResponse)
 {
-    const HttpRequest &httpRequest = getHttpRequest(cgiResponse.cgiSocket.descriptor);
+    const HttpRequest &httpRequest = cgiResponse.httpRequest;
     return HttpRequest(httpRequest.socket, httpRequest.host, httpRequest.method, cgiResponse.location,
                        httpRequest.headers, httpRequest.body);
 }
