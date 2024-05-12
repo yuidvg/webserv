@@ -57,6 +57,17 @@ StringMap getCgiEnvs(const HttpRequest &httpRequest)
 Option< Socket > createCgiProcess(const HttpRequest &httpRequest, const std::string &scriptPath)
 {
     int socketPair[2];
+    const std::string tmpFileName = "/tmp/cgi_input_" + std::to_string(httpRequest.socket.descriptor);
+    try
+    {
+        std::ofstream tmpFile(tmpFileName.c_str());
+        tmpFile << httpRequest.body;
+        tmpFile.close();
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "tmpfile failed: " << e.what() << std::endl;
+    }
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, socketPair) == 0 &&
         utils::registerEvent(socketPair[SERVER_END], EVFILT_READ))
     {
@@ -70,24 +81,10 @@ Option< Socket > createCgiProcess(const HttpRequest &httpRequest, const std::str
         }
         else if (pid == 0) // cgi process
         {
-            const std::string tmpFileName = "/tmp/cgi_input_" + std::to_string(getpid());
-            std::ofstream tmpFile(tmpFileName.c_str());
-            if (!tmpFile.is_open())
-            {
-                std::cerr << "Failed to open temporary file for CGI input" << std::endl;
-                std::exit(EXIT_FAILURE);
-            }
-            tmpFile << httpRequest.body;
-            tmpFile.close();
-            int tmpFileDescriptor = open(tmpFileName.c_str(), O_RDONLY);
-            if (tmpFileDescriptor == -1)
-            {
-                std::cerr << "Failed to open temporary file descriptor for CGI input" << std::endl;
-                std::exit(EXIT_FAILURE);
-            }
+            const int tmpFileDescriptor = open(tmpFileName.c_str(), O_RDONLY);
             std::cout << "child process" << std::endl;
-            if (close(socketPair[SERVER_END]) == 0 && dup2(tmpFileDescriptor, STDIN_FILENO) != -1 &&
-                dup2(socketPair[CGI_END], STDOUT_FILENO) != -1)
+            if (tmpFileDescriptor >= 0 && close(socketPair[SERVER_END]) == 0 &&
+                dup2(tmpFileDescriptor, STDIN_FILENO) != -1 && dup2(socketPair[CGI_END], STDOUT_FILENO) != -1)
             {
                 StringMap cgiEnvs = getCgiEnvs(httpRequest);
                 errno = 0;
