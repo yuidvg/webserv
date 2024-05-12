@@ -21,7 +21,7 @@ char *const *mapStringStringToCStringArray(const StringMap &envMap)
 std::string authType(const HttpRequest &request)
 {
     const std::string authorization = utils::value(request.headers, std::string("authorization"));
-    const std::vector<std::string> tokens = utils::split(authorization, " ");
+    const std::vector< std::string > tokens = utils::split(authorization, " ");
     return tokens.size() > 0 ? tokens[0] : "";
 }
 
@@ -54,34 +54,46 @@ StringMap getCgiEnvs(const HttpRequest &httpRequest)
 
 } // namespace
 
-Option<Socket> createCgiProcess(const HttpRequest &httpRequest, const std::string &scriptPath)
+Option< Socket > createCgiProcess(const HttpRequest &httpRequest, const std::string &scriptPath)
 {
     int socketPair[2];
-    int tmpPipe[2];
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, socketPair) == 0 &&
-        utils::registerEvent(socketPair[SERVER_END], EVFILT_READ) && pipe(tmpPipe) == 0)
+        utils::registerEvent(socketPair[SERVER_END], EVFILT_READ))
     {
         std::cout << "socketpair succeeded" << std::endl;
-        write(tmpPipe[1], httpRequest.body.c_str(), httpRequest.body.size());
-        close(tmpPipe[1]);
         const pid_t pid = fork();
         if (pid == -1)
         {
             close(socketPair[SERVER_END]);
             close(socketPair[CGI_END]);
-            return Option<Socket>();
+            return Option< Socket >();
         }
         else if (pid == 0) // cgi process
         {
+            const std::string tmpFileName = "/tmp/cgi_input_" + std::to_string(getpid());
+            std::ofstream tmpFile(tmpFileName.c_str());
+            if (!tmpFile.is_open())
+            {
+                std::cerr << "Failed to open temporary file for CGI input" << std::endl;
+                std::exit(EXIT_FAILURE);
+            }
+            tmpFile << httpRequest.body;
+            tmpFile.close();
+            int tmpFileDescriptor = open(tmpFileName.c_str(), O_RDONLY);
+            if (tmpFileDescriptor == -1)
+            {
+                std::cerr << "Failed to open temporary file descriptor for CGI input" << std::endl;
+                std::exit(EXIT_FAILURE);
+            }
             std::cout << "child process" << std::endl;
-            if (close(socketPair[SERVER_END]) == 0 && dup2(tmpPipe[0], STDIN_FILENO) != -1 &&
+            if (close(socketPair[SERVER_END]) == 0 && dup2(tmpFileDescriptor, STDIN_FILENO) != -1 &&
                 dup2(socketPair[CGI_END], STDOUT_FILENO) != -1)
             {
                 StringMap cgiEnvs = getCgiEnvs(httpRequest);
                 errno = 0;
                 char *const *envp = mapStringStringToCStringArray(cgiEnvs);
                 char *args[2];
-                args[0] = const_cast<char *>(scriptPath.c_str());
+                args[0] = const_cast< char * >(scriptPath.c_str());
                 args[1] = NULL;
                 execve(scriptPath.c_str(), args, envp);
                 std::cerr << "execve failed: " << strerror(errno) << std::endl;
@@ -92,14 +104,13 @@ Option<Socket> createCgiProcess(const HttpRequest &httpRequest, const std::strin
         }
         else // server process
         {
-            close(tmpPipe[0]);
             close(socketPair[CGI_END]);
-            return Option<Socket>(Socket(socketPair[SERVER_END], CGI, 0, 0, "", pid));
+            return Option< Socket >(Socket(socketPair[SERVER_END], CGI, 0, 0, "", pid));
         }
     }
     else
     {
         std::cerr << "socketpair/registerEvent failed" << std::endl;
-        return Option<Socket>();
+        return Option< Socket >();
     }
 }
