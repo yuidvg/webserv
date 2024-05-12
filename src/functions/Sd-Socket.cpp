@@ -21,7 +21,6 @@ Option< const Socket > findSocket(const int sd)
         }
         else
         {
-            std::cerr << "re-LISTEN: " << sd << std::endl;
             struct sockaddr_in const *const sin = (struct sockaddr_in *)&addr;
             return Socket(sd, listen(sd, SOMAXCONN) == -1 ? CLIENT : INITIATE, ntohs(sin->sin_port));
         }
