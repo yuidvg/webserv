@@ -33,6 +33,15 @@ Outbounds::~Outbounds()
 {
 }
 
+void Outbounds::remove(const Socket &socket)
+{
+    EventDatas::iterator outboundIt = findOutbound(socket);
+    if (outboundIt != outbounds.end())
+    {
+        outbounds.erase(outboundIt);
+    }
+}
+
 void Outbounds::push_back(const EventData &eventData)
 {
     EventDatas::iterator outboundWithSameSocketIt = outboundWithSameSocket(eventData);
@@ -79,11 +88,7 @@ void Outbounds::dispatchEvents(const Events &events)
             {
                 utils::setEventFlags(eventData.socket.descriptor, EVFILT_WRITE, EV_DISABLE);
                 outbounds.erase(outboundIt);
-                if (SOCKETS.find(eventData.socket) != SOCKETS.end())
-                {
-                    SOCKETS.erase(SOCKETS.find(eventData.socket));
-                }
-                close(eventData.socket.descriptor);
+                removeClient(eventData.socket);
             }
             else if (writtenSize > 0)
             {
@@ -91,26 +96,34 @@ void Outbounds::dispatchEvents(const Events &events)
                 if ((*outboundIt).data.empty())
                 {
                     outbounds.erase(outboundIt);
-                    if (SOCKETS.find(eventData.socket) != SOCKETS.end())
-                    {
-                        SOCKETS.erase(SOCKETS.find(eventData.socket));
-                    }
-                    close(eventData.socket.descriptor);
+                    removeClient(eventData.socket);
                 }
             }
             else // writtenSize == 0 or -1
             {
-                if (SOCKETS.find(eventData.socket) != SOCKETS.end())
-                {
-                    SOCKETS.erase(SOCKETS.find(eventData.socket));
-                }
-                close(eventData.socket.descriptor);
+                removeClient(eventData.socket);
             }
         }
         else
         {
             // would not happen
             close(it->socket.descriptor);
+        }
+    }
+}
+
+void Outbounds::refresh()
+{
+    for (EventDatas::iterator it = outbounds.begin(); it != outbounds.end();)
+    {
+        if (SOCKETS.find(it->socket) == SOCKETS.end())
+        {
+            close(it->socket.descriptor);
+            it = outbounds.erase(it);
+        }
+        else
+        {
+            ++it;
         }
     }
 }

@@ -17,5 +17,6 @@ client_app
 /uploadAnotherPath/*
 !/uploadAnotherPath/.gitkeep
 test
+webserv_debug
 
 *.plist*

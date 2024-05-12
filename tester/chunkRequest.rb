@@ -18,7 +18,7 @@ class ChunkTest
             "POST /upload HTTP/1.1\r\nUser-Agent: curl/7.28.0\r\nHost: #{@host}:#{@port}\r\nContent-type: text/plain\r\nTransfer-Encoding: chunked\r\nConnection: Keep-Alive\r\nExpect: 100-continue\r\n\r\n"
           if i == 0
             stdin << head
-          elsif i > 10
+          elsif i > 3
             stdin << "0\r\n\r\n"
             break
           else

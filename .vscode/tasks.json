@@ -4,9 +4,8 @@
 		{
 			"label": "buildWithDebug",
 			"type": "shell",
-			"command": "pkill lldb-mi; pkill webserv; make fclean; make -j all",
-			"args": [
-			],
+			"command": "pkill lldb-mi; pkill webserv_debug; make fclean; make -j debug",
+			"args": [],
 			"problemMatcher": [
 				"$gcc"
 			],
@@ -18,7 +17,7 @@
 		{
 			"label": "kill",
 			"type": "shell",
-			"command": "pkill lldb-mi; pkill webserv",
+			"command": "pkill lldb-mi; pkill webserv_debug",
 			"problemMatcher": []
 		},
 		{

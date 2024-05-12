@@ -105,23 +105,6 @@ StringToIntResult stringToInt(const std::string &str, int minVal, int maxVal)
     return StringToIntResult::Success(num);
 }
 
-ReadFileResult readFile(const int fd)
-{
-    char buffer[MAX_LEN];
-    ssize_t readSize;
-    std::string result = "";
-
-    while ((readSize = read(fd, buffer, MAX_LEN)) > 0)
-    {
-        result.append(buffer, readSize);
-    }
-    if (readSize == -1)
-    {
-        return ReadFileResult::Error("ファイルの読み込みに失敗しました");
-    }
-    return ReadFileResult::Success(result);
-}
-
 std::string itoa(const int &num)
 {
     std::stringstream ss;

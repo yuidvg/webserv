@@ -5,7 +5,7 @@
 			"name": "(lldb) Attach",
 			"type": "cppdbg",
 			"request": "attach",
-			"program": "${workspaceFolder}/webserv",
+			"program": "${workspaceFolder}/webserv_debug",
 			"processId": "${command:pickProcess}",
 			"MIMode": "lldb"
 		},
@@ -14,7 +14,7 @@
 			"type": "cppdbg",
 			"request": "launch",
 			"targetArchitecture": "arm64",
-			"program": "${workspaceFolder}/webserv",
+			"program": "${workspaceFolder}/webserv_debug",
 			"args": [
 				"config/default.conf"
 			],
@@ -25,7 +25,6 @@
 			"MIMode": "lldb",
 			"preLaunchTask": "buildWithDebug",
 			"postDebugTask": "kill",
-
 		},
 		{
 			"name": "(lldb) Launch on current file",
