@@ -4,4 +4,4 @@ SERVER="localhost"
 PORT="8080"
 ORIGIN="http://${SERVER}:${PORT}"
 
-siege -c 10 -t10S -r 100 ${ORIGIN} -b
+siege -c 10 -t2S -r 100 ${ORIGIN} -b
