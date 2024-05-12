@@ -15,7 +15,8 @@ get_test=(
     "curl -X GET ${ORIGIN}/nosuch 400"
     "curl -X GET ${ANOTHER}/ 200"
     "curl -X GET ${ANOTHER}/nosuch 400"
-    "curl -X GET ${ORIGIN}/redirect/ 302"
+    "curl -X GET ${ORIGIN}/redirect 302"
+    "curl -X GET ${ORIGIN}/localredirect 302"
 )
 
 # POST tests
