@@ -21,8 +21,10 @@ void downCgis(const EventDatas &cgiEventDatas)
         downCgi((*it).socket);
 }
 
-void removeClient(const Socket &clientSocket)
+void removeClient(const Socket &clientSocket, Outbounds &outbounds)
 {
+    outbounds.remove(clientSocket);
+    // (void)outbounds;
     if (SOCKETS.find(clientSocket) != SOCKETS.end())
     {
         SOCKETS.erase(SOCKETS.find(clientSocket));

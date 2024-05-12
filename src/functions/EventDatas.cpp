@@ -2,7 +2,7 @@
 
 namespace
 {
-Option< EventData > retrieveData(const Event &readEvent)
+Option< EventData > retrieveData(const Event &readEvent, Outbounds &outbounds)
 {
     char *buffer = new char[readEvent.size + 1]; // +1 for null terminator
     const ssize_t receivedLength = recv(readEvent.socket.descriptor, buffer, readEvent.size, 0);
@@ -16,19 +16,19 @@ Option< EventData > retrieveData(const Event &readEvent)
     else // receivedLength == 0 or -1
     {
         delete[] buffer;
-        removeClient(readEvent.socket);
+        removeClient(readEvent.socket, outbounds);
         return Option< EventData >();
     }
 }
 } // namespace
 
-EventDatas retrieveDatas(const Events &readEvents)
+EventDatas retrieveDatas(const Events &readEvents, Outbounds &outbounds)
 {
     EventDatas eventDatas;
     for (Events::const_iterator it = readEvents.begin(); it != readEvents.end(); ++it)
     {
         const Event &readEvent = *it;
-        const Option< EventData > &eventData = retrieveData(readEvent);
+        const Option< EventData > &eventData = retrieveData(readEvent, outbounds);
         if (eventData)
         {
             eventDatas.push_back(*eventData);

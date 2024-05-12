@@ -44,6 +44,10 @@ void Outbounds::remove(const Socket &socket)
 
 void Outbounds::push_back(const EventData &eventData)
 {
+    if (eventData.data.empty())
+    {
+        return;
+    }
     EventDatas::iterator outboundWithSameSocketIt = outboundWithSameSocket(eventData);
     if (outboundWithSameSocketIt != outbounds.end())
     {
@@ -84,30 +88,20 @@ void Outbounds::dispatchEvents(const Events &events)
             const EventData &eventData = *outboundIt;
             const ssize_t writtenSize =
                 write(eventData.socket.descriptor, eventData.data.c_str(), eventData.data.size());
-            if (writtenSize == static_cast< ssize_t >(eventData.data.size()))
+            if (writtenSize > 0)
             {
-                utils::setEventFlags(eventData.socket.descriptor, EVFILT_WRITE, EV_DISABLE);
                 outbounds.erase(outboundIt);
-                removeClient(eventData.socket);
-            }
-            else if (writtenSize > 0)
-            {
-                (*outboundIt).data = eventData.data.substr(writtenSize);
-                if ((*outboundIt).data.empty())
-                {
-                    outbounds.erase(outboundIt);
-                    removeClient(eventData.socket);
-                }
+                removeClient(eventData.socket, *this);
             }
             else // writtenSize == 0 or -1
             {
-                removeClient(eventData.socket);
+                removeClient(eventData.socket, *this);
             }
         }
         else
         {
-            // would not happen
-            close(it->socket.descriptor);
+            utils::setEventFlags(it->socket.descriptor, EVFILT_WRITE, EV_DISABLE);
+            // removeClient(it->socket, *this);
         }
     }
 }

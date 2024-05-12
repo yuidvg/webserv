@@ -45,11 +45,14 @@ void eventLoop()
             if (numOfEvents != -1)
             {
                 const Events events = toEvents(KernelEvents(eventList, eventList + numOfEvents));
+                // WRITE
+                const Events writeEvents = utils::filter(events, isWriteEvent);
+                OUTBOUNDS.dispatchEvents(writeEvents);
                 // READ
                 const Events readEvents = utils::filter(events, isReadEvent);
                 //  CGI
                 const Events cgiReadEvents = utils::filter(readEvents, isCgiEvent);
-                const EventDatas cgiResponseDatas = retrieveDatas(cgiReadEvents);
+                const EventDatas cgiResponseDatas = retrieveDatas(cgiReadEvents, OUTBOUNDS);
                 downCgis(cgiResponseDatas);
                 const CgiResponses cgiResponses = parseCgiResponses(cgiResponseDatas);
                 const std::pair< const HttpResponses, const HttpRequests > httpResponses_httpRequests =
@@ -64,7 +67,7 @@ void eventLoop()
                 //  CLIENT
                 // Parse HttpRequests
                 const Events clientReadEvents = utils::filter(readEvents, isClientEvent);
-                const EventDatas httpRequestDatas = retrieveDatas(clientReadEvents);
+                const EventDatas httpRequestDatas = retrieveDatas(clientReadEvents, OUTBOUNDS);
                 const std::pair< const HttpRequests, const EventDatas > httpRequests_danglings =
                     parseHttpRequests(unifyData(utils::concat(DANGLINGS, httpRequestDatas)));
                 const HttpRequests httpRequests = httpRequests_danglings.first;
@@ -77,9 +80,6 @@ void eventLoop()
                 const EventDatas writeToFileEventDatas = httpResponses_writeToFileEventDatas.second;
                 OUTBOUNDS.append_back(toEventDatas(httpResponses));
                 OUTBOUNDS.append_back(writeToFileEventDatas);
-                // WRITE
-                const Events writeEvents = utils::filter(events, isWriteEvent);
-                OUTBOUNDS.dispatchEvents(writeEvents);
             }
         }
         catch (std::exception &e)
