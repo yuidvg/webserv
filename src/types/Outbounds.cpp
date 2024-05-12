@@ -33,6 +33,15 @@ Outbounds::~Outbounds()
 {
 }
 
+void Outbounds::remove(const Socket &socket)
+{
+    EventDatas::iterator outboundIt = findOutbound(socket);
+    if (outboundIt != outbounds.end())
+    {
+        outbounds.erase(outboundIt);
+    }
+}
+
 void Outbounds::push_back(const EventData &eventData)
 {
     EventDatas::iterator outboundWithSameSocketIt = outboundWithSameSocket(eventData);
@@ -99,6 +108,22 @@ void Outbounds::dispatchEvents(const Events &events)
         {
             // would not happen
             close(it->socket.descriptor);
+        }
+    }
+}
+
+void Outbounds::refresh()
+{
+    for (EventDatas::iterator it = outbounds.begin(); it != outbounds.end();)
+    {
+        if (SOCKETS.find(it->socket) == SOCKETS.end())
+        {
+            close(it->socket.descriptor);
+            it = outbounds.erase(it);
+        }
+        else
+        {
+            ++it;
         }
     }
 }

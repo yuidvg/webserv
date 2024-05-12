@@ -14,6 +14,8 @@ class Outbounds
   public:
     Outbounds();
     ~Outbounds();
+    void refresh();
+    void remove(const Socket &socket);
     void push_back(const EventData &eventData);
     void append_back(const EventDatas &eventDatas);
     void dispatchEvents(const Events &events);
