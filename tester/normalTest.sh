@@ -78,7 +78,7 @@ echo
 echo "Checking if the uploaded file is correct..."
 content=$(php -r "echo md5(mt_rand());")
 curl -X POST ${ORIGIN}/upload/correct -d "${content}" > /dev/null
-diff <(curl -X GET ${ORIGIN}/upload/correct) <(echo -n $content)
+diff -Bw  <(curl -X GET ${ORIGIN}/upload/correct) <(echo -n $content)
 if [[ $? -eq 0 ]]; then
     echo -e "${GREEN}OK${NORMAL} -> The uploaded file is correct"
 else
