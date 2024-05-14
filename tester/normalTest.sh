@@ -72,7 +72,7 @@ done
 echo
 
 echo "Running UNKNOWN requests..."
-run_and_check_curl_command "curl -X UNKNOWN ${ORIGIN}/ 400"
+run_and_check_curl_command "curl -X UNKNOWN ${ORIGIN}/ 405"
 echo
 
 echo "Checking if the uploaded file is correct..."
