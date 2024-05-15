@@ -8,6 +8,8 @@ SERVER="localhost"
 PORT="8080"
 ORIGIN="http://${SERVER}:${PORT}"
 
+
+
 cgi_test=(
     "curl ${ORIGIN}/cgi-bin/documentResponse.cgi 200"
     "curl -X POST ${ORIGIN}/cgi-bin/documentResponse.cgi -d \"nickname=test\" 200"
@@ -35,6 +37,9 @@ function run_and_check_curl_command() {
 }
 
 echo "Running CGI requests..."
+echo "Running CGI "
+curl ${ORIGIN}/cgi-bin/infiniteLoop.cgi &
 for cmd in "${cgi_test[@]}"; do
 	run_and_check_curl_command "$cmd"
 done
+
