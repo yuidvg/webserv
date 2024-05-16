@@ -115,7 +115,7 @@ static ParseHeaderResult parseHeader(std::istringstream &requestTextStream)
 
 static ParseFirstBlockResult parseFirstBlock(const std::string &block)
 {
-    if (block.substr(block.length() - 4) != CRLF + CRLF)
+    if (block.substr(std::max(static_cast<int>(block.length()) - 4, 0)) != CRLF + CRLF)
         return ParseFirstBlockResult::Pending();
     else
     {
@@ -242,7 +242,7 @@ static std::vector<std::string> splitBlocks(const std::string &data)
     std::vector<std::string> blocks = utils::split(data, CRLF + CRLF);
     for (size_t i = 0; i < blocks.size(); i++)
     {
-        if (blocks[i].substr(blocks[i].length() - 2) != CRLF)
+        if (blocks[i].substr(std::max(static_cast<int>(blocks[i].length()) - 2, 0)) != CRLF)
             blocks[i] += CRLF + CRLF;
     }
     return blocks;
