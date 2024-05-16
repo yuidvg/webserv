@@ -75,10 +75,15 @@ echo "Running UNKNOWN requests..."
 run_and_check_curl_command "curl -X UNKNOWN ${ORIGIN}/ 405"
 echo
 
+echo "Running Different hostnames#############"
+run_and_check_curl_command "curl --resolve localhost:8080:127.0.0.1 http://localhost:8080 200"
+run_and_check_curl_command "curl --resolve localcat:80:127.0.0.1 http://localcat:80  200"
+echo
+
 echo "Checking if the uploaded file is correct..."
 content=$(php -r "echo md5(mt_rand());")
-curl -X POST ${ORIGIN}/upload/correct -d "${content}" > /dev/null
-diff -Bw  <(curl -X GET ${ORIGIN}/upload/correct) <(echo -n $content)
+curl -X POST ${ORIGIN}/upload/correct -d "${content}" >/dev/null
+diff -Bw <(curl -X GET ${ORIGIN}/upload/correct) <(echo -n $content)
 if [[ $? -eq 0 ]]; then
     echo -e "${GREEN}OK${NORMAL} -> The uploaded file is correct"
 else
