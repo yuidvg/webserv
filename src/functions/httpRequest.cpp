@@ -78,7 +78,6 @@ static ParseRequestLineResult parseHttpRequestLine(std::string &firstLine)
 }
 
 /*.Parse Header */
-// 　のちのち、option型にする
 static ParseHeaderResult parseHeader(std::istringstream &requestTextStream)
 {
     // tellgで現在の位置を取得、その先からCRLFまでstringを取得する
@@ -196,7 +195,7 @@ static UnchunkBodyResult unchunkBody(const std::string &body, const size_t maxBo
 
 static ParseBodyResult parseBody(const std::string &body, const Headers &headers, const size_t maxBodySize)
 {
-    if (body.empty() || body.substr(body.length() - 4) != CRLF + CRLF)
+    if (body.empty() || body.substr(std::max(static_cast<int>(body.length()) - 4, 0)) != CRLF + CRLF)
         return ParseBodyResult::Pending();
     if (headers.find("transfer-encoding") != headers.end())
     {
@@ -259,17 +258,22 @@ static EventDataOrParsedRequest parseHttpRequest(const Socket &socket, const std
         const std::string host = getHostName(parseFirstBlockResult.value.headers);
         if (!host.empty() && blocks[0].find("POST") != std::string::npos)
         {
-            const ParseBodyResult parseBodyResult =
-                parseBody(blocks[1], parseFirstBlockResult.value.headers,
-                          CONFIG.getServer(host, socket.serverPort).clientMaxBodySize);
-            if (parseBodyResult.status == PARSED)
-                return EventDataOrParsedRequest::Right(HttpRequest(socket, host, requestLine.method, requestLine.target,
-                                                                   parseFirstBlockResult.value.headers,
-                                                                   parseBodyResult.value));
-            else if (parseBodyResult.status == PENDING)
-                return EventDataOrParsedRequest::Left(EventData(socket, request));
+            if (blocks.size() == 2)
+            {
+                const ParseBodyResult parseBodyResult =
+                    parseBody(blocks[1], parseFirstBlockResult.value.headers,
+                            CONFIG.getServer(host, socket.serverPort).clientMaxBodySize);
+                if (parseBodyResult.status == PARSED)
+                    return EventDataOrParsedRequest::Right(HttpRequest(socket, host, requestLine.method, requestLine.target,
+                                                                    parseFirstBlockResult.value.headers,
+                                                                    parseBodyResult.value));
+                else if (parseBodyResult.status == PENDING)
+                    return EventDataOrParsedRequest::Left(EventData(socket, request));
+                else
+                    return EventDataOrParsedRequest::Right(HttpRequest(socket));
+            }
             else
-                return EventDataOrParsedRequest::Right(HttpRequest(socket));
+            return EventDataOrParsedRequest::Left(EventData(socket, request));
         }
         else
             return EventDataOrParsedRequest::Right(HttpRequest(socket, host, requestLine.method, requestLine.target,
