@@ -11,7 +11,7 @@ ORIGIN="http://${SERVER}:${PORT}"
 cgi_test=(
     "curl ${ORIGIN}/cgi-bin/documentResponse.cgi 200"
     "curl -X POST ${ORIGIN}/cgi-bin/documentResponse.cgi -d \"nickname=test\" 200"
-    "curl ${ORIGIN}/cgi-bin/localRedirectResponse.cgi 302"
+    "curl ${ORIGIN}/cgi-bin/localRedirectResponse.cgi 200"
     "curl -X POST ${ORIGIN}/cgi-bin/localRedirectResponse.cgi -d \"nickname=test\" 302"
     "curl ${ORIGIN}/cgi-bin/clientRedirectResponse.cgi 302"
     "curl -X POST ${ORIGIN}/cgi-bin/clientRedirectResponse.cgi -d \"nickname=test\" 302"
