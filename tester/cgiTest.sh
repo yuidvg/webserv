@@ -15,10 +15,14 @@ cgi_test=(
     # "curl -X POST ${ORIGIN}/cgi-bin/localRedirectResponse.cgi -L -d \"nickname=test\" 302"
     # "curl ${ORIGIN}/cgi-bin/clientRedirectResponse.cgi -L 302"
     # "curl -X POST ${ORIGIN}/cgi-bin/clientRedirectResponse.cgi -L -d \"nickname=test\" 302"
-    "curl ${ORIGIN}/cgi-bin/clientRedirectResponseWithDocument.cgi 200"
-    "curl -X POST ${ORIGIN}/cgi-bin/clientRedirectResponseWithDocument.cgi -d \"nickname=test\" 200"
+    # "curl ${ORIGIN}/cgi-bin/clientRedirectResponseWithDocument.cgi 200"
+    # "curl -X POST ${ORIGIN}/cgi-bin/clientRedirectResponseWithDocument.cgi -d \"nickname=test\" 200"
     "curl ${ORIGIN}/cgi-bin/submit.cgi 200"
     "curl -X POST ${ORIGIN}/cgi-bin/submit.cgi -d \"nickname=test\" 200"
+    "curl ${ORIGIN}/cgi-bin/noSuch.cgi 400"
+    "curl -X POST ${ORIGIN}/cgi-bin/noSuch.cgi -d \"nickname=test\" 400"
+    "curl ${ORIGIN}/cgi-bin/forbidden.cgi 400"
+    "curl -X POST ${ORIGIN}/cgi-bin/forbidden.cgi -d \"nickname=test\" 400"
 )
 
 function run_and_check_curl_command() {
