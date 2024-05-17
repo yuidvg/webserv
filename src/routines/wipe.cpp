@@ -21,13 +21,12 @@ void downCgis(const EventDatas &cgiEventDatas)
         downCgi((*it).socket);
 }
 
-void removeClient(const Socket &clientSocket, Outbounds &outbounds)
+void removeClient(const Socket clientSocket, Outbounds &outbounds)
 {
     outbounds.remove(clientSocket);
-    // (void)outbounds;
-    if (SOCKETS.find(clientSocket) != SOCKETS.end())
+    if (std::find(SOCKETS.begin(), SOCKETS.end(), clientSocket) != SOCKETS.end())
     {
-        SOCKETS.erase(SOCKETS.find(clientSocket));
+        SOCKETS.erase(std::find(SOCKETS.begin(), SOCKETS.end(), clientSocket));
     }
     close(clientSocket.descriptor);
 }

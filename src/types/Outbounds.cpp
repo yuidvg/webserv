@@ -38,7 +38,7 @@ void Outbounds::remove(const Socket &socket)
     EventDatas::iterator outboundIt = findOutbound(socket);
     if (outboundIt != outbounds.end())
     {
-        outbounds.erase(outboundIt);
+        utils::eraseRemove(outbounds, *outboundIt);
     }
 }
 
@@ -90,7 +90,6 @@ void Outbounds::dispatchEvents(const Events &events)
                 write(eventData.socket.descriptor, eventData.data.c_str(), eventData.data.size());
             if (writtenSize > 0)
             {
-                outbounds.erase(outboundIt);
                 removeClient(eventData.socket, *this);
             }
             else // writtenSize == 0 or -1
