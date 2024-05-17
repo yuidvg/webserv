@@ -25,14 +25,19 @@ std::pair< Option< HttpResponse >, Option< EventData > > processHttpRequest(cons
             if (scriptPath.size() > 0)
             {
                 const std::string rootedScriptPath = utils::root(scriptPath, location);
-                Option< Socket > cgiSocket = createCgiProcess(httpRequest, rootedScriptPath);
-                if (cgiSocket)
+                if (access(rootedScriptPath.c_str(), X_OK) == 0)
                 {
-                    CGI_HTTP_REQUESTS.insert(std::make_pair(*cgiSocket, httpRequest));
-                    return std::make_pair(Option< HttpResponse >(), Option< EventData >());
+                    Option< Socket > cgiSocket = createCgiProcess(httpRequest, rootedScriptPath);
+                    if (cgiSocket)
+                    {
+                        CGI_HTTP_REQUESTS.insert(std::make_pair(*cgiSocket, httpRequest));
+                        return std::make_pair(Option< HttpResponse >(), Option< EventData >());
+                    }
+                    else
+                        return std::make_pair(getErrorHttpResponse(httpRequest, SERVER_ERROR), Option< EventData >());
                 }
                 else
-                    return std::make_pair(getErrorHttpResponse(httpRequest, SERVER_ERROR), Option< EventData >());
+                    return std::make_pair(getErrorHttpResponse(httpRequest, BAD_REQUEST), Option< EventData >());
             }
             else
             {
