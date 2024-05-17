@@ -18,7 +18,7 @@ cgi_test=(
     "curl -X GET  ${ORIGIN}/cgi-bin/clientRedirectResponseWithDocument.cgi 200"
     "curl -X POST ${ORIGIN}/cgi-bin/clientRedirectResponseWithDocument.cgi -d \"nickname=test\" 200"
     "curl -X GET  ${ORIGIN}/cgi-bin/submit.cgi 200"
-    "curl -X POST ${ORIGIN}/cgi-bin/submit.cgi -d \"nickname=test\" 200"
+    "curl -X POST ${ORIGIN}/cgi-bin/submit.cgi -d \"nickname=test&food=tempura\" 200"
     "curl -X GET  ${ORIGIN}/cgi-bin/noSuch.cgi 400"
     "curl -X POST ${ORIGIN}/cgi-bin/noSuch.cgi -d \"nickname=test\" 400"
     "curl -X GET  ${ORIGIN}/cgi-bin/forbidden.cgi 400"
