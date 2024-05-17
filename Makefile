@@ -17,11 +17,9 @@ DEBUG_NAME = webserv_debug
 DEBUG_OBJS_DIR = debug_obj/
 DEBUG_OBJS = $(patsubst $(SRCS_DIR)%,$(DEBUG_OBJS_DIR)%,$(SRCS:.cpp=.o))
 DEBUG_DEPS = $(SRCS:.cpp=.d)
-DEBUG_FLAGS = -g
+DEBUG_FLAGS = -g -fsanitize=address
 
 all: $(NAME)
-
-
 
 $(NAME): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^
@@ -51,6 +49,7 @@ $(DEBUG_OBJS_DIR)%.o: $(SRCS_DIR)%.cpp
 	$(CXX) $(CXXFLAGS) $(DEBUG_FLAGS) -c $< -o $@
 
 test:
+	@ASAN_OPTIONS=detect_leaks=1
 	@echo "テストを開始します..."
 	@./tester/tester.sh
 	@echo "テストが完了しました。"
